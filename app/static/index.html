@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>sort.me — Card Sorter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="dot"></span>
+      <span class="wordmark">sort.me</span>
+    </div>
+    <nav class="right">
+      <button id="btnEStop" class="danger">E-STOP</button>
+      <button id="btnPause" class="secondary">Pause</button>
+      <button id="btnResume" class="primary hidden">Resume</button>
+      <label class="toggle">
+        <input type="checkbox" id="demoToggle" />
+        <span>Demo Mode</span>
+      </label>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Step 1: Onboarding & Calibration -->
+    <section id="panelCalibrate" class="panel">
+      <h2>Onboarding & Calibration</h2>
+      <p class="muted">Quick, safe checks you can run anytime.</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>Home Axes</h3>
+          <p class="muted">Homes X/Y/Z. Required before motion.</p>
+          <div class="row">
+            <button id="btnHomeAll" class="primary">Home All</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Pickup Assembly Test</h3>
+          <p class="muted">Verify plunger motion, limit switch, and vacuum.</p>
+          <div class="row">
+            <button id="btnPlungerDown">Plunger Down</button>
+            <button id="btnPlungerUp">Plunger Up</button>
+          </div>
+          <div class="row">
+            <button id="btnVacuumOn">Vacuum On</button>
+            <button id="btnVacuumOff">Vacuum Off</button>
+          </div>
+          <div class="sensor-line">
+            <span>Limit Switch:</span>
+            <span id="limSwitch" class="chip">Unknown</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Optical Check</h3>
+          <p class="muted">Confirm camera feed and OCR readiness.</p>
+          <div class="camera">
+            <img id="cameraFeed" alt="Camera preview" />
+          </div>
+          <div class="row">
+            <button id="btnSnap" class="secondary">Snapshot OCR</button>
+            <span id="ocrPreview" class="ocr-text muted">No text yet</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row end">
+        <button id="btnToSetup" class="primary">Proceed to Sorting Setup</button>
+      </div>
+    </section>
+
+    <!-- Step 2: Sorting Setup -->
+    <section id="panelSetup" class="panel hidden">
+      <h2>Sorting Setup</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Parameters</h3>
+          <div class="form">
+            <label for="gameSelect">Card Game</label>
+            <select id="gameSelect" required>
+              <option value="" disabled selected>Select a game</option>
+              <option value="mtg">Magic: The Gathering</option>
+              <option value="ygo">Yu-Gi-Oh!</option>
+            </select>
+
+            <label for="sortSelect">Sorting Type</label>
+            <select id="sortSelect" required>
+              <option value="" disabled selected>Select sorting</option>
+              <option value="alpha_exact">Alphabetical (A–Z, fixed cells)</option>
+            </select>
+
+            <label for="feederCapacity">Feeder Count (est.)</label>
+            <input id="feederCapacity" type="number" min="1" max="500" placeholder="e.g., 100" />
+
+            <label class="checkbox">
+              <input type="checkbox" id="divertUncertain" checked />
+              <span>Divert low-confidence OCR to error cell (K3)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Grid & Cells</h3>
+          <p class="muted">Excel-style grid: <strong>Columns = letters</strong>, <strong>Rows = numbers</strong>. A-row is feeders; <strong>K3 is the error cell.</strong></p>
+          <div id="gridPreview" class="grid-preview"></div>
+          <div class="row">
+            <button id="btnReloadGrid" class="secondary">Reload Grid</button>
+            <button id="btnTestCellMoves" class="secondary">Test Moves…</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assignment Preview -->
+      <div class="card">
+        <h3>Assignment Preview</h3>
+        <p class="muted">
+          Type a card name (or use OCR text). Preview shows destination based on the selected sort. Diverts/overflows go to <strong>K3</strong>.
+        </p>
+        <div class="form">
+          <label for="previewName">Card Name</label>
+          <div class="row">
+            <input id="previewName" type="text" placeholder="e.g., Ancestral Recall" />
+            <button id="btnUseOCR" class="secondary" type="button">Use OCR Text</button>
+            <button id="btnPreview" class="primary" type="button">Preview</button>
+          </div>
+
+          <div class="row" style="margin-top:6px">
+            <label for="previewConf" style="min-width:120px">Confidence (0–1)</label>
+            <input id="previewConf" type="number" step="0.01" min="0" max="1" value="0.95" style="max-width:140px" />
+            <span class="muted">Below threshold routes to K3.</span>
+          </div>
+        </div>
+
+        <div class="sim-results" style="margin-top:10px">
+          <div class="row" style="gap:10px;flex-wrap:wrap">
+            <span>First Letter:</span> <span id="prevFirst" class="chip">—</span>
+            <span>Cell:</span> <span id="prevCell" class="chip">—</span>
+            <span>Reason:</span> <span id="prevReason" class="chip">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulator -->
+      <div class="card">
+        <h3>Simulator (A–Z Manual Mapping)</h3>
+        <p class="muted">Paste card names (one per line). Optional: “,confidence” after a name (e.g., <code>Birds of Paradise,0.72</code>). Click <em>Run</em> or <em>Step</em> to assign them one by one. Diverts/overflows → <strong>K3</strong>.</p>
+
+        <div class="form">
+          <label for="simInput">Cards</label>
+          <textarea id="simInput" placeholder="Ancestral Recall
+Birds of Paradise,0.72
+Counterspell
+Zurzoth, Chaos Rider"></textarea>
+
+          <div class="row">
+            <button id="btnSimLoadSample" class="secondary">Load Sample</button>
+            <button id="btnSimReset" class="ghost">Reset Counts</button>
+            <button id="btnSimStep" class="secondary">Step</button>
+            <button id="btnSimRun" class="primary">Run</button>
+            <button id="btnSimStop" class="danger hidden">Stop</button>
+          </div>
+        </div>
+
+        <div class="sim-results">
+          <div class="row" style="justify-content:space-between">
+            <strong>Assignments</strong>
+            <span class="muted" id="simProgress">0 / 0</span>
+          </div>
+          <div id="simTable" class="sim-table">
+            <div class="sim-row sim-header">
+              <span>#</span><span>Name</span><span>First</span><span>Cell</span><span>Reason</span>
+            </div>
+            <!-- rows append here -->
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row between">
+        <div class="row">
+          <button id="btnBackToCal" class="ghost">Back</button>
+        </div>
+        <div class="row">
+          <button id="btnStartRun" class="primary">Start Sorting</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 3: Run View -->
+    <section id="panelRun" class="panel hidden">
+      <h2>Run</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Status</h3>
+          <div class="kvs">
+            <div><span>State</span><strong id="runState">Idle</strong></div>
+            <div><span>Batch</span><strong id="batchProgress">0 / 0</strong></div>
+            <div><span>Good / Diverted</span><strong id="countsOK">0</strong> / <strong id="countsErr">0</strong></div>
+            <div><span>Throughput</span><strong id="throughput">0 cpm</strong></div>
+          </div>
+          <div class="progress">
+            <div id="progressBar" style="width:0%"></div>
+          </div>
+          <div class="row">
+            <button id="btnOpenLogs" class="secondary">View Logs</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Live</h3>
+          <div class="camera large">
+            <img id="cameraLive" alt="Live stream" />
+          </div>
+          <div class="row">
+            <span class="muted">Current Card:</span>
+            <span id="currentCard" class="chip">—</span>
+          </div>
+          <div class="row">
+            <button id="btnManualDivert" class="secondary">Divert This Card</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Controls</h3>
+          <div class="form">
+            <label for="positionSelect">Jog to Position</label>
+            <select id="positionSelect">
+              <option disabled selected>Select a cell</option>
+            </select>
+            <button id="btnMoveToCell">Move</button>
+
+            <div class="row compact">
+              <button id="btnJogUp">Z+</button>
+              <button id="btnJogDown">Z-</button>
+              <button id="btnHomeZ">Home Z</button>
+            </div>
+            <div class="row compact">
+              <button id="btnHomeXY">Home XY</button>
+              <button id="btnHomeAll2">Home All</button>
+            </div>
+            <div class="row compact">
+              <button id="btnVacOnRun">Vacuum On</button>
+              <button id="btnVacOffRun">Vacuum Off</button>
+            </div>
+            <div class="row compact">
+              <button id="btnPlunge">Plunge</button>
+              <button id="btnRetract">Retract</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Error Cell (K3)</h3>
+          <p class="muted">Unreadable or overflowed cards are routed to <strong>K3</strong> for manual review.</p>
+          <div id="errorList" class="error-list"></div>
+          <div class="row">
+            <button id="btnExportCSV" class="secondary">Export CSV</button>
+            <button id="btnClearErrors" class="ghost">Clear</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Run Notes</h3>
+          <textarea id="runNotes" placeholder="Optional operator notes…"></textarea>
+          <div class="row end">
+            <button id="btnEndRun" class="danger">End Run</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Test Moves -->
+  <dialog id="dlgTestMoves" class="modal">
+    <div class="modal-card">
+      <h3>Test Cell Moves</h3>
+      <p class="muted">Click any cell to jog there (non-destructive). Useful for validating YAML coordinates.</p>
+      <div id="testGrid" class="grid-preview tall"></div>
+      <div class="row end">
+        <button id="btnCloseTestMoves" class="primary">Done</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal: Logs -->
+  <dialog id="dlgLogs" class="modal">
+    <div class="modal-card">
+      <h3>System Logs</h3>
+      <pre id="logOutput" class="logs"></pre>
+      <div class="row end">
+        <button id="btnCloseLogs" class="primary">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toasts -->
+  <div id="toasts" class="toasts"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
