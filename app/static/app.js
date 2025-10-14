@@ -40,6 +40,14 @@ on($('btnToSetup'), 'click', ()=>{ hide(panelCalibrate); show(panelSetup); });
 on($('btnBackToCal'), 'click', ()=>{ show(panelCalibrate); hide(panelSetup); });
 on($('demoToggle'), 'change', (e)=>{ demo = e.target.checked; toast(`Demo Mode ${demo?'ON':'OFF'}`); resetSimState(); });
 
+// Demo batch tester refs
+const demoBatchFiles = $('demoBatchFiles');
+const demoDbPath = $('demoDbPath');
+const demoFilenameExpect = $('demoFilenameExpect');
+const demoBatchSummary = $('demoBatchSummary');
+const demoBatchWrap = $('demoBatchTableWrap');
+const demoBatchTableBody = $('demoBatchTableBody');
+
 // ------------- E-STOP / Pause / Resume -------------
 on($('btnEStop'), 'click', async ()=>{
   if(!confirm('EMERGENCY STOP — confirm?')) return;
@@ -454,6 +462,138 @@ on($('btnSimRun'),'click', async ()=>{
   runSimLoop();
 });
 on($('btnSimStop'),'click', stopSim);
+
+// ------------- Demo OCR Batch Tester -------------
+async function runDemoBatchTest(){
+  if(!demoBatchFiles){ toast('Batch tester unavailable'); return; }
+  const files = demoBatchFiles.files || [];
+  if(files.length === 0){ toast('Select one or more images first'); return; }
+
+  const btn = $('btnDemoBatchRun');
+  const originalText = btn ? btn.textContent : 'Run Batch Test';
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+  }
+
+  const form = new FormData();
+  Array.from(files).forEach((file)=> form.append('files', file, file.name));
+  const dbPath = (demoDbPath?.value || '').trim();
+  if(dbPath) form.append('db_path', dbPath);
+  form.append('use_filename_expected', demoFilenameExpect?.checked ? 'true' : 'false');
+
+  try{
+    const res = await fetch(`${BASE}/demo/batch_identify`, {method:'POST', body: form});
+    if(!res.ok){
+      const text = await res.text().catch(()=> '');
+      throw new Error(text || res.statusText);
+    }
+    const data = await res.json();
+    renderDemoBatchResults(data);
+    toast('Batch test complete');
+  }catch(err){
+    toast(`Batch test failed: ${err.message}`);
+  }finally{
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  }
+}
+
+function renderDemoBatchResults(payload){
+  if(!demoBatchTableBody || !demoBatchSummary || !demoBatchWrap){
+    console.warn('Batch tester elements missing');
+    return;
+  }
+  demoBatchTableBody.innerHTML = '';
+  const rows = payload?.results || [];
+  if(rows.length === 0){
+    demoBatchSummary.textContent = 'No results returned.';
+    hide(demoBatchWrap);
+    return;
+  }
+
+  const summary = payload?.summary || {};
+  const total = summary.total || rows.length;
+  const matchName = summary.name_matches ?? '-';
+  const matchCell = summary.cell_matches ?? '-';
+  const matchBoth = summary.both_matches ?? '-';
+  const dbInfo = summary.db_path ? ` • DB: ${summary.db_path}` : '';
+  demoBatchSummary.textContent = `Processed ${total} image${total===1?'':'s'}. Name matches: ${matchName}/${total}, Cell matches: ${matchCell}/${total}, Both: ${matchBoth}/${total}${dbInfo}`;
+
+  const createCell = (text)=>{
+    const td = document.createElement('td');
+    td.textContent = text ?? '—';
+    return td;
+  };
+
+  rows.forEach((row, idx)=>{
+    const tr = document.createElement('tr');
+    if(row.error){
+      tr.classList.add('error-row');
+    }else if(row.match_name && row.match_cell){
+      tr.classList.add('match-row');
+    }else if(row.match_name || row.match_cell){
+      tr.classList.add('partial-row');
+    }else{
+      tr.classList.add('mismatch-row');
+    }
+
+    const expectedName = row?.expected?.name || '—';
+    const expectedCell = row?.expected?.cell || '—';
+    const ocrName = row?.region_texts?.name || '—';
+    const identified = row?.identified_name || '—';
+    const cell = row?.assignment?.cell || '—';
+    const reason = row?.error || row?.assignment?.reason || '';
+    const idScore = typeof row?.id_score === 'number' ? row.id_score.toFixed(1) : '—';
+    let matchLabel = '—';
+    if(row.error){
+      matchLabel = 'Error';
+    }else if(row.match_name && row.match_cell){
+      matchLabel = '✓ Name & Cell';
+    }else if(row.match_name){
+      matchLabel = 'Name only';
+    }else if(row.match_cell){
+      matchLabel = 'Cell only';
+    }else{
+      matchLabel = 'No match';
+    }
+
+    tr.appendChild(createCell(idx+1));
+    tr.appendChild(createCell(row.filename || '—'));
+    tr.appendChild(createCell(expectedName));
+    tr.appendChild(createCell(ocrName));
+    tr.appendChild(createCell(identified));
+    tr.appendChild(createCell(cell));
+    tr.appendChild(createCell(expectedCell));
+    tr.appendChild(createCell(matchLabel));
+    tr.appendChild(createCell(idScore));
+    tr.appendChild(createCell(reason));
+
+    if(row?.ocr){
+      const rot = row.ocr.rotation ?? 0;
+      const rotConf = row.ocr.rotation_confidence ?? 0;
+      tr.title = `Rotation: ${rot}° (conf ${rotConf.toFixed ? rotConf.toFixed(2) : rotConf})`;
+    }
+
+    demoBatchTableBody.appendChild(tr);
+  });
+
+  show(demoBatchWrap);
+}
+
+function clearDemoBatch(){
+  if(demoBatchFiles) demoBatchFiles.value = '';
+  if(demoDbPath) demoDbPath.value = '';
+  if(demoFilenameExpect) demoFilenameExpect.checked = true;
+  if(demoBatchSummary) demoBatchSummary.textContent = '';
+  if(demoBatchTableBody) demoBatchTableBody.innerHTML = '';
+  if(demoBatchWrap) hide(demoBatchWrap);
+}
+
+on($('btnDemoBatchRun'), 'click', runDemoBatchTest);
+on($('btnDemoBatchClear'), 'click', clearDemoBatch);
 
 // ------------- Demo API (no backend required) -------------
 async function demoApi(path, opts){

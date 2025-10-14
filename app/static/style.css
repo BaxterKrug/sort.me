@@ -141,3 +141,14 @@ label.checkbox{display:flex;align-items:center;gap:8px;margin-top:8px}
 
 .toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:50}
 .toast{background:var(--toast-bg);color:var(--text);padding:10px 12px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+
+.table-scroll{max-height:320px;overflow:auto;margin-top:12px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);}
+.results-table{width:100%;border-collapse:collapse;min-width:600px;font-size:13px}
+.results-table thead th{position:sticky;top:0;background:var(--card-bg);border-bottom:1px solid var(--border);padding:8px;text-align:left}
+.results-table td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:left}
+.results-table tbody tr:last-child td{border-bottom:none}
+.results-table tbody tr.match-row{background:rgba(76,175,80,0.12)}
+.results-table tbody tr.partial-row{background:rgba(255,193,7,0.18)}
+.results-table tbody tr.mismatch-row{background:rgba(225,45,57,0.12)}
+.results-table tbody tr.error-row{background:rgba(225,45,57,0.18)}
+.results-table tbody tr:hover{background:rgba(11,110,243,0.10)}
