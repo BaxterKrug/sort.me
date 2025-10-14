@@ -181,6 +181,55 @@ Zurzoth, Chaos Rider"></textarea>
         </div>
       </div>
 
+      <!-- Demo OCR Batch Tester -->
+      <div class="card">
+        <h3>Demo: OCR &amp; Card ID Batch Test</h3>
+        <p class="muted">
+          Upload card images to exercise the OCR and identification pipeline without starting a full run. Filenames can include expected data using
+          <code>Name__Cell.jpg</code> — the name becomes the expected identification and the optional cell verifies placement.
+        </p>
+
+        <div class="form">
+          <label for="demoBatchFiles">Card Images</label>
+          <input id="demoBatchFiles" type="file" accept="image/*" multiple />
+
+          <label for="demoDbPath">Card Database Path (optional)</label>
+          <input id="demoDbPath" type="text" placeholder="e.g., data/demo_cards.json" />
+
+          <label class="checkbox" style="margin-top:10px">
+            <input id="demoFilenameExpect" type="checkbox" checked />
+            <span>Use filename to derive expected name/cell</span>
+          </label>
+
+          <div class="row">
+            <button id="btnDemoBatchRun" class="primary" type="button">Run Batch Test</button>
+            <button id="btnDemoBatchClear" class="ghost" type="button">Clear</button>
+          </div>
+        </div>
+
+        <div id="demoBatchSummary" class="muted" style="margin-top:12px"></div>
+
+        <div class="table-scroll hidden" id="demoBatchTableWrap">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>File</th>
+                <th>Expected</th>
+                <th>OCR Name</th>
+                <th>Identified</th>
+                <th>Cell</th>
+                <th>Expected Cell</th>
+                <th>Match</th>
+                <th>ID Score</th>
+                <th>Reason / Notes</th>
+              </tr>
+            </thead>
+            <tbody id="demoBatchTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="divider"></div>
 
       <div class="row between">
