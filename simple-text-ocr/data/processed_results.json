@@ -1,0 +1,37 @@
+[
+  {
+    "file": "test1.jpg",
+    "ocr": "The Last Ride\nLegendary Artifact\nVehicle\nThe Last Ride gets ~X/-X; where X\nis your life total:\n2 +,\n2 life: Draw a card.\nCrew 2\nThe rearview mirror showed Winter\nwhat awaited him should he fail.\n13/13\nM 0094\nDFT\nEN\n~MIcHELE GIORGI\nTM & 0 2025 Wizards of the Coast\nPay",
+    "embedding_file": "test1.npy"
+  },
+  {
+    "file": "test2.jpg",
+    "ocr": "Crop Rotation\nInstant\nAs an additional cost to cast Crop Rotation,\nsacrifice a land.\nSearch your library for a land card and\nput that card onto the battlefield: Then\nshuffle your library:\nZendikar'$ elves have developed innovative\nmethods to mitigate the effects of the Roil.\n007/076\n2016 Wizards ofthe Coast\nDDR\nEN\n~ DANIEL LIUNGGREN",
+    "embedding_file": "test2.npy"
+  },
+  {
+    "file": "test3.jpg",
+    "ocr": "Fangren Marauder\n5\nCreature\nBeast\nWhenever an artifact is put into a\ngraveyard from the battlefield, you\nmay\n5 life.\n(The fangren fight without comfort of\nany kind. We can ask no less of ourselves:\"\nTilien, Sylvok partisan\nJames Ryman\n5/5\n4 1993-2011 Wizards of the Coast LLC 79/155\ngain",
+    "embedding_file": "test3.npy"
+  },
+  {
+    "file": "test4.jpg",
+    "ocr": "Golgari Rot Farm\nLand\nThis land enters tapped:\nWhen this land enters, return a land\nyou control to its owners hand:\n~: Add\nU 0368\nTM & 0 2025 Wizards of the Coast\nTDC\nEN >IOHN AvON",
+    "embedding_file": "test4.npy"
+  },
+  {
+    "file": "test5.jpg",
+    "ocr": "Urza's Mine\nLand\nUrza's Mine\n~: Add\nIf you control an Urza s\nPower-Plant and\nan\nUrza s Tower;\nadd\ninstead.\nIn his hunger for power and knowledge,\nUrza\ndeep into Dominaria'$\nancient past.\n829\nI\" & < 2022 Wizards of the Coast\nJ22\nEN\nBRIAN SNODDY\ndug",
+    "embedding_file": "test5.npy"
+  },
+  {
+    "file": "test6.jpg",
+    "ocr": "The Ruinous Powers\nEnchantment\nAt the beginning of your upkeep, choose\nan\nopponent at random. Exile the\ncard of that player's library Until end of\nturn, you may play that card and you may\nspend mana as though it were mana of\nany color to cast it: When\ncast a\nthis ways its owner loses life equal to its\nmana value.\n439/168\nAGV\n40k'EN\nLIE SETIAWAN\n3n2022 Wizards ofthe Coast\ntop\nspell\nyou",
+    "embedding_file": "test6.npy"
+  },
+  {
+    "file": "test7.jpg",
+    "ocr": "Dismember\nInstant\nTarget creature gets -5/-5 until end of turn:\n~No one has heard Drivnod speak. But we\nhave seen him do unspeakable\nAs he\ndrifts over Ish Sah, a deathly whisper rides the\nwind I can never watch for\n~turn away\nand hide.\nKara Vrist, resistance spymaster\nM 0041\nMH3 Special Guest\nT & 0 2024 Wizards of the Coast\nSPG\nEN *MARTIN DE DIEGo SADABA\nthings\nlong",
+    "embedding_file": "test7.npy"
+  }
+]
