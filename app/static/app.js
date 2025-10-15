@@ -483,12 +483,8 @@ async function runDemoBatchTest(){
   form.append('use_filename_expected', demoFilenameExpect?.checked ? 'true' : 'false');
 
   try{
-    const res = await fetch(`${BASE}/demo/batch_identify`, {method:'POST', body: form});
-    if(!res.ok){
-      const text = await res.text().catch(()=> '');
-      throw new Error(text || res.statusText);
-    }
-    const data = await res.json();
+    // Use api() wrapper so demo mode is honored (demoApi will handle the simulated response)
+    const data = await api('/demo/batch_identify', {method:'POST', body: form});
     renderDemoBatchResults(data);
     toast('Batch test complete');
   }catch(err){
@@ -680,6 +676,47 @@ async function demoApi(path, opts){
       const fl = /^[A-Z]/i.test(name) ? name[0].toUpperCase() : 'A';
       const reason = conf < 0.80 ? 'divert:low_confidence' : `alpha_exact:${fl}`;
       return {cell: conf < 0.80 ? ERROR_CELL : letterMap[fl], reason, first: fl};
+    }
+
+    // Demo batch identify — simulate the server-side /demo/batch_identify endpoint
+    case '/demo/batch_identify': {
+      // opts.body may be a FormData object when called from the UI; in demo mode we'll simulate results
+      const files = [];
+      try{
+        // If opts.body is a FormData-like object, try to extract filenames
+        if(opts?.body && typeof opts.body === 'object' && opts.body.entries){
+          for(const pair of opts.body.entries()){ if(pair[0]==='files'){ files.push(pair[1]?.name || 'file'); } }
+        }
+      }catch(e){ /* ignore */ }
+
+      const results = files.map((fname, idx) => {
+        // simple heuristic: if filename contains 'error' return an error, otherwise simulate OCR -> identify
+        if(/error|bad/i.test(fname)){
+          return {index: idx+1, filename: fname, error: 'Simulated read error'};
+        }
+        // Simulate OCR by deriving name from filename before __ or extension
+        const base = fname.split('__')[0].split('.').slice(0, -1).join('.') || fname.replace(/\.[^.]+$/, '');
+        const region_texts = {name: base.replace(/_/g,' ').trim()};
+        const identified_name = region_texts.name;
+        const id_score = 95.0;
+        const card_conf = Math.min(1.0, id_score / 100.0);
+        const assignment = {cell: letterMap[firstLetter(region_texts.name)] || ERROR_CELL, reason: `alpha_exact:${firstLetter(region_texts.name)}`};
+        return {
+          index: idx+1,
+          filename: fname,
+          ocr: {rotation:0, rotation_confidence:1.0, regions: {name: {text: region_texts.name}}},
+          region_texts,
+          identify: {best: {name: identified_name}, score: id_score},
+          identified_name,
+          id_score,
+          assignment,
+          match_name: true,
+          match_cell: true
+        };
+      });
+
+      const summary = {total: results.length, db_path: demoDbPath?.value || null, name_matches: results.filter(r=>r.match_name).length, cell_matches: results.filter(r=>r.match_cell).length, both_matches: results.filter(r=>r.match_name && r.match_cell).length };
+      return {summary, results};
     }
 
     // Mutating assign used by simulator (updates demo counts & capacity)

@@ -23,6 +23,8 @@ import os
 import sqlite3
 import unicodedata
 import re
+import numpy as np
+from sklearn.neighbors import NearestNeighbors
 
 # try to use rapidfuzz for better fuzzy matching, otherwise fallback
 try:
@@ -169,6 +171,8 @@ def identify_card_from_ocr(ocr_map: Dict[str,str],
                            name_weight: float = 0.75,
                            oracle_weight: float = 0.20,
                            collector_weight: float = 0.05
+                           ,
+                           embeddings_dir: Optional[str] = None
                            ) -> Dict[str,Any]:
     """
     Identify the most probable card given OCR regions.
@@ -183,12 +187,14 @@ def identify_card_from_ocr(ocr_map: Dict[str,str],
 
     Provide either db_path to load local DB or cards_list directly.
     """
-    if not cards_list and not db_path:
-        raise ValueError("Provide db_path or cards_list")
-    cards = cards_list if cards_list is not None else load_local_db(db_path)
+    # If embeddings_dir provided, allow running without a local card DB (embedding lookup uses its own metadata)
+    if not cards_list and not db_path and not embeddings_dir:
+        raise ValueError("Provide db_path, cards_list or embeddings_dir")
+    cards = cards_list if cards_list is not None else (load_local_db(db_path) if db_path else [])
     # normalize OCRed regions
     o_name = (ocr_map.get("name") or ocr_map.get("title") or "").strip()
     o_oracle = (ocr_map.get("oracle") or ocr_map.get("rules") or "").strip()
+    o_full = (ocr_map.get("full") or "").strip()
     o_collector = (ocr_map.get("collector") or "").strip()
 
     norm_o_name = _normalize(o_name)
@@ -204,6 +210,74 @@ def identify_card_from_ocr(ocr_map: Dict[str,str],
             'num_cards_in_db': len(cards)
         }
     }
+
+    # --- optional embedding-based matching (if precomputed embeddings exist) ---
+    # embeddings_dir should contain 'embeddings.npy' and 'cards_metadata.json'
+    def try_embedding_match(query_text: str):
+        if not embeddings_dir:
+            return None
+        try:
+            emb_path = os.path.join(embeddings_dir, 'embeddings.npy')
+            meta_path = os.path.join(embeddings_dir, 'cards_metadata.json')
+            if not os.path.exists(emb_path) or not os.path.exists(meta_path):
+                return None
+            # cache loader on module attribute to avoid repeated loads
+            if not hasattr(identify_card_from_ocr, '_emb_cache'):
+                identify_card_from_ocr._emb_cache = {}
+            cache = identify_card_from_ocr._emb_cache
+            if 'embeddings' not in cache:
+                cache['embeddings'] = np.load(emb_path)
+                with open(meta_path, 'r', encoding='utf8') as fh:
+                    cache['meta'] = json.load(fh)
+                cache['nn'] = NearestNeighbors(n_neighbors=min(16, len(cache['embeddings'])), algorithm='auto')
+                cache['nn'].fit(cache['embeddings'])
+            # load encoder model lazily
+            if 'encoder' not in cache:
+                try:
+                    from sentence_transformers import SentenceTransformer
+                    cache['encoder'] = SentenceTransformer('all-MiniLM-L6-v2')
+                except Exception:
+                    cache['encoder'] = None
+            encoder = cache.get('encoder')
+            if encoder is None:
+                return None
+            q_emb = encoder.encode([query_text], convert_to_numpy=True)[0]
+            dists, idxs = cache['nn'].kneighbors(q_emb.reshape(1, -1), n_neighbors=min(8, cache['embeddings'].shape[0]))
+            # build candidate list from metadata
+            out = []
+            for dist, idx in zip(dists[0], idxs[0]):
+                m = cache['meta'][idx]
+                # convert distance to a 0..100-like score (cosine or L2 depending on model); use simple transform
+                score = float(max(0.0, 100.0 - (dist * 100.0)))
+                out.append((m, score, float(dist)))
+            return out
+        except Exception:
+            return None
+
+    # If embeddings_dir provided try embedding match first (prefer higher-level semantics)
+    # Build an aggregated query from available OCR regions so empty 'name' doesn't block embedding lookup
+    # prefer name + oracle + collector, but include full card text as a fallback or extra context
+    query_parts = [p for p in [o_name, o_oracle, o_collector, o_full] if p]
+    query_text = "\n".join(query_parts).strip() if query_parts else ""
+    results['debug']['ocr_query'] = query_text
+    if embeddings_dir and query_text:
+        emb_matches = try_embedding_match(query_text)
+        if emb_matches:
+            # translate embedding matches into results structure
+            cand_list = []
+            for m, score, dist in emb_matches:
+                cand_list.append({
+                    'card': m,
+                    'name_score': float(score),
+                    'oracle_score': 0.0,
+                    'collector_score': 0.0,
+                    'total_score': float(score)
+                })
+            results['candidates'] = cand_list
+            results['best'] = cand_list[0]['card'] if cand_list else None
+            results['score'] = cand_list[0]['total_score'] if cand_list else 0.0
+            results['debug']['embed_match'] = True
+            return results
 
     # 1) try exact normalized name match
     if norm_o_name:

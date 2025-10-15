@@ -1,3 +1,13 @@
+fastapi
+uvicorn[standard]
+opencv-python
+numpy
+Pillow
+pytesseract
+python-multipart
+pandas
+scikit-learn
+tqdm
 opencv-python
 numpy
 pillow

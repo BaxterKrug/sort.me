@@ -1,0 +1,5 @@
+
+# ignore large data
+data/embeddings/
+data/scryfall_all_cards.json
+data/Sample *.jpg

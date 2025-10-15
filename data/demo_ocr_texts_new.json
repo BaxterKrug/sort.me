@@ -1,0 +1,88 @@
+{
+  "results": [
+    {
+      "filename": "Sample 1.jpg",
+      "region_texts": {
+        "full": "Reprieve sc X Instant Return target spell to its drowner s hand Draw a card As Faramir and Owyn stood so their hands met and clasp through they did not Row it WU Knave LTR o EN Colasinin DUR TG Rev sWiwands off Ae Cross"
+      },
+      "confidence": 68.26785714285714
+    },
+    {
+      "filename": "Sample 10.jpg",
+      "region_texts": {
+        "full": "Baseball Bat GE i es es os SSF ape Artifact Equipment we When Baseball Bat enter attack it to target creature you control Equipped creature gets i Whenever equipped creature attacks tap up to one target creature V Quipu Attack to target creature you control Quipu only as a sorry Y CAO sosmiSiiee TQ DONG Ignite Cat"
+      },
+      "confidence": 66.16883116883118
+    },
+    {
+      "filename": "Sample 11.jpg",
+      "region_texts": {
+        "full": "Phyrexian Debaser Ze i ee o eS ER hf to ne nnn Sc nT ranks oo Ge fy t oe Creature Phyrexian Carrier BKB Z Flying e Sacrifice Phyrexian Debaser Target creature gets untilend of turn The second stage of the illness high fever and severed infectious Phyrexian progress note a"
+      },
+      "confidence": 55.08695652173913
+    },
+    {
+      "filename": "Sample 12.jpg",
+      "region_texts": {
+        "full": "f Rakshasa Debaser AES i ae oe Be ht c Creature Cat Demon we Whenever Rakshasa Debaser attacks put id target creature card from deafening player s y graveyard onto the battlefield under your Lo control ne Encore Exile this card from your graveyard For each component cremate a taken copy shoat attacks that component this turn if table They gain haste Sacrifice them at the grinning of the next end step Activated only as a sorry Cat"
+      },
+      "confidence": 75.78787878787878
+    },
+    {
+      "filename": "Sample 2.jpg",
+      "region_texts": {
+        "full": "Memory Lapse Lo u Instant Counter target spell If that spells counter this way put it on top of its drowner s library infested of into that player s graveyard What a lonely agony the memory of memories lost CUD E ict BIO Wars of dhe Scions ES Max EIN Een GREGISTARLES"
+      },
+      "confidence": 63.32835820895522
+    },
+    {
+      "filename": "Sample 3.jpg",
+      "region_texts": {
+        "full": "Swords to Plowshares we Instant S Exile target creature Its controlled gains life equal to its power The divine light of the Palatinate cold be so cold As she laid down her sword she fealty the sun s warmth in a different Way UCOO PG Don Threats of dhe Gonti EO Grind Ee aNADIAMURIANOVAY"
+      },
+      "confidence": 77.05172413793103
+    },
+    {
+      "filename": "Sample 4.jpg",
+      "region_texts": {
+        "full": "ZT Fires of Invention Creator ars water Enchantment ae You can cast spells only durin your turn and you can cast mo more than two spells each turn You may cast spells with converter mana cost less than or equal to the number of lands you control without prying their mana cost B il R wo UM ex DOMMONG ysershy olf ANE Cori EIR RT Ne AS Taunt ONEHENG"
+      },
+      "confidence": 63.32222222222222
+    },
+    {
+      "filename": "Sample 5.jpg",
+      "region_texts": {
+        "full": "Turn Inside Out Instant WT Target creature gets suntail end of turn When it die this turn manifest dread Look at the top two cards of your Library Put one onto the battlefield face down as a creature and the other into your graveyard Turn it face up any time for its mana cost if it s a creature card Scared are your Need a hug O GO TG QOD Tze off dao Can DSK o EN lait Caracal"
+      },
+      "confidence": 73.69
+    },
+    {
+      "filename": "Sample 6.jpg",
+      "region_texts": {
+        "full": "a Aang the Last Airbender B ooIIaoaBnBannBDAs D BDBDBBDBD o E HO we KN Ky Gone poe oe Sta LY NX OE Legend Creature Human Avatar Ally When Aang enter airbender up to one other target nonland permanent Exile Whistle it s exiled its otwner may cast tt for ratter than tis mana cost Whenever you cast a Lesson spell Aang gains lifelink suntail end of turn"
+      },
+      "confidence": 71.36842105263158
+    },
+    {
+      "filename": "Sample 7.jpg",
+      "region_texts": {
+        "full": "Aarakocra Sneak CO Creature Bird Rogue Flying When Aarakocra Sneak enter the battlefield you take the initiative Shhh I think I hear goblins And I definitely smell them OSA EGiI Ce ELB o EN COA YNDHAG ING OUD Szats at aan"
+      },
+      "confidence": 67.44
+    },
+    {
+      "filename": "Sample 8.jpg",
+      "region_texts": {
+        "full": "Binding Geist Creature Spirit ey Whenever Binding Geist attacks target creature an component control gets suntail end of turn Disturbed You may cast this card from your graveyard transformer for its disturbed cost VOWIIE Nie GAMPGENIAHICE Ge QOD Wavzan ls oi tithe Cousin"
+      },
+      "confidence": 66.68571428571428
+    },
+    {
+      "filename": "Sample 9.jpg",
+      "region_texts": {
+        "full": "Absolving Lammasu Ly Creature Lammasu Sr Flying When Absolving Lammasu enter the battlefield all suspect creatures are no loner suspect When Absolving Lammasu die you gain life and suspect up to one target creature an component control A suspect creature has menace and can t block U AIS Are e G ADA of the Coast"
+      },
+      "confidence": 73.82352941176471
+    }
+  ]
+}
