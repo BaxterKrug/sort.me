@@ -1,0 +1,652 @@
+{
+  "results": [
+    {
+      "filename": "Sample 1.jpg",
+      "ocr_text": "Reprieve sc X Instant Return target spell to its drowner s hand Draw a card As Faramir and Owyn stood so their hands met and clasp through they did not Row it WU Knave LTR o EN Colasinin DUR TG Rev sWiwands off Ae Cross",
+      "candidates": [
+        {
+          "index": 78528,
+          "name": "Reprieve",
+          "set": "ltr",
+          "collector": "477",
+          "dist": 0.3685251474380493,
+          "sim": 0.6314748525619507
+        },
+        {
+          "index": 18902,
+          "name": "Reprieve",
+          "set": "mar",
+          "collector": "5",
+          "dist": 0.3685251474380493,
+          "sim": 0.6314748525619507
+        },
+        {
+          "index": 12167,
+          "name": "Reprieve",
+          "set": "ltr",
+          "collector": "26",
+          "dist": 0.3685251474380493,
+          "sim": 0.6314748525619507
+        },
+        {
+          "index": 29161,
+          "name": "Reprieve",
+          "set": "omb",
+          "collector": "5",
+          "dist": 0.3685251474380493,
+          "sim": 0.6314748525619507
+        },
+        {
+          "index": 13197,
+          "name": "Lost in the Mist",
+          "set": "isd",
+          "collector": "63",
+          "dist": 0.4134455919265747,
+          "sim": 0.5865544080734253
+        }
+      ],
+      "best": {
+        "index": 78528,
+        "name": "Reprieve",
+        "set": "ltr",
+        "collector": "477",
+        "dist": 0.3685251474380493,
+        "sim": 0.6314748525619507
+      }
+    },
+    {
+      "filename": "Sample 10.jpg",
+      "ocr_text": "Baseball Bat GE i es es os SSF ape Artifact Equipment we When Baseball Bat enter attack it to target creature you control Equipped creature gets i Whenever equipped creature attacks tap up to one target creature V Quipu Attack to target creature you control Quipu only as a sorry Y CAO sosmiSiiee TQ DONG Ignite Cat",
+      "candidates": [
+        {
+          "index": 29088,
+          "name": "Baseball Bat",
+          "set": "dsk",
+          "collector": "209",
+          "dist": 0.26107776165008545,
+          "sim": 0.7389222383499146
+        },
+        {
+          "index": 52704,
+          "name": "Web-Shooters",
+          "set": "om1",
+          "collector": "2",
+          "dist": 0.4493565559387207,
+          "sim": 0.5506434440612793
+        },
+        {
+          "index": 69241,
+          "name": "Web-Shooters",
+          "set": "spm",
+          "collector": "22",
+          "dist": 0.4493565559387207,
+          "sim": 0.5506434440612793
+        },
+        {
+          "index": 19611,
+          "name": "Quicksmith Rebel",
+          "set": "aer",
+          "collector": "93",
+          "dist": 0.4608478546142578,
+          "sim": 0.5391521453857422
+        },
+        {
+          "index": 36460,
+          "name": "Quicksmith Rebel",
+          "set": "paer",
+          "collector": "93",
+          "dist": 0.4608478546142578,
+          "sim": 0.5391521453857422
+        }
+      ],
+      "best": {
+        "index": 29088,
+        "name": "Baseball Bat",
+        "set": "dsk",
+        "collector": "209",
+        "dist": 0.26107776165008545,
+        "sim": 0.7389222383499146
+      }
+    },
+    {
+      "filename": "Sample 11.jpg",
+      "ocr_text": "Phyrexian Debaser Ze i ee o eS ER hf to ne nnn Sc nT ranks oo Ge fy t oe Creature Phyrexian Carrier BKB Z Flying e Sacrifice Phyrexian Debaser Target creature gets untilend of turn The second stage of the illness high fever and severed infectious Phyrexian progress note a",
+      "candidates": [
+        {
+          "index": 105000,
+          "name": "Phyrexian Debaser",
+          "set": "dmr",
+          "collector": "97",
+          "dist": 0.32614314556121826,
+          "sim": 0.6738568544387817
+        },
+        {
+          "index": 44387,
+          "name": "Phyrexian Debaser",
+          "set": "jmp",
+          "collector": "264",
+          "dist": 0.32614314556121826,
+          "sim": 0.6738568544387817
+        },
+        {
+          "index": 44517,
+          "name": "Phyrexian Debaser",
+          "set": "ulg",
+          "collector": "59",
+          "dist": 0.32614314556121826,
+          "sim": 0.6738568544387817
+        },
+        {
+          "index": 55468,
+          "name": "Phyrexian Debaser",
+          "set": "j22",
+          "collector": "454",
+          "dist": 0.32614314556121826,
+          "sim": 0.6738568544387817
+        },
+        {
+          "index": 88518,
+          "name": "Phyrexian Debaser",
+          "set": "dde",
+          "collector": "10",
+          "dist": 0.32614314556121826,
+          "sim": 0.6738568544387817
+        }
+      ],
+      "best": {
+        "index": 105000,
+        "name": "Phyrexian Debaser",
+        "set": "dmr",
+        "collector": "97",
+        "dist": 0.32614314556121826,
+        "sim": 0.6738568544387817
+      }
+    },
+    {
+      "filename": "Sample 12.jpg",
+      "ocr_text": "f Rakshasa Debaser AES i ae oe Be ht c Creature Cat Demon we Whenever Rakshasa Debaser attacks put id target creature card from deafening player s y graveyard onto the battlefield under your Lo control ne Encore Exile this card from your graveyard For each component cremate a taken copy shoat attacks that component this turn if table They gain haste Sacrifice them at the grinning of the next end step Activated only as a sorry Cat",
+      "candidates": [
+        {
+          "index": 7914,
+          "name": "Rakshasa Debaser",
+          "set": "scd",
+          "collector": "100",
+          "dist": 0.23120689392089844,
+          "sim": 0.7687931060791016
+        },
+        {
+          "index": 97910,
+          "name": "Rakshasa Debaser",
+          "set": "cmr",
+          "collector": "146",
+          "dist": 0.23120689392089844,
+          "sim": 0.7687931060791016
+        },
+        {
+          "index": 74612,
+          "name": "Rakshasa Debaser",
+          "set": "prm",
+          "collector": "85994",
+          "dist": 0.23120689392089844,
+          "sim": 0.7687931060791016
+        },
+        {
+          "index": 47030,
+          "name": "Rakshasa Debaser",
+          "set": "cmr",
+          "collector": "654",
+          "dist": 0.23120689392089844,
+          "sim": 0.7687931060791016
+        },
+        {
+          "index": 99564,
+          "name": "Rot-Curse Rakshasa",
+          "set": "ptdm",
+          "collector": "87p",
+          "dist": 0.3585270643234253,
+          "sim": 0.6414729356765747
+        }
+      ],
+      "best": {
+        "index": 7914,
+        "name": "Rakshasa Debaser",
+        "set": "scd",
+        "collector": "100",
+        "dist": 0.23120689392089844,
+        "sim": 0.7687931060791016
+      }
+    },
+    {
+      "filename": "Sample 2.jpg",
+      "ocr_text": "Memory Lapse Lo u Instant Counter target spell If that spells counter this way put it on top of its drowner s library infested of into that player s graveyard What a lonely agony the memory of memories lost CUD E ict BIO Wars of dhe Scions ES Max EIN Een GREGISTARLES",
+      "candidates": [
+        {
+          "index": 22714,
+          "name": "Memory Lapse",
+          "set": "ptc",
+          "collector": "shr32asb",
+          "dist": 0.19267547130584717,
+          "sim": 0.8073245286941528
+        },
+        {
+          "index": 82661,
+          "name": "Memory Lapse",
+          "set": "ptc",
+          "collector": "shr32bsb",
+          "dist": 0.19267547130584717,
+          "sim": 0.8073245286941528
+        },
+        {
+          "index": 62014,
+          "name": "Memory Lapse",
+          "set": "5ed",
+          "collector": "103",
+          "dist": 0.19267547130584717,
+          "sim": 0.8073245286941528
+        },
+        {
+          "index": 26382,
+          "name": "Memory Lapse",
+          "set": "hml",
+          "collector": "32a",
+          "dist": 0.19267547130584717,
+          "sim": 0.8073245286941528
+        },
+        {
+          "index": 65751,
+          "name": "Memory Lapse",
+          "set": "sta",
+          "collector": "16",
+          "dist": 0.19267547130584717,
+          "sim": 0.8073245286941528
+        }
+      ],
+      "best": {
+        "index": 22714,
+        "name": "Memory Lapse",
+        "set": "ptc",
+        "collector": "shr32asb",
+        "dist": 0.19267547130584717,
+        "sim": 0.8073245286941528
+      }
+    },
+    {
+      "filename": "Sample 3.jpg",
+      "ocr_text": "Swords to Plowshares we Instant S Exile target creature Its controlled gains life equal to its power The divine light of the Palatinate cold be so cold As she laid down her sword she fealty the sun s warmth in a different Way UCOO PG Don Threats of dhe Gonti EO Grind Ee aNADIAMURIANOVAY",
+      "candidates": [
+        {
+          "index": 95693,
+          "name": "Swords to Plowshares",
+          "set": "ptc",
+          "collector": "pp52",
+          "dist": 0.30108827352523804,
+          "sim": 0.698911726474762
+        },
+        {
+          "index": 65933,
+          "name": "Swords to Plowshares",
+          "set": "40k",
+          "collector": "190",
+          "dist": 0.30108827352523804,
+          "sim": 0.698911726474762
+        },
+        {
+          "index": 53709,
+          "name": "Swords to Plowshares",
+          "set": "lcc",
+          "collector": "137",
+          "dist": 0.30108827352523804,
+          "sim": 0.698911726474762
+        },
+        {
+          "index": 44933,
+          "name": "Swords to Plowshares",
+          "set": "sld",
+          "collector": "364",
+          "dist": 0.30108827352523804,
+          "sim": 0.698911726474762
+        },
+        {
+          "index": 101162,
+          "name": "Swords to Plowshares",
+          "set": "ptc",
+          "collector": "bl52",
+          "dist": 0.30108827352523804,
+          "sim": 0.698911726474762
+        }
+      ],
+      "best": {
+        "index": 95693,
+        "name": "Swords to Plowshares",
+        "set": "ptc",
+        "collector": "pp52",
+        "dist": 0.30108827352523804,
+        "sim": 0.698911726474762
+      }
+    },
+    {
+      "filename": "Sample 4.jpg",
+      "ocr_text": "ZT Fires of Invention Creator ars water Enchantment ae You can cast spells only durin your turn and you can cast mo more than two spells each turn You may cast spells with converter mana cost less than or equal to the number of lands you control without prying their mana cost B il R wo UM ex DOMMONG ysershy olf ANE Cori EIR RT Ne AS Taunt ONEHENG",
+      "candidates": [
+        {
+          "index": 15764,
+          "name": "A-Fires of Invention",
+          "set": "eld",
+          "collector": "A-125",
+          "dist": 0.2280229926109314,
+          "sim": 0.7719770073890686
+        },
+        {
+          "index": 34973,
+          "name": "Fires of Invention",
+          "set": "eld",
+          "collector": "361",
+          "dist": 0.22925794124603271,
+          "sim": 0.7707420587539673
+        },
+        {
+          "index": 69411,
+          "name": "Fires of Invention",
+          "set": "eld",
+          "collector": "125",
+          "dist": 0.22925794124603271,
+          "sim": 0.7707420587539673
+        },
+        {
+          "index": 105582,
+          "name": "Fires of Invention",
+          "set": "peld",
+          "collector": "125p",
+          "dist": 0.22925794124603271,
+          "sim": 0.7707420587539673
+        },
+        {
+          "index": 79889,
+          "name": "Fires of Invention",
+          "set": "peld",
+          "collector": "125s",
+          "dist": 0.22925794124603271,
+          "sim": 0.7707420587539673
+        }
+      ],
+      "best": {
+        "index": 15764,
+        "name": "A-Fires of Invention",
+        "set": "eld",
+        "collector": "A-125",
+        "dist": 0.2280229926109314,
+        "sim": 0.7719770073890686
+      }
+    },
+    {
+      "filename": "Sample 5.jpg",
+      "ocr_text": "Turn Inside Out Instant WT Target creature gets suntail end of turn When it die this turn manifest dread Look at the top two cards of your Library Put one onto the battlefield face down as a creature and the other into your graveyard Turn it face up any time for its mana cost if it s a creature card Scared are your Need a hug O GO TG QOD Tze off dao Can DSK o EN lait Caracal",
+      "candidates": [
+        {
+          "index": 37835,
+          "name": "Turn Inside Out",
+          "set": "dsk",
+          "collector": "160",
+          "dist": 0.16302776336669922,
+          "sim": 0.8369722366333008
+        },
+        {
+          "index": 43265,
+          "name": "Twist Reality",
+          "set": "dsk",
+          "collector": "77",
+          "dist": 0.2354590892791748,
+          "sim": 0.7645409107208252
+        },
+        {
+          "index": 71708,
+          "name": "Manifest Dread",
+          "set": "dsk",
+          "collector": "189",
+          "dist": 0.3048917055130005,
+          "sim": 0.6951082944869995
+        },
+        {
+          "index": 14095,
+          "name": "Break Down the Door",
+          "set": "dsk",
+          "collector": "170",
+          "dist": 0.30708134174346924,
+          "sim": 0.6929186582565308
+        },
+        {
+          "index": 4717,
+          "name": "Under the Skin",
+          "set": "dsk",
+          "collector": "203",
+          "dist": 0.3183578848838806,
+          "sim": 0.6816421151161194
+        }
+      ],
+      "best": {
+        "index": 37835,
+        "name": "Turn Inside Out",
+        "set": "dsk",
+        "collector": "160",
+        "dist": 0.16302776336669922,
+        "sim": 0.8369722366333008
+      }
+    },
+    {
+      "filename": "Sample 6.jpg",
+      "ocr_text": "a Aang the Last Airbender B ooIIaoaBnBannBDAs D BDBDBBDBD o E HO we KN Ky Gone poe oe Sta LY NX OE Legend Creature Human Avatar Ally When Aang enter airbender up to one other target nonland permanent Exile Whistle it s exiled its otwner may cast tt for ratter than tis mana cost Whenever you cast a Lesson spell Aang gains lifelink suntail end of turn",
+      "candidates": [
+        {
+          "index": 15729,
+          "name": "Aang, the Last Airbender",
+          "set": "tla",
+          "collector": "4",
+          "dist": 0.21633696556091309,
+          "sim": 0.7836630344390869
+        },
+        {
+          "index": 95958,
+          "name": "Aang, Airbending Master",
+          "set": "tle",
+          "collector": "74",
+          "dist": 0.33523672819137573,
+          "sim": 0.6647632718086243
+        },
+        {
+          "index": 97751,
+          "name": "Airbending Lesson",
+          "set": "tla",
+          "collector": "8",
+          "dist": 0.3974289894104004,
+          "sim": 0.6025710105895996
+        },
+        {
+          "index": 33379,
+          "name": "Appa, Steadfast Guardian",
+          "set": "tla",
+          "collector": "316",
+          "dist": 0.4386720657348633,
+          "sim": 0.5613279342651367
+        },
+        {
+          "index": 56167,
+          "name": "Appa, Steadfast Guardian",
+          "set": "tla",
+          "collector": "10",
+          "dist": 0.4386720657348633,
+          "sim": 0.5613279342651367
+        }
+      ],
+      "best": {
+        "index": 15729,
+        "name": "Aang, the Last Airbender",
+        "set": "tla",
+        "collector": "4",
+        "dist": 0.21633696556091309,
+        "sim": 0.7836630344390869
+      }
+    },
+    {
+      "filename": "Sample 7.jpg",
+      "ocr_text": "Aarakocra Sneak CO Creature Bird Rogue Flying When Aarakocra Sneak enter the battlefield you take the initiative Shhh I think I hear goblins And I definitely smell them OSA EGiI Ce ELB o EN COA YNDHAG ING OUD Szats at aan",
+      "candidates": [
+        {
+          "index": 18418,
+          "name": "Aarakocra Sneak",
+          "set": "clb",
+          "collector": "54",
+          "dist": 0.2524406909942627,
+          "sim": 0.7475593090057373
+        },
+        {
+          "index": 36570,
+          "name": "Goblin Bird-Grabber",
+          "set": "m20",
+          "collector": "142",
+          "dist": 0.44255417585372925,
+          "sim": 0.5574458241462708
+        },
+        {
+          "index": 14542,
+          "name": "Goblin Secret Agent",
+          "set": "unh",
+          "collector": "79",
+          "dist": 0.4804943799972534,
+          "sim": 0.5195056200027466
+        },
+        {
+          "index": 2594,
+          "name": "Aven Skirmisher",
+          "set": "frf",
+          "collector": "6",
+          "dist": 0.4865265488624573,
+          "sim": 0.5134734511375427
+        },
+        {
+          "index": 78975,
+          "name": "Squeaking Pie Sneak",
+          "set": "lrw",
+          "collector": "142",
+          "dist": 0.48675471544265747,
+          "sim": 0.5132452845573425
+        }
+      ],
+      "best": {
+        "index": 18418,
+        "name": "Aarakocra Sneak",
+        "set": "clb",
+        "collector": "54",
+        "dist": 0.2524406909942627,
+        "sim": 0.7475593090057373
+      }
+    },
+    {
+      "filename": "Sample 8.jpg",
+      "ocr_text": "Binding Geist Creature Spirit ey Whenever Binding Geist attacks target creature an component control gets suntail end of turn Disturbed You may cast this card from your graveyard transformer for its disturbed cost VOWIIE Nie GAMPGENIAHICE Ge QOD Wavzan ls oi tithe Cousin",
+      "candidates": [
+        {
+          "index": 56078,
+          "name": "Binding Geist // Spectral Binding",
+          "set": "dbl",
+          "collector": "315",
+          "dist": 0.34117114543914795,
+          "sim": 0.658828854560852
+        },
+        {
+          "index": 49590,
+          "name": "Binding Geist // Spectral Binding",
+          "set": "vow",
+          "collector": "48",
+          "dist": 0.34117114543914795,
+          "sim": 0.658828854560852
+        },
+        {
+          "index": 47485,
+          "name": "A-Binding Geist // A-Spectral Binding",
+          "set": "vow",
+          "collector": "A-48",
+          "dist": 0.3596034049987793,
+          "sim": 0.6403965950012207
+        },
+        {
+          "index": 25549,
+          "name": "Patrician Geist",
+          "set": "pmid",
+          "collector": "69★",
+          "dist": 0.38933295011520386,
+          "sim": 0.6106670498847961
+        },
+        {
+          "index": 91767,
+          "name": "Patrician Geist",
+          "set": "pmid",
+          "collector": "69p",
+          "dist": 0.38933295011520386,
+          "sim": 0.6106670498847961
+        }
+      ],
+      "best": {
+        "index": 56078,
+        "name": "Binding Geist // Spectral Binding",
+        "set": "dbl",
+        "collector": "315",
+        "dist": 0.34117114543914795,
+        "sim": 0.658828854560852
+      }
+    },
+    {
+      "filename": "Sample 9.jpg",
+      "ocr_text": "Absolving Lammasu Ly Creature Lammasu Sr Flying When Absolving Lammasu enter the battlefield all suspect creatures are no loner suspect When Absolving Lammasu die you gain life and suspect up to one target creature an component control A suspect creature has menace and can t block U AIS Are e G ADA of the Coast",
+      "candidates": [
+        {
+          "index": 81681,
+          "name": "Absolving Lammasu",
+          "set": "mkm",
+          "collector": "2",
+          "dist": 0.1636691689491272,
+          "sim": 0.8363308310508728
+        },
+        {
+          "index": 79500,
+          "name": "Hunted Lammasu",
+          "set": "rav",
+          "collector": "22",
+          "dist": 0.399679958820343,
+          "sim": 0.600320041179657
+        },
+        {
+          "index": 100988,
+          "name": "Hunted Lammasu",
+          "set": "c21",
+          "collector": "94",
+          "dist": 0.399679958820343,
+          "sim": 0.600320041179657
+        },
+        {
+          "index": 14942,
+          "name": "Venerable Lammasu",
+          "set": "ktk",
+          "collector": "28",
+          "dist": 0.45065826177597046,
+          "sim": 0.5493417382240295
+        },
+        {
+          "index": 33522,
+          "name": "Presumed Dead",
+          "set": "mkm",
+          "collector": "100",
+          "dist": 0.4650082588195801,
+          "sim": 0.5349917411804199
+        }
+      ],
+      "best": {
+        "index": 81681,
+        "name": "Absolving Lammasu",
+        "set": "mkm",
+        "collector": "2",
+        "dist": 0.1636691689491272,
+        "sim": 0.8363308310508728
+      }
+    }
+  ]
+}

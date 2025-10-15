@@ -1,3 +1,4 @@
+import os
 from typing import Optional, List, Dict, Any
 from . import card_id, assign
 
@@ -14,7 +15,13 @@ def identify_and_assign(ocr_map: Dict[str, str],
     Returns a dict with the assigned cell, reason, constructed card and
     the identification debug info.
     """
-    id_res = card_id.identify_card_from_ocr(ocr_map, db_path=db_path, cards_list=cards_list)
+    # prefer using precomputed embeddings when available
+    id_res = card_id.identify_card_from_ocr(
+        ocr_map,
+        db_path=db_path,
+        cards_list=cards_list,
+        embeddings_dir=os.path.join("data", "embeddings"),
+    )
 
     # identification confidence -> 0.0..1.0
     id_score = float(id_res.get('score', 0.0))

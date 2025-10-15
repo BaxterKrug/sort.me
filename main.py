@@ -7,11 +7,28 @@ import numpy as np
 import yaml
 from fastapi import File, Form, HTTPException, UploadFile
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
-from services import card_id, ocr
-from services.assign import Card, SystemState, assign_card, load_config
+from app.services import card_id, ocr
+from app.services.assign import Card, SystemState, assign_card, load_config
 
 app = FastAPI()
+
+# Serve the single-page UI and static assets from the `app/static/` folder
+# - GET / will return app/static/index.html
+# - static assets (JS/CSS) will be available under /static/
+static_dir = os.path.join("app", "static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+
+@app.get("/")
+def read_index():
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    # If index.html is missing, return a small JSON explaining the issue
+    raise HTTPException(status_code=404, detail="Web UI not found. Ensure app/static/index.html exists.")
 
 CFG = load_config(yaml.safe_load(open("config.yaml")))
 STATE = SystemState(counts_by_cell={cid: 0 for cid in CFG.cells})
@@ -85,6 +102,7 @@ async def demo_batch_identify(
     files: List[UploadFile] = File(...),
     db_path: Optional[str] = Form(None),
     use_filename_expected: bool = Form(True),
+    ocr_only: bool = Form(False),
 ):
     """
     Run a batch OCR + identification pass for uploaded images.
@@ -101,16 +119,13 @@ async def demo_batch_identify(
         raise HTTPException(status_code=400, detail="No images uploaded")
 
     active_db_path = db_path or _default_card_db_path()
-    try:
-        cards_db = _load_card_db(active_db_path) if active_db_path else None
-    except Exception as exc:  # pragma: no cover - defensive guard
-        raise HTTPException(status_code=400, detail=f"Failed to load card DB: {exc}")
-
-    if not cards_db:
-        raise HTTPException(
-            status_code=400,
-            detail="Card database not configured. Provide db_path or set SORTME_CARD_DB_PATH.",
-        )
+    cards_db = None
+    # Try to load a card DB if a path is provided; otherwise allow OCR-only operation
+    if active_db_path:
+        try:
+            cards_db = _load_card_db(active_db_path)
+        except Exception as exc:  # pragma: no cover - defensive guard
+            raise HTTPException(status_code=400, detail=f"Failed to load card DB: {exc}")
 
     results = []
     name_matches = 0
@@ -140,11 +155,43 @@ async def demo_batch_identify(
             regions = ocr_res.get("regions", {})
             region_texts = {key: (val.get("text", "") if isinstance(val, dict) else "") for key, val in regions.items()}
 
-            identify_res = card_id.identify_card_from_ocr(region_texts, cards_list=cards_db)
-            best = identify_res.get("best") or {}
-            identified_name = (best.get("name") or best.get("title") or region_texts.get("name") or "").strip()
+            # If ocr_only flag present, skip identification and assignment and return simplified OCR-only data
+            if ocr_only:
+                # Build a single aggregated text string from the region_texts (preserve readable order if available)
+                ordered_keys = [k for k in ['name','type_line','oracle','collector','full'] if k in region_texts]
+                # append any other keys in their existing order
+                ordered_keys += [k for k in region_texts.keys() if k not in ordered_keys]
+                parts = [region_texts.get(k) for k in ordered_keys if region_texts.get(k)]
+                aggregated = "\n".join(parts) if parts else ""
 
-            id_score = float(identify_res.get("score", 0.0))
+                # Return only filename and the aggregated OCR text and the simple per-region strings
+                file_result.update({
+                    "ocr_text": aggregated,
+                    "region_texts": region_texts,  # simple map of region -> text (strings only)
+                })
+                results.append(file_result)
+                continue
+
+            # If a cards DB is available, run identification. If not, but precomputed embeddings exist,
+            # still run identification using the embeddings-only path.
+            embeddings_dir = os.path.join("data", "embeddings")
+            has_embeddings = os.path.exists(os.path.join(embeddings_dir, 'embeddings.npy')) and os.path.exists(os.path.join(embeddings_dir, 'cards_metadata.json'))
+
+            if cards_db or has_embeddings:
+                identify_res = card_id.identify_card_from_ocr(
+                    region_texts,
+                    cards_list=cards_db if cards_db else None,
+                    embeddings_dir=embeddings_dir if has_embeddings else None,
+                )
+                best = identify_res.get("best") or {}
+                identified_name = (best.get("name") or best.get("title") or region_texts.get("name") or "").strip()
+                id_score = float(identify_res.get("score", 0.0))
+            else:
+                identify_res = {}
+                best = {}
+                identified_name = (region_texts.get("name") or "").strip()
+                id_score = 0.0
+
             card_conf = min(1.0, id_score / 100.0) if id_score > 0 else 0.0
 
             card = Card(
@@ -200,6 +247,7 @@ async def demo_batch_identify(
                     },
                     "region_texts": region_texts,
                     "identify": identify_res,
+                    "identify_debug": identify_res.get("debug"),
                     "identified_name": identified_name,
                     "id_score": id_score,
                     "assignment": {

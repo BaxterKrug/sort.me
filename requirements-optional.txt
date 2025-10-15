@@ -1,0 +1,4 @@
+easyocr
+torch
+torchvision
+faiss-cpu

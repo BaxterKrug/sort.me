@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>sort.me — Card Sorter</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <header class="app-header">
@@ -116,71 +116,7 @@
         </div>
       </div>
 
-      <!-- Assignment Preview -->
-      <div class="card">
-        <h3>Assignment Preview</h3>
-        <p class="muted">
-          Type a card name (or use OCR text). Preview shows destination based on the selected sort. Diverts/overflows go to <strong>K3</strong>.
-        </p>
-        <div class="form">
-          <label for="previewName">Card Name</label>
-          <div class="row">
-            <input id="previewName" type="text" placeholder="e.g., Ancestral Recall" />
-            <button id="btnUseOCR" class="secondary" type="button">Use OCR Text</button>
-            <button id="btnPreview" class="primary" type="button">Preview</button>
-          </div>
-
-          <div class="row" style="margin-top:6px">
-            <label for="previewConf" style="min-width:120px">Confidence (0–1)</label>
-            <input id="previewConf" type="number" step="0.01" min="0" max="1" value="0.95" style="max-width:140px" />
-            <span class="muted">Below threshold routes to K3.</span>
-          </div>
-        </div>
-
-        <div class="sim-results" style="margin-top:10px">
-          <div class="row" style="gap:10px;flex-wrap:wrap">
-            <span>First Letter:</span> <span id="prevFirst" class="chip">—</span>
-            <span>Cell:</span> <span id="prevCell" class="chip">—</span>
-            <span>Reason:</span> <span id="prevReason" class="chip">—</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Simulator -->
-      <div class="card">
-        <h3>Simulator (A–Z Manual Mapping)</h3>
-        <p class="muted">Paste card names (one per line). Optional: “,confidence” after a name (e.g., <code>Birds of Paradise,0.72</code>). Click <em>Run</em> or <em>Step</em> to assign them one by one. Diverts/overflows → <strong>K3</strong>.</p>
-
-        <div class="form">
-          <label for="simInput">Cards</label>
-          <textarea id="simInput" placeholder="Ancestral Recall
-Birds of Paradise,0.72
-Counterspell
-Zurzoth, Chaos Rider"></textarea>
-
-          <div class="row">
-            <button id="btnSimLoadSample" class="secondary">Load Sample</button>
-            <button id="btnSimReset" class="ghost">Reset Counts</button>
-            <button id="btnSimStep" class="secondary">Step</button>
-            <button id="btnSimRun" class="primary">Run</button>
-            <button id="btnSimStop" class="danger hidden">Stop</button>
-          </div>
-        </div>
-
-        <div class="sim-results">
-          <div class="row" style="justify-content:space-between">
-            <strong>Assignments</strong>
-            <span class="muted" id="simProgress">0 / 0</span>
-          </div>
-          <div id="simTable" class="sim-table">
-            <div class="sim-row sim-header">
-              <span>#</span><span>Name</span><span>First</span><span>Cell</span><span>Reason</span>
-            </div>
-            <!-- rows append here -->
-          </div>
-        </div>
-      </div>
-
+  
       <!-- Demo OCR Batch Tester -->
       <div class="card">
         <h3>Demo: OCR &amp; Card ID Batch Test</h3>
@@ -356,6 +292,6 @@ Zurzoth, Chaos Rider"></textarea>
   <!-- Toasts -->
   <div id="toasts" class="toasts"></div>
 
-  <script src="app.js"></script>
+  <script src="/static/app.js"></script>
 </body>
 </html>
