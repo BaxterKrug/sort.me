@@ -38,7 +38,15 @@ const panelRun = $('panelRun');
 
 on($('btnToSetup'), 'click', ()=>{ hide(panelCalibrate); show(panelSetup); });
 on($('btnBackToCal'), 'click', ()=>{ show(panelCalibrate); hide(panelSetup); });
-on($('demoToggle'), 'change', (e)=>{ demo = e.target.checked; toast(`Demo Mode ${demo?'ON':'OFF'}`); resetSimState(); });
+on($('demoToggle'), 'change', async (e)=>{
+  demo = e.target.checked;
+  toast(`Demo Mode ${demo?'ON':'OFF'}`);
+  resetSimState();
+  try{
+    await api('/demo/mode', {method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({demo})});
+    console.log('Server demo mode set ->', demo);
+  }catch(err){ console.warn('Failed to set server demo mode', err); }
+});
 
 // Demo batch tester refs
 const demoBatchFiles = $('demoBatchFiles');
@@ -75,10 +83,50 @@ on($('btnResume'), 'click', async ()=>{
 
 // ------------- Calibration -------------
 on($('btnHomeAll'), 'click', ()=> api('/motion/home_all',{method:'POST'}).then(()=>toast('Homed all')).catch(e=>toast(e.message)));
-on($('btnPlungerDown'), 'click', ()=> api('/plunger/down',{method:'POST'}).then(()=>toast('Plunger down')).catch(e=>toast(e.message)));
-on($('btnPlungerUp'), 'click', ()=> api('/plunger/up',{method:'POST'}).then(()=>toast('Plunger up')).catch(e=>toast(e.message)));
-on($('btnVacuumOn'), 'click', ()=> api('/vacuum/on',{method:'POST'}).then(()=>toast('Vacuum on')).catch(e=>toast(e.message)));
-on($('btnVacuumOff'), 'click', ()=> api('/vacuum/off',{method:'POST'}).then(()=>toast('Vacuum off')).catch(e=>toast(e.message)));
+on($('btnHomeA1'), 'click', ()=> api('/motion/home_a1',{method:'POST'}).then(res=>{
+  toast('Homed to A1'); console.log('/motion/home_a1 ->', res);
+}).catch(e=>toast(e.message)));
+// Update state chips when plunger/vacuum commands are used
+function setPlungerState(state){ const el = $('plungerState'); if(!el) return; el.textContent = state; el.classList.remove('muted'); }
+function setVacuumState(state){ const el = $('vacuumState'); if(!el) return; el.textContent = state; el.classList.remove('muted'); }
+
+on($('btnPlungerDown'), 'click', async ()=>{
+  try{
+    // optimistic UI
+    setPlungerState('Down...');
+    const res = await api('/plunger/down', {method:'POST'});
+    setPlungerState('Down');
+    console.log('/plunger/down ->', res);
+    toast('Plunger down');
+  }catch(e){ setPlungerState('Error'); toast(`Plunger down failed: ${e.message}`); }
+});
+on($('btnPlungerUp'), 'click', async ()=>{
+  try{
+    setPlungerState('Up...');
+    const res = await api('/plunger/up', {method:'POST'});
+    setPlungerState('Up');
+    console.log('/plunger/up ->', res);
+    toast('Plunger up');
+  }catch(e){ setPlungerState('Error'); toast(`Plunger up failed: ${e.message}`); }
+});
+on($('btnVacuumOn'), 'click', async ()=>{
+  try{
+    setVacuumState('On...');
+    const res = await api('/vacuum/on', {method:'POST'});
+    setVacuumState('On');
+    console.log('/vacuum/on ->', res);
+    toast('Vacuum on');
+  }catch(e){ setVacuumState('Error'); toast(`Vacuum on failed: ${e.message}`); }
+});
+on($('btnVacuumOff'), 'click', async ()=>{
+  try{
+    setVacuumState('Off...');
+    const res = await api('/vacuum/off', {method:'POST'});
+    setVacuumState('Off');
+    console.log('/vacuum/off ->', res);
+    toast('Vacuum off');
+  }catch(e){ setVacuumState('Error'); toast(`Vacuum off failed: ${e.message}`); }
+});
 
 on($('btnSnap'), 'click', async ()=>{
   try{
@@ -88,6 +136,10 @@ on($('btnSnap'), 'click', async ()=>{
 });
 
 function refreshCamera(){
+  const chip = $('cameraStatus');
+  if(!chip || chip.dataset.state !== 'online'){
+    setCameraStatus('checking…', false);
+  }
   $('cameraFeed').src = demo
     ? 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjMDAwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkRFTU8gQ0FNRVJBPC90ZXh0Pjwvc3ZnPg=='
     : `${BASE}/camera/preview?t=${Date.now()}`;
@@ -96,6 +148,37 @@ function refreshCamera(){
     : `${BASE}/camera/stream?t=${Date.now()}`;
 }
 setInterval(refreshCamera, 2000); refreshCamera();
+
+// Camera status helpers
+function setCameraStatus(state, ok){
+  const chip = $('cameraStatus');
+  if(!chip) return;
+  const text = `Camera: ${state}`;
+  const prevState = chip.dataset?.state;
+  const prevOk = chip.dataset?.ok;
+  if(prevState === state && prevOk === (ok ? '1' : '0')){
+    return;
+  }
+  chip.textContent = text;
+  chip.dataset.state = state;
+  chip.dataset.ok = ok ? '1' : '0';
+  if(ok){
+    chip.classList.remove('muted');
+  } else {
+    chip.classList.add('muted');
+  }
+}
+
+const cameraFeedEl = $('cameraFeed');
+const cameraLiveEl = $('cameraLive');
+if(cameraFeedEl){
+  cameraFeedEl.addEventListener('load', ()=> setCameraStatus('online', true));
+  cameraFeedEl.addEventListener('error', ()=> setCameraStatus('offline', false));
+}
+if(cameraLiveEl){
+  cameraLiveEl.addEventListener('load', ()=> setCameraStatus('online', true));
+  cameraLiveEl.addEventListener('error', ()=> setCameraStatus('offline', false));
+}
 
 // ------------- Grid / Cells -------------
 let cells = []; // [{id,x,y,z}, ...]
@@ -144,6 +227,16 @@ function renderGridPreview(hostId, list){
       el.style.borderColor = '#4CAF50';
     }
 
+    // Make cells clickable so clicking a cell in the main grid will move the head
+    el.style.cursor = 'pointer';
+    el.classList.add('clickable');
+    el.addEventListener('click', async ()=>{
+      try{
+        await api('/motion/move', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cell: c.id})});
+        toast(`Moved to ${c.id}`);
+      }catch(e){ toast(`Move failed: ${e.message}`); }
+    });
+
     host.appendChild(el);
   });
 }
@@ -183,7 +276,7 @@ on($('btnTestCellMoves'), 'click', ()=>{
 
     el.addEventListener('click', async ()=>{
       try{
-        await api('/motion/move_to', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cell_id:c.id})});
+        await api('/motion/move', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cell: c.id})});
         toast(`Moved to ${c.id}`);
       }catch(e){ toast(`Move failed: ${e.message}`); }
     });
@@ -224,9 +317,20 @@ on($('btnMoveToCell'), 'click', async ()=>{
   const id = $('positionSelect').value;
   if(!id){ toast('Select a cell'); return; }
   try{
-    await api('/motion/move_to',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cell_id:id})});
+    await api('/motion/move',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cell:id})});
     toast(`Moved to ${id}`);
   }catch(e){ toast(`Move failed: ${e.message}`); }
+});
+// Set the controller's current position (manual override)
+on($('btnSetCurrent'), 'click', async ()=>{
+  const id = $('positionSelect').value;
+  if(!id){ toast('Select a cell'); return; }
+  try{
+    const res = await api('/motion/set_current', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cell: id})});
+    toast(`Set current to ${id}`);
+    // optional: log returned position object for debugging
+    console.log('set_current ->', res);
+  }catch(e){ toast(`Set current failed: ${e.message}`); }
 });
 on($('btnHomeAll2'),'click', ()=> api('/motion/home_all',{method:'POST'}).then(()=>toast('Homed all')).catch(e=>toast(e.message)));
 on($('btnHomeXY'),'click',  ()=> api('/motion/home_xy',{method:'POST'}).then(()=>toast('Homed XY')).catch(e=>toast(e.message)));
@@ -258,6 +362,29 @@ on($('btnOpenLogs'),'click', async ()=>{
   }catch(e){ toast(`Log fetch failed: ${e.message}`); }
 });
 on($('btnCloseLogs'),'click', ()=> $('dlgLogs').close());
+
+// Simulate assign and show generated G-code
+on($('btnSimulateAssign'), 'click', async ()=>{
+  const name = $('simCardName').value.trim();
+  if(!name){ toast('Enter a card name'); return; }
+  try{
+    const res = await api('/simulate/assign_move', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name})});
+    if(!res || typeof res !== 'object'){
+      toast('Simulate failed: unexpected response from server');
+      return;
+    }
+    let out = `Assigned to ${res.cell || '(unknown)'} — ${res.reason || '(no reason)'}\n\n`;
+    if(Array.isArray(res.gcode) && res.gcode.length){
+      out += res.gcode.join('\n');
+    } else if(typeof res.gcode === 'string'){
+      out += res.gcode;
+    } else {
+      out += '; no gcode preview available';
+    }
+    $('logOutput').textContent = out;
+    $('dlgLogs').showModal();
+  }catch(e){ toast(`Simulate failed: ${e.message}`); }
+});
 
 // ------------- Run status loop -------------
 const runLoop = (()=>{
@@ -294,6 +421,142 @@ const runLoop = (()=>{
     stop(){ if(!timer) return; clearInterval(timer); timer=null; }
   };
 })();
+
+// Motion status polling (driver name, demo flag, position)
+async function pollMotionStatus(){
+  try{
+    const s = await api('/motion/status');
+    const chip = $('motionStatus');
+    if(!chip) return;
+    const pos = s.pos || [0,0,0];
+    const driver = s.driver || 'unknown';
+    const demoFlag = s.demo ? 'demo' : 'live';
+    chip.textContent = `Motion: ${driver} (${demoFlag}) @ ${Number(pos[0]).toFixed(1)},${Number(pos[1]).toFixed(1)},${Number(pos[2]).toFixed(1)}`;
+  }catch(e){ /* ignore */ }
+}
+setInterval(pollMotionStatus, 1000); pollMotionStatus();
+
+// Device detection: scan serial ports and show whether the configured device exists
+async function scanDevice(){
+  try{
+    const res = await api('/motion/detect');
+    const chip = $('deviceStatus');
+    if(!chip) return;
+    if(res.error){ chip.textContent = `Device: ${res.error}`; chip.classList.add('muted'); return; }
+    if(res.connected){
+      const m = res.matched;
+      chip.textContent = `Device: connected (${m.device})`;
+      chip.classList.remove('muted');
+    } else {
+      chip.textContent = `Device: not found`;
+      chip.classList.add('muted');
+    }
+    return res;
+  }catch(e){ /* ignore */ }
+}
+
+on($('btnScanDevice'), 'click', async ()=>{ await scanDevice(); toast('Scan complete'); });
+
+// Auto-scan periodically when not in demo mode so UI updates when device is plugged/unplugged
+setInterval(()=>{ if(!demo) scanDevice(); }, 5000);
+scanDevice();
+
+// Device modal: show detected ports and allow adopting one as gcode port
+on($('btnScanDevice'), 'click', async ()=>{
+  // show modal
+  const dlg = $('dlgDevice');
+  const list = $('deviceList'); list.innerHTML = '';
+  const res = await scanDevice();
+  const ports = res?.ports || [];
+  ports.forEach(p=>{
+    const li = document.createElement('li');
+    li.style.padding = '6px 8px';
+    li.style.borderBottom = '1px solid #eee';
+    const radio = document.createElement('input'); radio.type='radio'; radio.name='device'; radio.value = p.device;
+    const lbl = document.createElement('label'); lbl.textContent = ` ${p.device} — ${p.description || ''}`;
+    li.appendChild(radio); li.appendChild(lbl);
+    list.appendChild(li);
+  });
+  dlg.showModal();
+});
+
+on($('btnCloseDevice'), 'click', ()=> $('dlgDevice').close());
+
+on($('btnAdoptPort'), 'click', async ()=>{
+  // find selected radio
+  const radios = Array.from(document.querySelectorAll('input[name=device]'));
+  const chosen = radios.find(r=>r.checked);
+  if(!chosen){ toast('Select a device first'); return; }
+  const port = chosen.value;
+  const baud = Number($('deviceBaud').value || 115200);
+  const persist = $('devicePersist')?.checked || false;
+  try{
+    // POST to /demo/mode to switch driver; pass gcode_opts
+  const res = await api('/demo/mode', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({demo:false, gcode_opts:{port, baud}, persist})});
+    if(res && res.error){
+      toast(`Adopt failed: ${res.error}`);
+    } else {
+      toast(`Adopted ${port} @ ${baud}`);
+      $('dlgDevice').close();
+    }
+    // refresh status regardless
+    await pollMotionStatus();
+    await scanDevice();
+  }catch(e){ toast(`Adopt failed: ${e.message}`); }
+});
+
+// Camera modal: show detected camera devices and allow selecting active camera
+on($('btnScanCamera'), 'click', async ()=>{
+  const dlg = $('dlgCamera');
+  const list = $('camList'); list.innerHTML = '';
+  try{
+    // ask server for candidate camera devices (probe up to 6 indices)
+    const res = await api('/camera/devices?max_index=6');
+    const candidates = res?.candidates || [];
+    candidates.forEach(c => {
+      const li = document.createElement('li');
+      li.style.padding = '6px 8px'; li.style.borderBottom = '1px solid #eee';
+      const radio = document.createElement('input'); radio.type='radio'; radio.name='camera'; radio.value = String(c.id);
+      const lbl = document.createElement('label'); lbl.style.marginLeft = '8px';
+      lbl.textContent = ` ${c.id} ${c.type?('('+c.type+')'):''} ${c.available?'' : '• unavailable'}`;
+      li.appendChild(radio); li.appendChild(lbl);
+      list.appendChild(li);
+    });
+    dlg.showModal();
+  }catch(err){ toast(`Camera scan failed: ${err.message}`); }
+});
+
+// Also open the camera modal from the quick-select button in calibration panel
+on($('btnOpenCamPanel'), 'click', async ()=>{ try{ await document.getElementById('btnScanCamera').click(); }catch(e){ /* fallback */ const d=$('dlgCamera'); if(d) d.showModal(); } });
+
+on($('btnCloseCam'), 'click', ()=> $('dlgCamera').close());
+
+on($('btnSelectCam'), 'click', async ()=>{
+  // find selected radio
+  const radios = Array.from(document.querySelectorAll('input[name=camera]'));
+  const chosen = radios.find(r=>r.checked);
+  if(!chosen){ toast('Select a camera first'); return; }
+  const devVal = chosen.value;
+  const persist = $('camPersist')?.checked || false;
+  let device = devVal;
+  // try to coerce numeric ids back to numbers when appropriate
+  if(/^[0-9]+$/.test(devVal)){
+    device = Number(devVal);
+  }
+  try{
+    const res = await api('/camera/select', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({device})});
+    if(res && res.ok){
+      toast(`Camera selected: ${device}`);
+      $('dlgCamera').close();
+      // refresh preview immediately
+      try{ refreshCamera(); setCameraStatus('online', true); }catch(e){}
+      // optional persist: attempt to write to config via /demo/mode persistence trick is not supported here
+      if(persist) toast('Note: persisting camera to config.yaml is not implemented on this endpoint');
+    }else{
+      toast(`Camera select failed`);
+    }
+  }catch(e){ toast(`Select failed: ${e.message}`); }
+});
 
 // ------------- Simulator & Preview shared state -------------
 let simQueue = [];
@@ -737,6 +1000,50 @@ async function demoApi(path, opts){
         return {cell:ERROR_CELL, reason:`overflow:${fl}`, counts:window.__demo_counts};
       }
       return {cell:tgt, reason:`alpha_exact:${fl}`, counts:window.__demo_counts};
+    }
+
+    // Simulate assignment + return rendered G-code preview (client-side demo)
+    case '/simulate/assign_move': {
+      const body = JSON.parse(opts?.body || '{}');
+      const name = (body.name || '').trim();
+      const action = (body.action || 'pick');
+      const conf = Number(body.confidence ?? 1.0);
+      const fl = /^[A-Z]/i.test(name) ? name[0].toUpperCase() : 'A';
+      const cell = conf < 0.80 ? ERROR_CELL : (letterMap[fl] || ERROR_CELL);
+      const reason = conf < 0.80 ? 'divert:low_confidence' : `alpha_exact:${fl}`;
+
+      // Render a simple G-code preview similar to server.render_gcode_for_cell
+      const x = (cell.charCodeAt(0) - 65) * 25; // simple positioning grid
+      const y = (Number(cell.replace(/[^0-9]/g,'')) - 1) * 25;
+      const z = 0.0;
+      const travel_feed = 200;
+      const pick_feed = 100;
+      const mc_plunge = 'M110';
+      const mc_vac_on = 'M100';
+      const mc_vac_off = 'M101';
+      const mc_plunge_up = 'M111';
+
+      const lines = [];
+      lines.push(`; Simulated G-code for action=${action} cell=${cell}`);
+      lines.push('G21');
+      lines.push('G90');
+      const safe_z = z + 10.0;
+      if(action === 'pick'){
+        lines.push(`G1 X${x.toFixed(3)} Y${y.toFixed(3)} Z${safe_z.toFixed(3)} F${travel_feed}`);
+        lines.push(mc_plunge);
+        lines.push(`G1 Z${(z-5.0).toFixed(3)} F${pick_feed}`);
+        lines.push(mc_vac_on);
+        lines.push('G4 P0.05');
+        lines.push(mc_plunge_up);
+        lines.push(`G1 Z${safe_z.toFixed(3)} F${travel_feed}`);
+      } else {
+        lines.push(`G1 X${x.toFixed(3)} Y${y.toFixed(3)} Z${safe_z.toFixed(3)} F${travel_feed}`);
+        lines.push(`G1 Z${(z-5.0).toFixed(3)} F${pick_feed}`);
+        lines.push(mc_vac_off);
+        lines.push('G4 P0.03');
+        lines.push(`G1 Z${safe_z.toFixed(3)} F${travel_feed}`);
+      }
+      return {cell, reason, gcode: lines};
     }
 
     default: return {ok:true};

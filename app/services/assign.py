@@ -1,7 +1,7 @@
 # services/assign.py
 from __future__ import annotations
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 # ---------- Data types ----------
@@ -22,6 +22,18 @@ class Cell:
 @dataclass
 class SystemState:
     counts_by_cell: Dict[str, int]   # live counts per cell
+    feeder_counts: Dict[str, int] = field(default_factory=dict)
+
+    def feeder_remaining(self, cell_id: str) -> Optional[int]:
+        if cell_id not in self.feeder_counts:
+            return None
+        return max(0, int(self.feeder_counts[cell_id]))
+
+    def decrement_feeder(self, cell_id: str) -> Optional[int]:
+        if cell_id not in self.feeder_counts:
+            return None
+        self.feeder_counts[cell_id] = max(0, int(self.feeder_counts[cell_id]) - 1)
+        return self.feeder_counts[cell_id]
 
 @dataclass
 class Config:

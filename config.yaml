@@ -1,18 +1,3 @@
-# --- Sorting behavior ---
-sorting:
-  default_mode: alpha_exact              # only mode we use
-  low_confidence_threshold: 0.80         # divert to ERR1 below this
-  near_full_threshold: 0.90              # informational; not used for rerouting
-
-# --- Feeder axiom: A-row reserved (A1–A3); never place into these ---
-feeder:
-  reserve_pattern: "^A\\d+$"
-
-# --- Error/overflow cell(s) ---
-overflow:
-  cells: [ERR1]                          # first usable is chosen
-
-# --- Manual A–Z mapping (each letter has EXACTLY one destination cell) ---
 alpha_exact:
   letter_to_cell:
     A: B1
@@ -41,49 +26,140 @@ alpha_exact:
     X: I3
     Y: J1
     Z: J2
-
-# --- Physical cells (example grid; rows 1–3 only) ---
 cells:
-  # Feeders (reserved)
-  - { id: A1, capacity: 120, tags: [feeder] }
-  - { id: A2, capacity: 120, tags: [feeder] }
-  - { id: A3, capacity: 120, tags: [feeder] }
-
-  # Placement cells used in letter_to_cell (must exist)
-  - { id: B1, capacity: 60, tags: [] }
-  - { id: B2, capacity: 60, tags: [] }
-  - { id: B3, capacity: 60, tags: [] }
-
-  - { id: C1, capacity: 60, tags: [] }
-  - { id: C2, capacity: 60, tags: [] }
-  - { id: C3, capacity: 60, tags: [] }
-
-  - { id: D1, capacity: 60, tags: [] }
-  - { id: D2, capacity: 60, tags: [] }
-  - { id: D3, capacity: 60, tags: [] }
-
-  - { id: E1, capacity: 60, tags: [] }
-  - { id: E2, capacity: 60, tags: [] }
-  - { id: E3, capacity: 60, tags: [] }
-
-  - { id: F1, capacity: 60, tags: [] }
-  - { id: F2, capacity: 60, tags: [] }
-  - { id: F3, capacity: 60, tags: [] }
-
-  - { id: G1, capacity: 60, tags: [] }
-  - { id: G2, capacity: 60, tags: [] }
-  - { id: G3, capacity: 60, tags: [] }
-
-  - { id: H1, capacity: 60, tags: [] }
-  - { id: H2, capacity: 60, tags: [] }
-  - { id: H3, capacity: 60, tags: [] }
-
-  - { id: I1, capacity: 60, tags: [] }
-  - { id: I2, capacity: 60, tags: [] }
-  - { id: I3, capacity: 60, tags: [] }
-
-  - { id: J1, capacity: 60, tags: [] }
-  - { id: J2, capacity: 60, tags: [] }
-
-  # Error/overflow
-  - { id: ERR1, capacity: 300, tags: [error-pile] }
+- capacity: 120
+  id: A1
+  tags:
+  - feeder
+- capacity: 120
+  id: A2
+  tags:
+  - feeder
+- capacity: 120
+  id: A3
+  tags:
+  - feeder
+- capacity: 60
+  id: B1
+  tags: []
+- capacity: 60
+  id: B2
+  tags: []
+- capacity: 60
+  id: B3
+  tags: []
+- capacity: 60
+  id: C1
+  tags: []
+- capacity: 60
+  id: C2
+  tags: []
+- capacity: 60
+  id: C3
+  tags: []
+- capacity: 60
+  id: D1
+  tags: []
+- capacity: 60
+  id: D2
+  tags: []
+- capacity: 60
+  id: D3
+  tags: []
+- capacity: 60
+  id: E1
+  tags: []
+- capacity: 60
+  id: E2
+  tags: []
+- capacity: 60
+  id: E3
+  tags: []
+- capacity: 60
+  id: F1
+  tags: []
+- capacity: 60
+  id: F2
+  tags: []
+- capacity: 60
+  id: F3
+  tags: []
+- capacity: 60
+  id: G1
+  tags: []
+- capacity: 60
+  id: G2
+  tags: []
+- capacity: 60
+  id: G3
+  tags: []
+- capacity: 60
+  id: H1
+  tags: []
+- capacity: 60
+  id: H2
+  tags: []
+- capacity: 60
+  id: H3
+  tags: []
+- capacity: 60
+  id: I1
+  tags: []
+- capacity: 60
+  id: I2
+  tags: []
+- capacity: 60
+  id: I3
+  tags: []
+- capacity: 60
+  id: J1
+  tags: []
+- capacity: 60
+  id: J2
+  tags: []
+- capacity: 300
+  id: ERR1
+  tags:
+  - error-pile
+feeder:
+  reserve_pattern: ^A\d+$
+gcode:
+  baud: 115200
+  port: /dev/ttyACM0
+overflow:
+  cells:
+  - ERR1
+sorting:
+  default_mode: alpha_exact
+  low_confidence_threshold: 0.8
+  near_full_threshold: 0.9
+camera:
+  device: 0
+  resolution:
+  - 1280
+  - 720
+  feeders:
+  - cell: A1
+    roi:
+    - 0.0
+    - 0.0
+    - 0.33
+    - 1.0
+    empty_threshold: 0.05
+    history: 5
+  - cell: A2
+    roi:
+    - 0.33
+    - 0.0
+    - 0.66
+    - 1.0
+    empty_threshold: 0.05
+    history: 5
+  - cell: A3
+    roi:
+    - 0.66
+    - 0.0
+    - 1.0
+    - 1.0
+    empty_threshold: 0.05
+    history: 5

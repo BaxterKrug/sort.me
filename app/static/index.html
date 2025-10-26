@@ -14,6 +14,11 @@
     </div>
     <nav class="right">
       <button id="btnEStop" class="danger">E-STOP</button>
+  <span id="motionStatus" class="chip muted">Motion: -</span>
+  <span id="cameraStatus" class="chip muted">Camera: unknown</span>
+  <span id="deviceStatus" class="chip muted">Device: unknown</span>
+  <button id="btnScanDevice" class="secondary">Scan USB</button>
+  <button id="btnScanCamera" class="secondary">Scan Cameras</button>
       <button id="btnPause" class="secondary">Pause</button>
       <button id="btnResume" class="primary hidden">Resume</button>
       <label class="toggle">
@@ -35,6 +40,7 @@
           <p class="muted">Homes X/Y/Z. Required before motion.</p>
           <div class="row">
             <button id="btnHomeAll" class="primary">Home All</button>
+            <button id="btnHomeA1" class="secondary">Home A1</button>
           </div>
         </div>
 
@@ -44,6 +50,12 @@
           <div class="row">
             <button id="btnPlungerDown">Plunger Down</button>
             <button id="btnPlungerUp">Plunger Up</button>
+          </div>
+          <div class="row">
+            <span>Plunger:</span>
+            <span id="plungerState" class="chip muted">Unknown</span>
+            <span style="margin-left:12px">Vacuum:</span>
+            <span id="vacuumState" class="chip muted">Unknown</span>
           </div>
           <div class="row">
             <button id="btnVacuumOn">Vacuum On</button>
@@ -60,6 +72,9 @@
           <p class="muted">Confirm camera feed and OCR readiness.</p>
           <div class="camera">
             <img id="cameraFeed" alt="Camera preview" />
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button id="btnOpenCamPanel" class="secondary">Select Camera…</button>
           </div>
           <div class="row">
             <button id="btnSnap" class="secondary">Snapshot OCR</button>
@@ -220,6 +235,7 @@
               <option disabled selected>Select a cell</option>
             </select>
             <button id="btnMoveToCell">Move</button>
+            <button id="btnSetCurrent" class="secondary">Set current</button>
 
             <div class="row compact">
               <button id="btnJogUp">Z+</button>
@@ -237,6 +253,12 @@
             <div class="row compact">
               <button id="btnPlunge">Plunge</button>
               <button id="btnRetract">Retract</button>
+            </div>
+            <div class="divider"></div>
+            <div>
+              <label for="simCardName">Simulate card name</label>
+              <input id="simCardName" type="text" placeholder="e.g., Lightning Bolt" />
+              <button id="btnSimulateAssign" class="secondary">Simulate Assign & G-code</button>
             </div>
           </div>
         </div>
@@ -289,9 +311,52 @@
     </div>
   </dialog>
 
+  <!-- Modal: Device Selection -->
+  <dialog id="dlgDevice" class="modal">
+    <div class="modal-card">
+      <h3>Detected Serial Devices</h3>
+      <p class="muted">Select the controller device you want to adopt as the G-code port.</p>
+      <div class="form">
+        <div id="deviceListWrap">
+          <ul id="deviceList" style="list-style:none;padding:0;margin:0;max-height:240px;overflow:auto"></ul>
+        </div>
+        <label for="deviceBaud">Baud rate</label>
+        <input id="deviceBaud" type="number" value="115200" />
+        <div style="margin-top:8px">
+          <label><input id="devicePersist" type="checkbox" /> Persist to config.yaml</label>
+        </div>
+      </div>
+      <div class="row end">
+        <button id="btnAdoptPort" class="primary">Adopt as G-code port</button>
+        <button id="btnCloseDevice" class="ghost">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal: Camera Selection -->
+  <dialog id="dlgCamera" class="modal">
+    <div class="modal-card">
+      <h3>Camera Devices</h3>
+      <p class="muted">Select which camera to use for feeder detection and preview.</p>
+      <div class="form">
+        <div id="camListWrap">
+          <ul id="camList" style="list-style:none;padding:0;margin:0;max-height:240px;overflow:auto"></ul>
+        </div>
+        <div style="margin-top:8px">
+          <label><input id="camPersist" type="checkbox" /> Persist to config.yaml</label>
+        </div>
+      </div>
+      <div class="row end">
+        <button id="btnSelectCam" class="primary">Select Camera</button>
+        <button id="btnCloseCam" class="ghost">Close</button>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Toasts -->
   <div id="toasts" class="toasts"></div>
 
-  <script src="/static/app.js"></script>
+  <!-- Cache-busting query param to ensure clients pick up JS changes during development -->
+  <script src="/static/app.js?v=2"></script>
 </body>
 </html>
