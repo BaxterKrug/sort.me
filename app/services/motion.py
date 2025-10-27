@@ -17,7 +17,7 @@ import time
 import logging
 
 LOG = logging.getLogger("sort.motion")
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # Driver interface (duck-typed)
 class MotionDriver:
@@ -140,22 +140,36 @@ class GCodeDriver(MotionDriver):
             raise
 
     async def query_position(self) -> Tuple[float, float, float]:
-        # send M114 and parse 'X:.. Y:.. Z:..'
+        # send M114 and parse 'X:.. Y:.. Z:..' but ignore step counters after "Count"
         lines = await self.send_gcode('M114', wait_ok=True, timeout=1.0)
         x = y = z = 0.0
         for ln in lines:
             # example Marlin response: 'X:1.23 Y:4.56 Z:7.89 E:0.00 Count X:...'
+            # Split at "Count" to ignore step counter values that can corrupt position
+            actual_position_part = ln.split('Count')[0] if 'Count' in ln else ln
+            
+            # DEBUG: Add detailed logging of position parsing
+            LOG.debug("Position parsing - Raw line: %r", ln)
+            LOG.debug("Position parsing - After Count split: %r", actual_position_part)
+            
             try:
-                parts = ln.replace(',', ' ').split()
+                parts = actual_position_part.replace(',', ' ').split()
+                LOG.debug("Position parsing - Parts: %s", parts)
                 for p in parts:
-                    if p.startswith('X:'):
+                    if p.startswith('X:') and x == 0.0:  # Only parse first occurrence
                         x = float(p.split(':',1)[1])
-                    elif p.startswith('Y:'):
+                        LOG.debug("Position parsing - Found X: %.3f", x)
+                    elif p.startswith('Y:') and y == 0.0:  # Only parse first occurrence
                         y = float(p.split(':',1)[1])
-                    elif p.startswith('Z:'):
+                        LOG.debug("Position parsing - Found Y: %.3f", y)
+                    elif p.startswith('Z:') and z == 0.0:  # Only parse first occurrence
                         z = float(p.split(':',1)[1])
-            except Exception:
+                        LOG.debug("Position parsing - Found Z: %.3f", z)
+            except Exception as e:
+                LOG.debug("Position parsing - Parse error on line %r: %s", ln, e)
                 continue
+        
+        LOG.debug("Position parsing - Final result: (%.3f, %.3f, %.3f)", x, y, z)
         return (x, y, z)
 
     async def move_absolute(self, x: float, y: float, z: float, speed: float) -> None:
@@ -201,10 +215,10 @@ class GCodeDriver(MotionDriver):
     async def move_until_limit(self, axis: str, direction: int, speed: float) -> float:
         """
         Move along an axis until a limit switch is triggered.
-        Uses incremental moves with position feedback to detect when movement stops.
+        Uses small incremental moves with both position feedback and limit switch checking.
         """
         axis_upper = axis.upper()
-        step = 1.0 * (1 if direction > 0 else -1)
+        step = 0.5 * (1 if direction > 0 else -1)  # Smaller steps for better detection
         
         LOG.info("Moving until limit: axis=%s, direction=%d, speed=%.1f", axis_upper, direction, speed)
         
@@ -214,22 +228,42 @@ class GCodeDriver(MotionDriver):
         try:
             last_pos = None
             stuck_count = 0
-            max_steps = 2000
+            max_steps = 4000  # More steps with smaller step size
             
             for step_num in range(max_steps):
+                # Check limit switches before each move
+                try:
+                    switches = await self.get_limit_switch_status()
+                    axis_lower = axis.lower()
+                    
+                    # Check if we've hit the target limit switch
+                    if direction < 0:  # Moving toward min limit
+                        if switches.get(f'{axis_lower}_min', False):
+                            LOG.info("Limit switch %s_min triggered at step %d", axis_lower, step_num)
+                            pos = await self.query_position()
+                            return pos[{'x': 0, 'y': 1, 'z': 2}[axis_lower]]
+                    else:  # Moving toward max limit
+                        if switches.get(f'{axis_lower}_max', False):
+                            LOG.info("Limit switch %s_max triggered at step %d", axis_lower, step_num)
+                            pos = await self.query_position()
+                            return pos[{'x': 0, 'y': 1, 'z': 2}[axis_lower]]
+                except Exception as e:
+                    LOG.debug("Limit switch check failed: %s", e)
+                
                 # Get current position before move
                 try:
                     current_pos = await self.query_position()
                     axis_index = {'X': 0, 'Y': 1, 'Z': 2}.get(axis_upper, 0)
                     current_axis_pos = current_pos[axis_index] if current_pos else 0.0
                     
-                    # Check if we're stuck (limit switch triggered)
+                    # Check if we're stuck (no movement from last position)
                     if last_pos is not None:
                         movement = abs(current_axis_pos - last_pos)
-                        if movement < 0.1:  # Less than 0.1mm movement indicates limit hit
+                        if movement < 0.05:  # Less than 0.05mm movement indicates stuck/limit
                             stuck_count += 1
-                            if stuck_count >= 3:  # Require 3 consecutive stuck moves
-                                LOG.info("Limit switch detected at position %.3f (axis %s)", current_axis_pos, axis_upper)
+                            if stuck_count >= 5:  # Require 5 consecutive stuck moves
+                                LOG.info("Movement blocked at position %.3f (axis %s) - likely hit limit", 
+                                        current_axis_pos, axis_upper)
                                 return current_axis_pos
                         else:
                             stuck_count = 0
@@ -241,7 +275,7 @@ class GCodeDriver(MotionDriver):
                 
                 # Make incremental move
                 await self.send_gcode(f'G1 {axis_upper}{step:.3f} F{int(speed)}')
-                await asyncio.sleep(0.05)  # Small delay for movement
+                await asyncio.sleep(0.02)  # Shorter delay for faster detection
                 
             # If we reach here, we've moved the maximum distance without hitting a limit
             LOG.warning("Reached maximum steps (%d) without detecting limit switch", max_steps)
@@ -264,6 +298,7 @@ class MotionController:
     High level motion controller. Use configure() to provide cell positions:
       { 'A1': {'x':..., 'y':..., 'z':...}, ... }
 
+    Working area: 920mm x 320mm x 250mm (X x Y x Z)
     All coordinates are assumed to be in the same units as the real driver expects.
     """
     def __init__(self, driver: Optional[MotionDriver] = None):
@@ -284,29 +319,53 @@ class MotionController:
 
     def configure_cells(self, cells: Dict[str, Dict[str, float]]) -> None:
         """
-        cells: mapping cell_id -> {'x':float,'y':float,'z':float}
+        cells: mapping cell_id -> {'x':float,'y':float}
+        Z coordinates are handled separately by the motion system.
         """
-        self.cells = {k: {'x': float(v['x']), 'y': float(v['y']), 'z': float(v.get('z', 0.0))} for k, v in cells.items()}
-        LOG.info("Configured %d cells", len(self.cells))
+        self.cells = {k: {'x': float(v['x']), 'y': float(v['y'])} for k, v in cells.items()}
+        LOG.info("Configured %d cells (XY coordinates only)", len(self.cells))
 
     async def home_all(self) -> None:
-        """Home all axes and finish at the configured A1 reference if available."""
-        await self.home_to_a1()
+        """Home all axes sequentially using G28 commands: X, then Y, then Z."""
+        async with self.lock:
+            LOG.info("Starting sequential homing: X -> Y -> Z")
+            
+            # Home X axis first
+            LOG.info("Homing X axis...")
+            await self.driver.send_gcode('G28 X')
+            LOG.info("X axis homed")
+            
+            # Home Y axis second  
+            LOG.info("Homing Y axis...")
+            await self.driver.send_gcode('G28 Y')
+            LOG.info("Y axis homed")
+            
+            # Home Z axis last
+            LOG.info("Homing Z axis...")
+            await self.driver.send_gcode('G28 Z')
+            LOG.info("Z axis homed")
+            
+            # Mark as fully homed and reset position to (0,0,0)
+            self.current = (0.0, 0.0, 0.0)
+            self.homed = True
+            LOG.info("All axes homed. Position reset to (0.0, 0.0, 0.0)")
 
     async def move_to_cell(self, cell_id: str, speed: Optional[float] = None) -> None:
         """
-        Move to a named cell. Raises KeyError if unknown.
+        Move to a named cell's XY coordinates. Z position is preserved from current position.
+        Raises KeyError if unknown.
         """
         if cell_id not in self.cells:
             raise KeyError(f"Unknown cell {cell_id}")
         pos = self.cells[cell_id]
-        target = (pos['x'], pos['y'], pos.get('z', 0.0))
+        # Only move in XY plane - preserve current Z position
+        target = (pos['x'], pos['y'], self.current[2])
         sp = speed or self.default_speed
         async with self.lock:
             await self.driver.set_speed(sp)
             await self.driver.move_absolute(*target, sp)
             self.current = target
-            LOG.info("Moved to cell %s -> %s", cell_id, target)
+            LOG.info("Moved to cell %s (XY only) -> %s", cell_id, target)
 
     async def move_to_cell_xy(self, cell_id: str, speed: Optional[float] = None) -> None:
         """
@@ -330,23 +389,165 @@ class MotionController:
         """
         Jog the machine along x/y/z by delta. Returns new position.
         axis: 'x'|'y'|'z'
+        Includes limit switch protection to prevent crashes.
         """
+        # Normalize axis to lowercase and validate
+        axis = str(axis).lower().strip()
         if axis not in ('x','y','z'):
-            raise ValueError("axis must be 'x','y' or 'z'")
+            raise ValueError(f"axis must be 'x','y' or 'z', got '{axis}'")
+        
+        # Safety limits to prevent runaway (working area: 920x320x250mm)
+        MAX_JOG_DISTANCE = 1000.0  # 1000mm max single jog
+        if abs(delta) > MAX_JOG_DISTANCE:
+            raise ValueError(f"Jog distance {delta:.3f}mm exceeds safety limit {MAX_JOG_DISTANCE}mm")
+        
+        # CRITICAL: Validate that target position is within reasonable bounds
+        # Working area: 920mm x 320mm x 250mm with some margin
+        MAX_POSITION = {'x': 1000.0, 'y': 400.0, 'z': 300.0}
+        MIN_POSITION = {'x': -50.0, 'y': -50.0, 'z': -50.0}
+        
+        LOG.info("Jog request: axis=%s, delta=%.3f", axis, delta)
         sp = speed or self.default_speed
+        
         async with self.lock:
-            x,y,z = self.current
+            # Always sync with hardware position before movement to avoid corruption
+            try:
+                actual_pos = await self.driver.query_position()
+                LOG.debug("Jog sync - Hardware position: (%.3f, %.3f, %.3f)", 
+                         actual_pos[0], actual_pos[1], actual_pos[2])
+                LOG.debug("Jog sync - Previous stored position: (%.3f, %.3f, %.3f)", 
+                         self.current[0], self.current[1], self.current[2])
+                self.current = actual_pos
+                LOG.info("Synced position with hardware: (%.3f, %.3f, %.3f)", 
+                        actual_pos[0], actual_pos[1], actual_pos[2])
+            except Exception as e:
+                LOG.warning("Failed to query hardware position: %s", e)
+            
+            x, y, z = self.current
+            
+            # Calculate final target position for bounds checking (using actual position)
             if axis == 'x':
-                x += float(delta)
+                final_target_coord = x + delta
             elif axis == 'y':
-                y += float(delta)
+                final_target_coord = y + delta
+            elif axis == 'z':
+                final_target_coord = z + delta
+                
+            # Check bounds before starting movement
+            if (final_target_coord > MAX_POSITION[axis] or 
+                final_target_coord < MIN_POSITION[axis]):
+                raise ValueError(f"Target position {final_target_coord:.3f}mm exceeds bounds "
+                               f"[{MIN_POSITION[axis]:.1f}, {MAX_POSITION[axis]:.1f}] for {axis} axis")
+            try:
+                actual_pos = await self.driver.query_position()
+                self.current = actual_pos
+                LOG.info("Synced position with hardware: (%.3f, %.3f, %.3f)", 
+                        actual_pos[0], actual_pos[1], actual_pos[2])
+            except Exception as e:
+                LOG.warning("Failed to query hardware position: %s", e)
+            
+            x, y, z = self.current
+            
+            # Calculate target position with explicit validation
+            if axis == 'x':
+                target_x = x + float(delta)
+                target_y, target_z = y, z
+                LOG.info("X jog: current=%.3f, delta=%.3f, target=%.3f", x, delta, target_x)
+            elif axis == 'y':
+                target_y = y + float(delta)
+                target_x, target_z = x, z
+                LOG.info("Y jog: current=%.3f, delta=%.3f, target=%.3f", y, delta, target_y)
+            elif axis == 'z':
+                target_z = z + float(delta)
+                target_x, target_y = x, y
+                LOG.info("Z jog: current=%.3f, delta=%.3f, target=%.3f", z, delta, target_z)
             else:
-                z += float(delta)
+                # This should never happen due to validation above, but extra safety
+                raise ValueError(f"Invalid axis in jog calculation: '{axis}'")
+            
+            # Check limit switches before moving
+            try:
+                switches = await self.get_limit_switch_status()
+                
+                # Prevent moves into triggered limit switches
+                if axis == 'x':
+                    if delta < 0 and switches.get('x_min', False):
+                        LOG.warning("Cannot jog X negative - X min limit switch triggered")
+                        return self.current
+                    if delta > 0 and switches.get('x_max', False):
+                        LOG.warning("Cannot jog X positive - X max limit switch triggered")
+                        return self.current
+                elif axis == 'y':
+                    if delta < 0 and switches.get('y_min', False):
+                        LOG.warning("Cannot jog Y negative - Y min limit switch triggered")
+                        return self.current
+                    if delta > 0 and switches.get('y_max', False):
+                        LOG.warning("Cannot jog Y positive - Y max limit switch triggered")
+                        return self.current
+                elif axis == 'z':
+                    if delta < 0 and switches.get('z_min', False):
+                        LOG.warning("Cannot jog Z negative - Z min limit switch triggered")
+                        return self.current
+                    if delta > 0 and switches.get('z_max', False):
+                        LOG.warning("Cannot jog Z positive - Z max limit switch triggered")
+                        return self.current
+                        
+            except Exception as e:
+                LOG.warning("Could not check limit switches before jog: %s", e)
+            
+            # Perform the move with limit switch monitoring
             await self.driver.set_speed(sp)
-            await self.driver.move_absolute(x,y,z,sp)
-            self.current = (x,y,z)
-            LOG.info("Jogged %s by %s -> pos=%s", axis, delta, self.current)
+            
+            # SIMPLIFIED APPROACH: Use single absolute move instead of incremental steps
+            # This prevents accumulation errors and integer overflow
+            if axis == 'x':
+                final_target = (self.current[0] + delta, self.current[1], self.current[2])
+            elif axis == 'y':
+                final_target = (self.current[0], self.current[1] + delta, self.current[2])
+            elif axis == 'z':
+                final_target = (self.current[0], self.current[1], self.current[2] + delta)
+            else:
+                raise ValueError(f"Invalid axis '{axis}' in jog")
+            
+            LOG.info("Single jog move: %s -> %s", self.current, final_target)
+            
+            # Make single absolute move to target
+            await self.driver.move_absolute(*final_target, sp)
+            
+            # Update position - query from hardware for accuracy
+            try:
+                actual_pos = await self.driver.query_position()
+                self.current = actual_pos
+                LOG.info("Hardware reports position: %s", actual_pos)
+            except Exception as e:
+                # If position query fails, use calculated target
+                self.current = final_target
+                LOG.warning("Position query failed, using calculated: %s", final_target)
+            
+            LOG.info("Jogged %s by %.3f -> pos=%s", axis, delta, self.current)
             return self.current
+
+    async def emergency_stop(self) -> None:
+        """Immediately stop all motion and disable motors."""
+        try:
+            LOG.warning("EMERGENCY STOP activated!")
+            await self.driver.stop()
+            # Send M112 for emergency stop (Marlin firmware)
+            await self.driver.send_gcode('M112', wait_ok=False, timeout=1.0)
+        except Exception as e:
+            LOG.error("Emergency stop failed: %s", e)
+
+    async def reset_position(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
+        """Reset the firmware position coordinates to specified values (default 0,0,0)."""
+        try:
+            LOG.warning("Resetting position to X=%.3f Y=%.3f Z=%.3f", x, y, z)
+            # Use G92 to set current position without moving
+            await self.driver.send_gcode(f'G92 X{x:.3f} Y{y:.3f} Z{z:.3f}', wait_ok=True, timeout=2.0)
+            self.current = (x, y, z)
+            LOG.info("Position reset complete")
+        except Exception as e:
+            LOG.error("Position reset failed: %s", e)
+            raise
 
     # Backwards-compatible adapter methods expected by main.py endpoints
     async def jog_axis(self, axis: str, distance: float, speed: Optional[float] = None) -> Tuple[float,float,float]:
@@ -354,25 +555,31 @@ class MotionController:
         return await self.jog(axis.lower(), distance, speed)
 
     async def home_x(self) -> None:
-        """Home X axis using move_until_limit"""
-        limit_speed = max(50.0, self.default_speed / 4)
-        x_limit = await self.driver.move_until_limit('x', -1, limit_speed)
-        self.current = (float(x_limit), self.current[1], self.current[2])
-        self.homed = True
+        """Home X axis using G28 X command"""
+        async with self.lock:
+            LOG.info("Homing X axis with G28 X")
+            await self.driver.send_gcode('G28 X')
+            # Update position - assume it went to X=0 after homing
+            self.current = (0.0, self.current[1], self.current[2])
+            LOG.info("X axis homed to position: 0.0")
 
     async def home_y(self) -> None:
-        """Home Y axis using move_until_limit"""
-        limit_speed = max(50.0, self.default_speed / 4)
-        y_limit = await self.driver.move_until_limit('y', -1, limit_speed)
-        self.current = (self.current[0], float(y_limit), self.current[2])
-        self.homed = True
+        """Home Y axis using G28 Y command"""
+        async with self.lock:
+            LOG.info("Homing Y axis with G28 Y")
+            await self.driver.send_gcode('G28 Y')
+            # Update position - assume it went to Y=0 after homing
+            self.current = (self.current[0], 0.0, self.current[2])
+            LOG.info("Y axis homed to position: 0.0")
 
     async def home_z(self) -> None:
-        """Home Z axis using move_until_limit"""
-        limit_speed = max(50.0, self.default_speed / 4)
-        z_limit = await self.driver.move_until_limit('z', -1, limit_speed)
-        self.current = (self.current[0], self.current[1], float(z_limit))
-        self.homed = True
+        """Home Z axis using G28 Z command"""
+        async with self.lock:
+            LOG.info("Homing Z axis with G28 Z")
+            await self.driver.send_gcode('G28 Z')
+            # Update position - assume it went to Z=0 after homing
+            self.current = (self.current[0], self.current[1], 0.0)
+            LOG.info("Z axis homed to position: 0.0")
 
     async def get_limit_switch_status(self) -> Dict[str, bool]:
         """Query limit switch status using M119"""
@@ -446,12 +653,12 @@ class MotionController:
         
         # First, move to X limit (negative direction, left side)
         LOG.info("Finding X limit switch (moving left)")
-        x_limit = await self.driver.move_until_limit('X', -1, limit_speed)
+        x_limit = await self.driver.move_until_limit('x', -1, limit_speed)
         LOG.info("X limit found at position: %.3f", x_limit)
         
         # Then move to Y limit (negative direction, towards front/top)
         LOG.info("Finding Y limit switch (moving forward)")
-        y_limit = await self.driver.move_until_limit('Y', -1, limit_speed)
+        y_limit = await self.driver.move_until_limit('y', -1, limit_speed)
         LOG.info("Y limit found at position: %.3f", y_limit)
         
         # Move to Z home if available
@@ -482,20 +689,21 @@ class MotionController:
         if not self.homed:
             raise ValueError("Must home to limit switches before setting A1 reference")
         
-        # Store the current position as A1
+        # Store the current position as A1 (XY only)
         a1_x, a1_y, a1_z = self.current
         
-        # Update the A1 cell position
-        self.cells['A1'] = {'x': a1_x, 'y': a1_y, 'z': a1_z}
+        # Update the A1 cell position (only X and Y)
+        self.cells['A1'] = {'x': a1_x, 'y': a1_y}
         
         # Recalculate all other cell positions based on the new A1 reference
-        spacing_x = 25.0  # Same as the default spacing
-        spacing_y = 25.0
+        # Working area: 920mm x 320mm x 250mm
+        spacing_x = 92.0  # 920mm / 10 intervals (A to K)
+        spacing_y = 160.0  # 320mm / 2 intervals (1 to 3)
         
         updated_cells = {}
         for cid, pos in self.cells.items():
             if cid == 'A1':
-                updated_cells[cid] = {'x': a1_x, 'y': a1_y, 'z': a1_z}
+                updated_cells[cid] = {'x': a1_x, 'y': a1_y}
                 continue
                 
             # Parse cell ID to determine offset from A1
@@ -512,23 +720,22 @@ class MotionController:
             except Exception:
                 row_index = 0
             
-            # Calculate new position relative to A1
+            # Calculate new position relative to A1 (XY only)
             new_x = a1_x + (col_index * spacing_x)
             new_y = a1_y + (row_index * spacing_y)
-            new_z = a1_z  # Keep same Z as A1
             
-            updated_cells[cid] = {'x': new_x, 'y': new_y, 'z': new_z}
+            updated_cells[cid] = {'x': new_x, 'y': new_y}
         
         self.cells = updated_cells
         
-        LOG.info("A1 reference saved at (%.3f, %.3f, %.3f). Updated %d cell positions.", 
+        LOG.info("A1 reference saved at (%.3f, %.3f, %.3f). Updated %d cell positions (XY only).", 
                 a1_x, a1_y, a1_z, len(updated_cells))
         
         return {
             "a1_reference": (a1_x, a1_y, a1_z),
             "cells_updated": len(updated_cells),
             "status": "a1_reference_saved",
-            "message": f"A1 reference set to ({a1_x:.3f}, {a1_y:.3f}, {a1_z:.3f}). All cell positions updated."
+            "message": f"A1 reference set to ({a1_x:.3f}, {a1_y:.3f}, {a1_z:.3f}). All cell positions updated (XY only)."
         }
 
     async def capture_dual_card_photos_no_cell(self, offset_mm: float = 44.0) -> Tuple[float, float, float]:
@@ -600,10 +807,11 @@ class MotionController:
         pos = self.cells.get(cell_id)
         if not pos:
             return None
+        # Cell positions only contain X,Y - Z is handled separately
         return (
             float(pos.get('x', 0.0)),
             float(pos.get('y', 0.0)),
-            float(pos.get('z', 0.0)),
+            0.0,  # Default Z position - actual Z is managed separately
         )
 
     async def _run_home_sequence_locked(self, target: Optional[Tuple[float, float, float]]) -> None:
@@ -690,7 +898,8 @@ class MotionController:
 
     def _cell_coords(self, cell_id: str) -> Tuple[float, float, float]:
         pos = self.cells[cell_id]
-        return (float(pos.get('x', 0.0)), float(pos.get('y', 0.0)), float(pos.get('z', 0.0)))
+        # Cell positions only contain X and Y - Z is handled separately by the motion system
+        return (float(pos.get('x', 0.0)), float(pos.get('y', 0.0)), 0.0)
 
     async def _move_head_locked(self, x: float, y: float, z: float, speed: Optional[float] = None) -> None:
         sp = float(speed or self.default_speed)
@@ -842,8 +1051,10 @@ def get_controller() -> MotionController:
             
             # Try multiple common ports for V1CNC/Marlin hardware
             ports_to_try = [configured_port]
-            if configured_port not in ['/dev/ttyACM0', '/dev/ttyACM1']:
-                ports_to_try.extend(['/dev/ttyACM0', '/dev/ttyACM1'])
+            # Always add both ACM ports as fallbacks if not already included
+            for fallback_port in ['/dev/ttyACM0', '/dev/ttyACM1']:
+                if fallback_port not in ports_to_try:
+                    ports_to_try.append(fallback_port)
             
             driver = None
             for port in ports_to_try:
@@ -877,76 +1088,39 @@ def configure_from_cfg(cfg: Any) -> None:
     """
     Configure the global MotionController from a configuration source.
 
-    `cfg` may be either:
-      - a raw dict loaded from YAML (mapping with a 'cells' section), or
-      - a typed Config dataclass returned by `app.services.assign.load_config`.
-
-    The function extracts per-cell x/y/z coordinates and synthesizes a simple
-    grid layout for any cells missing explicit coordinates.
+    `cfg` should be a raw dict loaded from YAML with 'grid' and 'cells' sections.
     """
     ctrl = get_controller()
     cells: Dict[str, Dict[str, float]] = {}
-    # Accept either a raw dict (loaded from YAML) or the Config dataclass returned by load_config
-    raw_cells = None
-    if isinstance(cfg, dict):
-        raw_cells = cfg.get("cells")
+    
+    # First, try to use grid positions from config
+    grid_positions = cfg.get("grid", {}).get("positions", {})
+    
+    if grid_positions:
+        # Use explicit grid positions from config
+        for cell_id, pos in grid_positions.items():
+            # Only include actual grid cells (A1-K3), exclude ERR1 etc.
+            if (cell_id.startswith(('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K')) and 
+                len(cell_id) == 2 and cell_id[1] in '123'):
+                x, y = pos if isinstance(pos, (list, tuple)) and len(pos) >= 2 else (0, 0)
+                # Z coordinate is NOT included - motion system should handle Z separately
+                cells[cell_id] = {'x': float(x), 'y': float(y)}
     else:
-        # dataclass from assign.load_config stores cells as a mapping id->Cell
-        if hasattr(cfg, 'cells') and isinstance(getattr(cfg, 'cells'), dict):
-            raw_cells = []
-            for cid, cellobj in getattr(cfg, 'cells').items():
-                # cellobj may be a dataclass with no x/y/z; default to 0
-                raw_cells.append({
-                    'id': cid,
-                    'x': getattr(cellobj, 'x', 0.0) or 0.0,
-                    'y': getattr(cellobj, 'y', 0.0) or 0.0,
-                    'z': getattr(cellobj, 'z', 0.0) or 0.0,
-                })
-        else:
-            # Fallback: try dict-like get
-            try:
-                raw_cells = cfg.get("cells", [])
-            except Exception:
-                raw_cells = []
+        # Fallback: generate positions using spacing from config or defaults
+        spacing = cfg.get("grid", {})
+        spacing_x = float(spacing.get("column_spacing", 84.0))
+        spacing_y = float(spacing.get("row_spacing", 104.0))
+        
+        # Generate A1-K3 grid (Z coordinate is NOT included)
+        cols = ['A','B','C','D','E','F','G','H','I','J','K']
+        for r in range(1, 4):  # rows 1, 2, 3
+            for col_idx, col in enumerate(cols):
+                cell_id = f"{col}{r}"
+                x = col_idx * spacing_x
+                y = (r - 1) * spacing_y
+                cells[cell_id] = {'x': float(x), 'y': float(y)}
 
-    # raw_cells may be either a mapping or a list
-    if isinstance(raw_cells, dict):
-        for cid, v in raw_cells.items():
-            cells[cid] = {'x': float(v.get('x', 0.0)), 'y': float(v.get('y', 0.0)), 'z': float(v.get('z', 0.0))}
-    else:
-        for item in (raw_cells or []):
-            cid = item.get("id") or item.get("cell") or item.get("name")
-            if not cid:
-                continue
-            cells[cid] = {'x': float(item.get("x", 0.0)), 'y': float(item.get("y", 0.0)), 'z': float(item.get("z", 0.0))}
-
-    # If cells have no explicit x/y coordinates, fill a simple grid layout based on the cell id
-    # e.g., A1 -> x=0, y=0; B1 -> x=spacing, y=0; A2 -> x=0, y=spacing
-    spacing_x = 84.0
-    spacing_y = 104.0
-    filled: Dict[str, Dict[str, float]] = {}
-    for cid, pos in cells.items():
-        x = float(pos.get('x', 0.0))
-        y = float(pos.get('y', 0.0))
-        z = float(pos.get('z', 0.0))
-        # detect if coordinates likely missing (both zero)
-        if x == 0.0 and y == 0.0:
-            # parse letter prefix and numeric suffix
-            letters = ''.join([ch for ch in cid if ch.isalpha()]) or 'A'
-            nums = ''.join([ch for ch in cid if ch.isdigit()]) or '1'
-            # column index: A->0, B->1, ... support multi-letter like 'AA'
-            col_index = 0
-            for ch in letters.upper():
-                col_index = col_index * 26 + (ord(ch) - ord('A'))
-            try:
-                row_index = max(0, int(nums) - 1)
-            except Exception:
-                row_index = 0
-            x = col_index * spacing_x
-            y = row_index * spacing_y
-        filled[cid] = {'x': x, 'y': y, 'z': z}
-
-    ctrl.configure_cells(filled)
+    ctrl.configure_cells(cells)
 
 
 
@@ -968,7 +1142,7 @@ def render_gcode_for_cell(cell_id: str, action: str = 'pick', pick_z_offset: flo
     pos = ctrl.cells[cell_id]
     x = float(pos.get('x', 0.0))
     y = float(pos.get('y', 0.0))
-    z = float(pos.get('z', 0.0))
+    z = 0.0  # Z position is handled separately from cell definitions
 
     # prefer feedrates from controller or provided overrides
     travel_feed = int(feed_travel or ctrl.default_speed)

@@ -83,138 +83,38 @@ on($('btnResume'), 'click', async ()=>{
 
 // ------------- Calibration -------------
 on($('btnHomeAll'), 'click', ()=> api('/motion/home_all',{method:'POST'}).then(()=>toast('Homed all')).catch(e=>toast(e.message)));
+on($('btnHomeX'), 'click', ()=> api('/motion/home_x',{method:'POST'}).then(()=>toast('Homed X axis')).catch(e=>toast(e.message)));
+on($('btnHomeY'), 'click', ()=> api('/motion/home_y',{method:'POST'}).then(()=>toast('Homed Y axis')).catch(e=>toast(e.message)));
+on($('btnHomeZ'), 'click', ()=> api('/motion/home_z',{method:'POST'}).then(()=>toast('Homed Z axis')).catch(e=>toast(e.message)));
 on($('btnHomeA1'), 'click', ()=> api('/motion/home_a1',{method:'POST'}).then(res=>{
   toast('Homed to A1'); console.log('/motion/home_a1 ->', res);
 }).catch(e=>toast(e.message)));
-// Update state chips when plunger/vacuum commands are used
-function setPlungerState(state){ const el = $('plungerState'); if(!el) return; el.textContent = state; el.classList.remove('muted'); }
-function setVacuumState(state){ const el = $('vacuumState'); if(!el) return; el.textContent = state; el.classList.remove('muted'); }
 
-on($('btnPlungerDown'), 'click', async ()=>{
-  try{
-    // optimistic UI
-    setPlungerState('Down...');
-    const res = await api('/plunger/down', {method:'POST'});
-    setPlungerState('Down');
-    console.log('/plunger/down ->', res);
-    toast('Plunger down');
-  }catch(e){ setPlungerState('Error'); toast(`Plunger down failed: ${e.message}`); }
+// Jog controls
+on($('btnJogXPlus'), 'click', ()=> {
+  const distance = parseFloat($('jogDistance').value) || 1.0;
+  jogAxis('X', distance);
 });
-on($('btnPlungerUp'), 'click', async ()=>{
-  try{
-    setPlungerState('Up...');
-    const res = await api('/plunger/up', {method:'POST'});
-    setPlungerState('Up');
-    console.log('/plunger/up ->', res);
-    toast('Plunger up');
-  }catch(e){ setPlungerState('Error'); toast(`Plunger up failed: ${e.message}`); }
+on($('btnJogXMinus'), 'click', ()=> {
+  const distance = parseFloat($('jogDistance').value) || 1.0;
+  jogAxis('X', -distance);
 });
-on($('btnVacuumOn'), 'click', async ()=>{
-  try{
-    setVacuumState('On...');
-    const res = await api('/vacuum/on', {method:'POST'});
-    setVacuumState('On');
-    console.log('/vacuum/on ->', res);
-    toast('Vacuum on');
-  }catch(e){ setVacuumState('Error'); toast(`Vacuum on failed: ${e.message}`); }
+on($('btnJogYPlus'), 'click', ()=> {
+  const distance = parseFloat($('jogDistance').value) || 1.0;
+  jogAxis('Y', distance);
 });
-on($('btnVacuumOff'), 'click', async ()=>{
-  try{
-    setVacuumState('Off...');
-    const res = await api('/vacuum/off', {method:'POST'});
-    setVacuumState('Off');
-    console.log('/vacuum/off ->', res);
-    toast('Vacuum off');
-  }catch(e){ setVacuumState('Error'); toast(`Vacuum off failed: ${e.message}`); }
+on($('btnJogYMinus'), 'click', ()=> {
+  const distance = parseFloat($('jogDistance').value) || 1.0;
+  jogAxis('Y', -distance);
 });
-
-on($('btnSnap'), 'click', async ()=>{
-  try{
-    const res = await api('/camera/ocr_snapshot',{method:'POST'});
-    $('ocrPreview').textContent = (res && res.text) ? res.text : '(no text)';
-    hide($('dualResults'));
-  }catch(e){ toast(`OCR failed: ${e.message}`); }
+on($('btnJogZPlus'), 'click', ()=> {
+  const distance = parseFloat($('jogDistance').value) || 1.0;
+  jogAxis('Z', distance);
 });
-
-on($('btnDualSnap'), 'click', async ()=>{
-  try{
-    const cell = $('dualCell').value || 'A1';
-    const offsetMm = parseFloat($('offsetMm').value) || 44.0;
-    
-    toast(`Starting dual OCR: ${cell} + ${offsetMm}mm offset...`);
-    
-    const res = await api('/camera/dual_ocr_snapshot', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ cell, offset_mm: offsetMm })
-    });
-    
-    if(res && res.success) {
-      // Update single OCR display for backward compatibility
-      const combinedText = [res.card_name, res.rules_text].filter(t => t).join(' ');
-      $('ocrPreview').textContent = combinedText || '(no text)';
-      
-      // Update dual OCR specific displays
-      $('cardNameResult').textContent = res.card_name || '-';
-      $('setCodeResult').textContent = res.set_code || '-';
-      $('rulesTextResult').textContent = res.rules_text || '-';
-      $('orientationResult').textContent = res.orientation?.determination || '-';
-      
-      show($('dualResults'));
-      toast(`Dual OCR complete: ${res.card_name || 'Unknown card'}`);
-    } else {
-      throw new Error('Dual OCR failed: no valid response');
-    }
-  }catch(e){ 
-    toast(`Dual OCR failed: ${e.message}`); 
-    hide($('dualResults'));
-  }
+on($('btnJogZMinus'), 'click', ()=> {
+  const distance = parseFloat($('jogDistance').value) || 1.0;
+  jogAxis('Z', -distance);
 });
-
-function refreshCamera(){
-  const chip = $('cameraStatus');
-  if(!chip || chip.dataset.state !== 'online'){
-    setCameraStatus('checking…', false);
-  }
-  $('cameraFeed').src = demo
-    ? 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE3MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjMDAwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkRFTU8gQ0FNRVJBPC90ZXh0Pjwvc3ZnPg=='
-    : `${BASE}/camera/preview?t=${Date.now()}`;
-  $('cameraLive').src = demo
-    ? $('cameraFeed').src
-    : `${BASE}/camera/stream?t=${Date.now()}`;
-}
-setInterval(refreshCamera, 2000); refreshCamera();
-
-// Camera status helpers
-function setCameraStatus(state, ok){
-  const chip = $('cameraStatus');
-  if(!chip) return;
-  const text = `Camera: ${state}`;
-  const prevState = chip.dataset?.state;
-  const prevOk = chip.dataset?.ok;
-  if(prevState === state && prevOk === (ok ? '1' : '0')){
-    return;
-  }
-  chip.textContent = text;
-  chip.dataset.state = state;
-  chip.dataset.ok = ok ? '1' : '0';
-  if(ok){
-    chip.classList.remove('muted');
-  } else {
-    chip.classList.add('muted');
-  }
-}
-
-const cameraFeedEl = $('cameraFeed');
-const cameraLiveEl = $('cameraLive');
-if(cameraFeedEl){
-  cameraFeedEl.addEventListener('load', ()=> setCameraStatus('online', true));
-  cameraFeedEl.addEventListener('error', ()=> setCameraStatus('offline', false));
-}
-if(cameraLiveEl){
-  cameraLiveEl.addEventListener('load', ()=> setCameraStatus('online', true));
-  cameraLiveEl.addEventListener('error', ()=> setCameraStatus('offline', false));
-}
 
 // ------------- Grid / Cells -------------
 let cells = []; // [{id,x,y,z}, ...]
@@ -226,12 +126,18 @@ async function loadGrid(){
   }catch(e){
     // Fallback Excel-style: columns A..K, rows 1..3; (A-row = feeders), K3 is error cell
     cells = [];
-    // full spreadsheet from A..K
+    // Expanded grid: A1 to K3 (11 columns × 3 rows) - exclude ERR1
     const cols = ['A','B','C','D','E','F','G','H','I','J','K'];
+    const columnSpacing = 84.0; // mm between columns
+    const rowSpacing = 104.0;   // mm between rows
+    
     for(let r=1;r<=3;r++){
-      for(const col of cols){
+      for(let colIndex=0; colIndex<cols.length; colIndex++){
+        const col = cols[colIndex];
         const id = `${col}${r}`;
-        cells.push({id, x: (col.charCodeAt(0)-65)*20, y: r*20, z:0});
+        const x = colIndex * columnSpacing;  // 0, 84, 168, 252, 336, 420, 504, 588, 672, 756, 840
+        const y = (r-1) * rowSpacing;        // 0, 104, 208
+        cells.push({id, x, y, z:0});
       }
     }
   }
@@ -242,25 +148,41 @@ function renderGridPreview(hostId, list){
   const host = $(hostId);
   host.innerHTML = '';
 
-  // compute unique column letters (A..K etc.) and set grid columns dynamically
+  // compute unique column letters (A..K etc.) and set grid columns dynamically  
   const cols = Array.from(new Set(list.map(c => c.id.replace(/[0-9]/g, ''))));
   cols.sort((a,b)=> a.localeCompare(b));
   host.style.display = 'grid';
-  host.style.gridTemplateColumns = `repeat(${Math.max(1, cols.length)}, minmax(40px, 1fr))`;
-  host.style.gap = '6px';
+  host.style.gridTemplateColumns = `repeat(${Math.max(1, cols.length)}, minmax(50px, 1fr))`;
+  host.style.gap = '4px';
 
-  list.forEach(c=>{
+  // Sort cells for proper display order (A1, A2, A3, B1, B2, B3, etc.)
+  const sortedCells = list.sort((a, b) => {
+    const aCol = a.id.replace(/[0-9]/g, '');
+    const bCol = b.id.replace(/[0-9]/g, '');
+    const aRow = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
+    const bRow = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
+    
+    if (aCol !== bCol) return aCol.localeCompare(bCol);
+    return aRow - bRow;
+  });
+
+  sortedCells.forEach(c=>{
     const el = document.createElement('div');
     el.className = 'cell';
     el.textContent = c.id;
-    el.title = `(${c.x},${c.y},${c.z})`;
-    if(c.id === 'K3'){ el.classList.add('err'); el.title += ' • Error cell'; }
+    el.title = `${c.id}: (${c.x?.toFixed(1) || 0},${c.y?.toFixed(1) || 0},${c.z?.toFixed(1) || 0})mm`;
+    
+    if(c.id === 'K3'){ 
+      el.classList.add('err'); 
+      el.title += ' • Error cell'; 
+    }
 
     // Highlight feeder cells (column A) in green
     if (c.id && c.id[0] === 'A') {
       el.classList.add('feeder');
       el.style.backgroundColor = '#e6f9e6';
       el.style.borderColor = '#4CAF50';
+      el.title += ' • Feeder';
     }
 
     // Make cells clickable so clicking a cell in the main grid will move the head
@@ -295,19 +217,37 @@ on($('btnTestCellMoves'), 'click', ()=>{
   const cols = Array.from(new Set(cells.map(c => c.id.replace(/[0-9]/g, ''))));
   cols.sort((a,b)=> a.localeCompare(b));
   host.style.display = 'grid';
-  host.style.gridTemplateColumns = `repeat(${Math.max(1, cols.length)}, minmax(40px, 1fr))`;
-  host.style.gap = '6px';
+  host.style.gridTemplateColumns = `repeat(${Math.max(1, cols.length)}, minmax(50px, 1fr))`;
+  host.style.gap = '4px';
 
-  cells.forEach(c=>{
+  // Sort cells for proper display order
+  const sortedCells = cells.sort((a, b) => {
+    const aCol = a.id.replace(/[0-9]/g, '');
+    const bCol = b.id.replace(/[0-9]/g, '');
+    const aRow = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
+    const bRow = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
+    
+    if (aCol !== bCol) return aCol.localeCompare(bCol);
+    return aRow - bRow;
+  });
+
+  sortedCells.forEach(c=>{
     const el = document.createElement('div');
-    el.className = 'cell'; el.textContent = c.id; el.title = `(${c.x},${c.y},${c.z})`;
-    if(c.id === 'K3'){ el.classList.add('err'); el.title += ' • Error cell'; }
+    el.className = 'cell'; 
+    el.textContent = c.id; 
+    el.title = `${c.id}: (${c.x?.toFixed(1) || 0},${c.y?.toFixed(1) || 0},${c.z?.toFixed(1) || 0})mm`;
+    
+    if(c.id === 'K3'){ 
+      el.classList.add('err'); 
+      el.title += ' • Error cell'; 
+    }
 
     // Highlight feeder cells (column A) in green
     if (c.id && c.id[0] === 'A') {
       el.classList.add('feeder');
       el.style.backgroundColor = '#e6f9e6';
       el.style.borderColor = '#4CAF50';
+      el.title += ' • Feeder';
     }
 
     el.addEventListener('click', async ()=>{
@@ -371,39 +311,6 @@ on($('btnSetCurrent'), 'click', async ()=>{
 on($('btnHomeAll2'),'click', ()=> api('/motion/home_all',{method:'POST'}).then(()=>toast('Homed all')).catch(e=>toast(e.message)));
 on($('btnHomeXY'),'click',  ()=> api('/motion/home_xy',{method:'POST'}).then(()=>toast('Homed XY')).catch(e=>toast(e.message)));
 on($('btnHomeZ'),'click',   ()=> api('/motion/home_z',{method:'POST'}).then(()=>toast('Homed Z')).catch(e=>toast(e.message)));
-
-// ------------- Calibration Controls -------------
-on($('btnCalibrateHome'),'click', async ()=> {
-  try {
-    toast('Starting limit switch calibration...');
-    const res = await api('/motion/calibrate',{method:'POST'});
-    toast('Calibration complete! Position manually and save A1 reference.');
-    console.log('calibrate ->', res);
-  } catch(e) {
-    toast(`Calibration failed: ${e.message}`);
-  }
-});
-
-on($('btnSaveA1'),'click', async ()=> {
-  try {
-    const res = await api('/motion/save_a1_reference',{method:'POST'});
-    toast('A1 reference saved successfully!');
-    $('btnSaveA1').classList.add('success');
-    setTimeout(() => $('btnSaveA1').classList.remove('success'), 2000);
-    console.log('save_a1_reference ->', res);
-  } catch(e) {
-    toast(`Save A1 failed: ${e.message}`);
-  }
-});
-
-// Jog controls
-const jogDistance = 1.0; // 1mm steps
-on($('btnJogXPos'),'click', ()=> jogAxis('X', jogDistance));
-on($('btnJogXNeg'),'click', ()=> jogAxis('X', -jogDistance));
-on($('btnJogYPos'),'click', ()=> jogAxis('Y', jogDistance));
-on($('btnJogYNeg'),'click', ()=> jogAxis('Y', -jogDistance));
-on($('btnJogZPos'),'click', ()=> jogAxis('Z', jogDistance));
-on($('btnJogZNeg'),'click', ()=> jogAxis('Z', -jogDistance));
 
 async function jogAxis(axis, distance) {
   try {
@@ -513,31 +420,32 @@ async function pollMotionStatus(){
     if(!chip) return;
     const pos = s.pos || [0,0,0];
     const driver = s.driver || 'unknown';
-    const demoFlag = s.demo ? 'demo' : 'live';
-    chip.textContent = `Motion: ${driver} (${demoFlag}) @ ${Number(pos[0]).toFixed(1)},${Number(pos[1]).toFixed(1)},${Number(pos[2]).toFixed(1)}`;
-  }catch(e){ /* ignore */ }
-}
-setInterval(pollMotionStatus, 1000); pollMotionStatus();
-
-// Device detection: scan serial ports and show whether the configured device exists
-async function scanDevice(){
-  try{
-    const res = await api('/motion/detect');
-    const chip = $('deviceStatus');
-    if(!chip) return;
-    if(res.error){ chip.textContent = `Device: ${res.error}`; chip.classList.add('muted'); return; }
-    if(res.connected){
-      const m = res.matched;
-      chip.textContent = `Device: connected (${m.device})`;
-      chip.classList.remove('muted');
-    } else {
-      chip.textContent = `Device: not found`;
-      chip.classList.add('muted');
+    const connected = s.connected ? 'CONNECTED' : 'DISCONNECTED';
+    const port = s.port || 'unknown';
+    const connColor = s.connected ? '#4CAF50' : '#f44336';
+    
+    chip.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="color: ${connColor}; font-weight: bold;">●</span>
+        <span>Motion: ${driver} (${connected}) on ${port}</span>
+        <span>@ ${Number(pos[0]).toFixed(1)},${Number(pos[1]).toFixed(1)},${Number(pos[2]).toFixed(1)}</span>
+      </div>
+    `;
+    
+    // Update position display
+    const posDisplay = $('currentPosition');
+    if(posDisplay){
+      posDisplay.textContent = `Position: X=${Number(pos[0]).toFixed(1)} Y=${Number(pos[1]).toFixed(1)} Z=${Number(pos[2]).toFixed(1)}`;
     }
-    return res;
-  }catch(e){ /* ignore */ }
+  }catch(e){ 
+    const chip = $('motionStatus');
+    if(chip) chip.textContent = 'Motion: ERROR - ' + e.message;
+  }
 }
 
+// Start polling motion status every second
+setInterval(pollMotionStatus, 1000);
+pollMotionStatus();
 on($('btnScanDevice'), 'click', async ()=>{ await scanDevice(); toast('Scan complete'); });
 
 // Auto-scan periodically when not in demo mode so UI updates when device is plugged/unplugged
@@ -608,9 +516,6 @@ on($('btnScanCamera'), 'click', async ()=>{
     dlg.showModal();
   }catch(err){ toast(`Camera scan failed: ${err.message}`); }
 });
-
-// Also open the camera modal from the quick-select button in calibration panel
-on($('btnOpenCamPanel'), 'click', async ()=>{ try{ await document.getElementById('btnScanCamera').click(); }catch(e){ /* fallback */ const d=$('dlgCamera'); if(d) d.showModal(); } });
 
 on($('btnCloseCam'), 'click', ()=> $('dlgCamera').close());
 
@@ -702,13 +607,6 @@ async function doPreview(){
 
 // Wire preview UI
 on($('btnPreview'), 'click', doPreview);
-on($('btnUseOCR'), 'click', ()=>{
-  const text = $('ocrPreview')?.textContent || '';
-  if(text && text !== 'No text yet'){
-    $('previewName').value = (text.split('—')[0].trim() || text.trim());
-    doPreview();
-  }
-});
 let previewDeb;
 on($('previewName'), 'input', ()=>{
   clearTimeout(previewDeb); previewDeb = setTimeout(doPreview, 250);
@@ -959,15 +857,28 @@ async function demoApi(path, opts){
     case '/grid/cells': {
       const cells = [];
       const cols = ['A','B','C','D','E','F','G','H','I','J','K']; // Excel-style columns (A..K)
-      for(let r=1;r<=3;r++){ for(const col of cols){ cells.push({id:`${col}${r}`, x:0,y:0,z:0}); } }
+      const columnSpacing = 84.0; // mm between columns  
+      const rowSpacing = 104.0;   // mm between rows
+      
+      for(let r=1;r<=3;r++){
+        for(let colIndex=0; colIndex<cols.length; colIndex++){
+          const col = cols[colIndex];
+          const id = `${col}${r}`;
+          const x = colIndex * columnSpacing;  // 0, 84, 168, 252, 336, 420, 504, 588, 672, 756, 840
+          const y = (r-1) * rowSpacing;        // 0, 104, 208
+          cells.push({id, x, y, z:0});
+        }
+      }
       return {cells};
     }
 
     // Motion / actuators (no-ops)
     case '/motion/estop':
     case '/motion/home_all':
-    case '/motion/home_xy':
+    case '/motion/home_x':
+    case '/motion/home_y':
     case '/motion/home_z':
+    case '/motion/home_xy':
     case '/motion/move_to':
     case '/plunger/down':
     case '/plunger/up':

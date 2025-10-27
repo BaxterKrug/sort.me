@@ -56,8 +56,8 @@ with open("config.yaml", "r", encoding="utf8") as cfg_fh:
     raw_cfg = yaml.safe_load(cfg_fh)
 CFG = load_config(raw_cfg)
 STATE = SystemState(counts_by_cell={cid: 0 for cid in CFG.cells})
-# configure motion controller cells from config
-configure_from_cfg(CFG)
+# configure motion controller cells from config, pass raw_cfg for grid positions
+configure_from_cfg(raw_cfg)
 # Configure camera + feeder monitor services so they share runtime config
 # CAMERA CONFIGURATION TEMPORARILY DISABLED FOR PHYSICAL TESTING
 # try:
@@ -100,23 +100,56 @@ async def motion_move(payload: dict):
 # Simple grid endpoint used by the UI to populate the cell selector
 @app.get("/grid/cells")
 def grid_cells():
-    # CFG.cells is a mapping of cell_id -> Cell dataclass (from load_config)
+    # Return cells with their actual positions from config.yaml grid section
     out = []
     try:
-        # Prefer the controller's configured cells if available
-        ctrl = MOTION
-        if ctrl and getattr(ctrl, 'cells', None):
-            for cid, pos in ctrl.cells.items():
-                out.append({"id": cid, "x": float(pos.get('x', 0.0)), "y": float(pos.get('y', 0.0)), "z": float(pos.get('z', 0.0))})
+        # Use grid positions from raw config if available
+        grid_positions = raw_cfg.get("grid", {}).get("positions", {})
+        
+        if grid_positions:
+            # Filter out ERR1 and other non-grid cells, include only A1-K3 range
+            for cell_id, pos in grid_positions.items():
+                # Skip error cells and only include A-K, 1-3 range
+                if (cell_id.startswith(('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K')) and 
+                    len(cell_id) == 2 and cell_id[1] in '123'):
+                    x, y = pos if isinstance(pos, (list, tuple)) and len(pos) >= 2 else (0, 0)
+                    out.append({
+                        "id": cell_id, 
+                        "x": float(x), 
+                        "y": float(y), 
+                        "z": 0.0
+                    })
         else:
-            for cid, cell in CFG.cells.items():
-                out.append({"id": cid, "x": float(getattr(cell, 'x', 0) or 0.0), "y": float(getattr(cell, 'y', 0) or 0.0), "z": float(getattr(cell, 'z', 0) or 0.0)})
-    except Exception:
-        # Fallback simple grid if CFG not loaded correctly
+            # Fallback: generate positions using spacing from config
+            spacing = raw_cfg.get("grid", {})
+            col_spacing = float(spacing.get("column_spacing", 84.0))
+            row_spacing = float(spacing.get("row_spacing", 104.0))
+            
+            cols = ['A','B','C','D','E','F','G','H','I','J','K']
+            for r in range(1, 4):  # rows 1, 2, 3
+                for col_idx, col in enumerate(cols):
+                    cell_id = f"{col}{r}"
+                    x = col_idx * col_spacing
+                    y = (r - 1) * row_spacing
+                    out.append({
+                        "id": cell_id,
+                        "x": float(x),
+                        "y": float(y), 
+                        "z": 0.0
+                    })
+                    
+    except Exception as e:
+        # Fallback simple grid with proper spacing
         cols = ['A','B','C','D','E','F','G','H','I','J','K']
-        for r in range(1,4):
-            for c in cols:
-                out.append({"id": f"{c}{r}", "x": 0, "y": 0, "z": 0})
+        for r in range(1, 4):
+            for col_idx, col in enumerate(cols):
+                out.append({
+                    "id": f"{col}{r}", 
+                    "x": col_idx * 84.0, 
+                    "y": (r - 1) * 104.0, 
+                    "z": 0.0
+                })
+                
     return {"cells": out}
 
 
@@ -195,8 +228,23 @@ async def motion_jog(payload: dict):
 @app.post("/motion/estop")
 async def motion_estop():
     try:
-        await MOTION.driver.stop()
-        return {"ok": True}
+        await MOTION.emergency_stop()
+        return {"ok": True, "message": "Emergency stop activated"}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/motion/reset_position")
+async def motion_reset_position(payload: dict = None):
+    """Reset firmware position coordinates to specified values (default 0,0,0)."""
+    try:
+        if payload is None:
+            payload = {}
+        x = float(payload.get('x', 0.0))
+        y = float(payload.get('y', 0.0))
+        z = float(payload.get('z', 0.0))
+        await MOTION.reset_position(x, y, z)
+        return {"ok": True, "position": [x, y, z]}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
@@ -215,12 +263,26 @@ async def motion_status():
             except Exception:
                 connected = False
         
+        # Get current position from hardware
+        current_pos = MOTION.current
+        try:
+            if connected:
+                hardware_pos = await MOTION.driver.query_position()
+                MOTION.current = hardware_pos
+                current_pos = hardware_pos
+        except Exception:
+            pass  # Use last known position
+        
+        # Get limit switch status
+        # Note: Limit switches are used for safety during homing/movement but not displayed
+        
         return {
             "ok": True,
             "driver": driver_name,
             "demo": False,  # We removed demo mode
-            "pos": MOTION.current,
-            "connected": connected
+            "pos": current_pos,
+            "connected": connected,
+            "port": getattr(MOTION.driver, 'port', 'unknown')
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
@@ -274,9 +336,6 @@ async def motion_save_a1_reference():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-
-
-
 @app.get('/motion/status')
 def motion_status():
     try:
@@ -287,20 +346,6 @@ def motion_status():
             "pos": tuple(ctrl.current),
             "homed": bool(ctrl.homed),
             "cells_configured": len(getattr(ctrl, 'cells', {}) or {}),
-        }
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.get('/motion/limits')
-async def motion_limits():
-    """Get the current status of all limit switches"""
-    try:
-        limit_status = await MOTION.get_limit_switch_status()
-        return {
-            "limit_switches": limit_status,
-            "total_switches": len([k for k, v in limit_status.items() if v]),
-            "triggered_switches": [k for k, v in limit_status.items() if v]
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))

@@ -117,15 +117,69 @@ cells:
 - capacity: 60
   id: J2
   tags: []
+- capacity: 60
+  id: J3
+  tags: []
+- capacity: 60
+  id: K1
+  tags: []
+- capacity: 60
+  id: K2
+  tags: []
+- capacity: 60
+  id: K3
+  tags: []
 - capacity: 300
   id: ERR1
   tags:
   - error-pile
+grid:
+  column_spacing: 84.0  # mm between letter columns (A, B, C, etc.)
+  row_spacing: 104.0    # mm between number rows (1, 2, 3)
+  positions:
+    # Row 1 (Y = 0)
+    A1: [0, 0]       # X = 0, Y = 0 (reference point)
+    B1: [84, 0]      # X = 84, Y = 0
+    C1: [168, 0]     # X = 168, Y = 0
+    D1: [252, 0]     # X = 252, Y = 0
+    E1: [336, 0]     # X = 336, Y = 0
+    F1: [420, 0]     # X = 420, Y = 0
+    G1: [504, 0]     # X = 504, Y = 0
+    H1: [588, 0]     # X = 588, Y = 0
+    I1: [672, 0]     # X = 672, Y = 0
+    J1: [756, 0]     # X = 756, Y = 0
+    K1: [840, 0]     # X = 840, Y = 0
+    # Row 2 (Y = 104)
+    A2: [0, 104]     # X = 0, Y = 104
+    B2: [84, 104]    # X = 84, Y = 104
+    C2: [168, 104]   # X = 168, Y = 104
+    D2: [252, 104]   # X = 252, Y = 104
+    E2: [336, 104]   # X = 336, Y = 104
+    F2: [420, 104]   # X = 420, Y = 104
+    G2: [504, 104]   # X = 504, Y = 104
+    H2: [588, 104]   # X = 588, Y = 104
+    I2: [672, 104]   # X = 672, Y = 104
+    J2: [756, 104]   # X = 756, Y = 104
+    K2: [840, 104]   # X = 840, Y = 104
+    # Row 3 (Y = 208)
+    A3: [0, 208]     # X = 0, Y = 208
+    B3: [84, 208]    # X = 84, Y = 208
+    C3: [168, 208]   # X = 168, Y = 208
+    D3: [252, 208]   # X = 252, Y = 208
+    E3: [336, 208]   # X = 336, Y = 208
+    F3: [420, 208]   # X = 420, Y = 208
+    G3: [504, 208]   # X = 504, Y = 208
+    H3: [588, 208]   # X = 588, Y = 208
+    I3: [672, 208]   # X = 672, Y = 208
+    J3: [756, 208]   # X = 756, Y = 208
+    K3: [840, 208]   # X = 840, Y = 208
+    # Error pile position (offset from grid)
+    ERR1: [924, 104] # X = 924, Y = 104 (next column over, middle row)
 feeder:
   reserve_pattern: ^A\d+$
 gcode:
   baud: 115200
-  port: /dev/ttyACM0
+  port: /dev/ttyACM1
 overflow:
   cells:
   - ERR1

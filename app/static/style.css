@@ -125,11 +125,12 @@ label.checkbox{display:flex;align-items:center;gap:8px;margin-top:8px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:var(--chip-bg);color:var(--text)}
 .sensor-line{display:flex;align-items:center;gap:8px;margin-top:10px}
 
-.grid-preview{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:8px}
+.grid-preview{display:grid;grid-template-columns:repeat(11,1fr);gap:4px;margin-top:8px;max-width:100%;overflow:auto}
 .grid-preview.tall{max-height:60vh;overflow:auto}
-.cell{border:1px dashed var(--cell-border);border-radius:6px;padding:12px;text-align:center;font-size:12px;cursor:pointer;background:var(--cell-bg);color:var(--text)}
+.cell{border:1px dashed var(--cell-border);border-radius:6px;padding:8px;text-align:center;font-size:11px;cursor:pointer;background:var(--cell-bg);color:var(--text);min-width:35px;aspect-ratio:1}
 .cell.active{outline:2px solid var(--primary)}
 .cell.err{background:var(--cell-err-bg);border-color:var(--cell-err-border)}
+.cell.feeder{background:#e6f9e6;border-color:#4CAF50}
 
 .progress{height:8px;border-radius:99px;background:#efefef;overflow:hidden;margin-top:10px}
 .progress>div{height:100%;background:var(--primary);width:0%}
@@ -173,3 +174,72 @@ label.checkbox{display:flex;align-items:center;gap:8px;margin-top:8px}
 .jog-btn.secondary:hover{background:var(--secondary);color:var(--secondary-ink)}
 .success{background:#28a745;color:#fff;border:1px solid #28a745}
 .success:hover{background:#218838}
+
+/* Position Status Display */
+.position-display {
+  padding: 8px 0;
+}
+.position-display .status-row {
+  display: flex;
+  align-items: center;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Jog Controls */
+.jog-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jog-section label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.jog-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.jog-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--secondary);
+  color: var(--secondary-ink);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.jog-btn:hover {
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-color: var(--primary);
+}
+
+.jog-btn:active {
+  transform: translateY(1px);
+}
+
+#jogDistance {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 12px;
+}
