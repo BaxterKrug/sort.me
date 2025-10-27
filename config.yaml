@@ -180,6 +180,10 @@ feeder:
 gcode:
   baud: 115200
   port: /dev/ttyACM1
+motion:
+  default_speed: 1600.0     # Default movement speed in mm/min (doubled from 800)
+  rapid_speed: 2400.0       # Fast positioning speed for non-critical moves (doubled from 1200)
+  homing_speed: 800.0       # Speed for homing operations (doubled from 400)
 overflow:
   cells:
   - ERR1

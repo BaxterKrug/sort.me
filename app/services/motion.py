@@ -308,7 +308,9 @@ class MotionController:
         self.cells: Dict[str, Dict[str, float]] = {}
         self.current: Tuple[float, float, float] = (0.0, 0.0, 0.0)
         self.homed = False
-        self.default_speed = 200.0  # arbitrary units
+        self.default_speed = 800.0  # Default speed in mm/min (configurable)
+        self.rapid_speed = 1200.0   # Fast speed for positioning moves
+        self.homing_speed = 400.0   # Speed for homing operations
         self.lock = asyncio.Lock()
         self.pick_clearance = 12.0
         self.pick_retract_height = 15.0
@@ -371,6 +373,7 @@ class MotionController:
         """
         Move to the XY coordinates of a named cell without changing the Z axis.
         This is safe for demos: it will NOT activate vacuum or plunger.
+        Uses rapid_speed by default for faster positioning.
         """
         if cell_id not in self.cells:
             raise KeyError(f"Unknown cell {cell_id}")
@@ -378,7 +381,7 @@ class MotionController:
         # preserve current z
         x, y = float(pos['x']), float(pos['y'])
         z = float(self.current[2]) if self.current is not None else pos.get('z', 0.0)
-        sp = speed or self.default_speed
+        sp = speed or self.rapid_speed  # Use rapid speed for positioning moves
         async with self.lock:
             await self.driver.set_speed(sp)
             await self.driver.move_absolute(x, y, z, sp)
@@ -647,8 +650,8 @@ class MotionController:
         """
         LOG.info("Moving to top-left corner using limit switches")
         
-        # Set slow speed for limit switch approach
-        limit_speed = max(50.0, self.default_speed / 4)
+        # Use configured homing speed for limit switch approach
+        limit_speed = self.homing_speed
         await self.driver.set_speed(limit_speed)
         
         # First, move to X limit (negative direction, left side)
@@ -823,8 +826,8 @@ class MotionController:
 
         if target:
             LOG.info("Moving to reference cell at %s after homing", target)
-            await self.driver.set_speed(self.default_speed)
-            await self.driver.move_absolute(target[0], target[1], self.current[2], self.default_speed)
+            await self.driver.set_speed(self.rapid_speed)
+            await self.driver.move_absolute(target[0], target[1], self.current[2], self.rapid_speed)
             self.current = (target[0], target[1], self.current[2])
 
         z_zero = await self._calibrate_z_with_plunger_locked()
@@ -1121,6 +1124,15 @@ def configure_from_cfg(cfg: Any) -> None:
                 cells[cell_id] = {'x': float(x), 'y': float(y)}
 
     ctrl.configure_cells(cells)
+    
+    # Configure speeds from config
+    motion_config = cfg.get("motion", {})
+    if "default_speed" in motion_config:
+        ctrl.default_speed = float(motion_config["default_speed"])
+    if "rapid_speed" in motion_config:
+        ctrl.rapid_speed = float(motion_config["rapid_speed"])
+    if "homing_speed" in motion_config:
+        ctrl.homing_speed = float(motion_config["homing_speed"])
 
 
 
