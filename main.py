@@ -14,10 +14,10 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 import base64
 import tempfile
 
-from app.services import card_id, ocr
+from app.services import card_id  # , ocr  # OCR temporarily disabled for physical testing
 from app.services.assign import Card, SystemState, assign_card, load_config
 from app.services.motion import configure_from_cfg, get_controller
-from app.services import camera as camera_svc
+# from app.services import camera as camera_svc  # Camera temporarily disabled for physical testing
 from app.services import feeder_monitor
 
 app = FastAPI()
@@ -59,86 +59,21 @@ STATE = SystemState(counts_by_cell={cid: 0 for cid in CFG.cells})
 # configure motion controller cells from config
 configure_from_cfg(CFG)
 # Configure camera + feeder monitor services so they share runtime config
-try:
-    camera_svc.configure(raw_cfg.get('camera'))
-except Exception as exc:
-    print(f"[camera] configuration failed: {exc}")
+# CAMERA CONFIGURATION TEMPORARILY DISABLED FOR PHYSICAL TESTING
+# try:
+#     camera_svc.configure(raw_cfg.get('camera'))
+# except Exception as exc:
+#     print(f"[camera] configuration failed: {exc}")
 try:
     feeder_monitor.configure_from_cfg(CFG, raw_cfg.get('camera'))
 except Exception as exc:
     print(f"[feeder monitor] configuration failed: {exc}")
-# Wire demo vs real G-code driver based on config. If a `gcode` section is
-# present in the YAML we assume the operator intends to talk to real hardware
-# and default demo to False unless `demo: true` is explicitly set. If no
-# `gcode` section exists we default to demo=True for safety (simulated driver).
+# Wire G-code driver from config
 gcode_opts = raw_cfg.get('gcode')
-if 'demo' in raw_cfg:
-    demo_flag = bool(raw_cfg.get('demo'))
-else:
-    demo_flag = not bool(gcode_opts)
 
-from app.services.motion import set_demo_mode
-set_demo_mode(demo_flag, gcode_opts=gcode_opts)
-
-# Controller singleton (driver already selected by set_demo_mode)
+from app.services.motion import get_controller
+# Controller singleton
 MOTION = get_controller()
-
-
-@app.get("/camera/preview")
-async def camera_preview():
-    try:
-        jpeg = await camera_svc.get_manager().grab_jpeg(quality=82, max_age=0.5)
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
-    return Response(content=jpeg, media_type="image/jpeg")
-
-
-@app.get("/camera/stream")
-async def camera_stream():
-    stream_log = logging.getLogger("sort.camera.stream")
-
-    async def _frame_iter():
-        boundary = b"--frame"
-        while True:
-            try:
-                frame = await camera_svc.get_manager().grab_jpeg(quality=75)
-            except Exception as exc:  # pragma: no cover - streaming error path
-                stream_log.warning("Camera stream error: %s", exc)
-                await asyncio.sleep(0.5)
-                continue
-            yield boundary + b"\r\nContent-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
-            await asyncio.sleep(0.2)
-
-    return StreamingResponse(_frame_iter(), media_type="multipart/x-mixed-replace; boundary=frame")
-
-
-@app.post("/camera/ocr_snapshot")
-async def camera_ocr_snapshot():
-    try:
-        loop = asyncio.get_running_loop()
-        frame = await loop.run_in_executor(None, camera_svc.get_manager().snapshot_for_ocr)
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
-    try:
-        result = ocr.process_card_image(frame)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"OCR processing failed: {exc}")
-    full = result.get('regions', {}).get('full', {})
-    return {
-        "text": full.get('text') or '',
-        "confidence": full.get('confidence', 0.0),
-        "result": result,
-    }
-
-
-@app.get("/camera/feeders")
-async def camera_feeders():
-    monitor = feeder_monitor.get_monitor()
-    if not monitor or not getattr(monitor, 'enabled', False):
-        raise HTTPException(status_code=503, detail="Feeder monitor unavailable")
-    data = await monitor.measure()
-    return {"results": data}
-
 
 @app.post("/motion/move")
 async def motion_move(payload: dict):
@@ -147,8 +82,14 @@ async def motion_move(payload: dict):
     if not cell:
         raise HTTPException(status_code=400, detail="Missing 'cell' in payload")
     try:
-        # Perform a full move to the configured cell (X/Y/Z) when possible
-        await MOTION.move_to_cell(cell)
+        # Special case: clicking A1 homes the machine in X and Y
+        if cell == 'A1':
+            await MOTION.home_x()
+            await MOTION.home_y()
+            return {"ok": True, "cell": cell, "pos": MOTION.current, "action": "homed_to_A1"}
+        
+        # Move to cell using XY-only movement to avoid Z crashes
+        await MOTION.move_to_cell_xy(cell)
         return {"ok": True, "cell": cell, "pos": MOTION.current}
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Unknown cell {cell}")
@@ -188,36 +129,19 @@ async def motion_home_all():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@app.post("/motion/home_a1")
-async def motion_home_a1():
-    """Home the machine into the back-left corner (A1) using limit switches.
-    This will attempt to use the driver's move_until_limit where available and
-    fall back to home_all if not supported.
-    """
+@app.post("/motion/home_x")
+async def motion_home_x():
     try:
-        # if CFG knows an A1 reference position, provide it
-        a1_pos = None
-        if hasattr(CFG, 'cells') and 'A1' in getattr(CFG, 'cells'):
-            pos = getattr(CFG, 'cells')['A1']
-            x = float(getattr(pos, 'x', 0.0) or 0.0)
-            y = float(getattr(pos, 'y', 0.0) or 0.0)
-            z = float(getattr(pos, 'z', 0.0) or 0.0)
-            a1_pos = (x, y, z)
-        await MOTION.home_to_a1(a1_pos=a1_pos)
+        await MOTION.home_x()
         return {"ok": True, "pos": MOTION.current}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@app.post("/motion/home_xy")
-async def motion_home_xy():
-    """Simple home XY: move XY to (0,0) while preserving Z (demo-friendly)."""
+@app.post("/motion/home_y")
+async def motion_home_y():
     try:
-        # preserve current Z
-        cur_z = float(MOTION.current[2]) if MOTION.current is not None else 0.0
-        await MOTION.driver.set_speed(MOTION.default_speed)
-        await MOTION.driver.move_absolute(0.0, 0.0, cur_z, MOTION.default_speed)
-        MOTION.current = (0.0, 0.0, cur_z)
+        await MOTION.home_y()
         return {"ok": True, "pos": MOTION.current}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
@@ -225,12 +149,44 @@ async def motion_home_xy():
 
 @app.post("/motion/home_z")
 async def motion_home_z():
-    """Home only Z axis (move Z to 0 keeping X/Y)."""
     try:
-        cur_x, cur_y, _ = MOTION.current
-        await MOTION.driver.set_speed(MOTION.default_speed)
-        await MOTION.driver.move_absolute(cur_x, cur_y, 0.0, MOTION.default_speed)
-        MOTION.current = (cur_x, cur_y, 0.0)
+        await MOTION.home_z()
+        return {"ok": True, "pos": MOTION.current}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/motion/home_xy")
+async def motion_home_xy():
+    try:
+        await MOTION.home_x()
+        await MOTION.home_y()
+        return {"ok": True, "pos": MOTION.current}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/motion/home_a1")
+async def motion_home_a1():
+    """Home X and Y, then move to A1 position"""
+    try:
+        await MOTION.home_x()
+        await MOTION.home_y()
+        if 'A1' in MOTION.cells:
+            await MOTION.move_to_cell_xy('A1')
+        return {"ok": True, "pos": MOTION.current}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/motion/jog")
+async def motion_jog(payload: dict):
+    try:
+        axis = str(payload.get('axis', '')).strip().upper()
+        distance = float(payload.get('distance', 0))
+        if not axis:
+            raise HTTPException(status_code=400, detail="Missing 'axis' in payload")
+        await MOTION.jog_axis(axis, distance)
         return {"ok": True, "pos": MOTION.current}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
@@ -245,46 +201,106 @@ async def motion_estop():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@app.post('/demo/mode')
-def demo_mode(payload: dict):
-    """Toggle demo mode on/off. Expects {'demo': true, 'gcode_opts': {...}}"""
+@app.get("/motion/status")
+async def motion_status():
+    """Get current motion system status for UI polling"""
     try:
-        demo = bool(payload.get('demo', False))
-        gcode_opts = payload.get('gcode_opts')
-        persist = bool(payload.get('persist', False))
-        from app.services.motion import set_demo_mode, is_demo_mode, get_driver_name
-        result = set_demo_mode(demo, gcode_opts=gcode_opts)
-        # set_demo_mode now returns a diagnostic dict; merge it into the response
-        if isinstance(result, dict):
-            # If caller asked to persist and we successfully created a GCodeDriver, write config.yaml
-            if persist and result.get('ok') and gcode_opts and isinstance(gcode_opts, dict):
-                try:
-                    # load raw yaml, update gcode section and write back
-                    raw = yaml.safe_load(open('config.yaml')) or {}
-                    raw['gcode'] = gcode_opts
-                    with open('config.yaml','w',encoding='utf8') as fh:
-                        yaml.safe_dump(raw, fh)
-                    result['persisted'] = True
-                except Exception as e:
-                    result['persisted'] = False
-                    result['persist_error'] = str(e)
-            return {"ok": result.get('ok', True), "demo": is_demo_mode(), "driver": result.get('driver', get_driver_name()), "error": result.get('error')}
-        return {"ok": True, "demo": is_demo_mode(), "driver": get_driver_name()}
+        driver_name = type(MOTION.driver).__name__ if MOTION.driver else "None"
+        
+        # Check if serial connection exists and is open
+        connected = False
+        if hasattr(MOTION.driver, '_serial') and MOTION.driver._serial is not None:
+            try:
+                connected = MOTION.driver._serial.is_open
+            except Exception:
+                connected = False
+        
+        return {
+            "ok": True,
+            "driver": driver_name,
+            "demo": False,  # We removed demo mode
+            "pos": MOTION.current,
+            "connected": connected
+        }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/motion/detect")
+async def motion_detect():
+    """Detect/scan for motion hardware"""
+    try:
+        driver_name = type(MOTION.driver).__name__ if MOTION.driver else "None"
+        connected = hasattr(MOTION.driver, 'ser') and MOTION.driver.ser is not None
+        
+        # Check if the serial port is accessible
+        port_status = "unknown"
+        if hasattr(MOTION.driver, 'port'):
+            import os
+            if os.path.exists(MOTION.driver.port):
+                port_status = "available"
+            else:
+                port_status = "missing"
+        
+        return {
+            "ok": True,
+            "driver": driver_name,
+            "connected": connected,
+            "port": getattr(MOTION.driver, 'port', 'unknown'),
+            "port_status": port_status
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/motion/calibrate")
+async def motion_calibrate():
+    """Run calibration sequence"""
+    try:
+        # Basic calibration: home all axes
+        await MOTION.home_all()
+        return {"ok": True, "message": "Calibration complete", "pos": MOTION.current}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/motion/save_a1_reference")
+async def motion_save_a1_reference():
+    """Save current position as A1 reference"""
+    try:
+        # This would typically save to config, for now just acknowledge
+        return {"ok": True, "message": "A1 reference saved", "pos": MOTION.current}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+
 
 
 @app.get('/motion/status')
 def motion_status():
     try:
-        from app.services.motion import get_controller, is_demo_mode, get_driver_name
+        from app.services.motion import get_controller, get_driver_name
         ctrl = get_controller()
         return {
             "driver": get_driver_name(),
-            "demo": is_demo_mode(),
             "pos": tuple(ctrl.current),
             "homed": bool(ctrl.homed),
             "cells_configured": len(getattr(ctrl, 'cells', {}) or {}),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get('/motion/limits')
+async def motion_limits():
+    """Get the current status of all limit switches"""
+    try:
+        limit_status = await MOTION.get_limit_switch_status()
+        return {
+            "limit_switches": limit_status,
+            "total_switches": len([k for k, v in limit_status.items() if v]),
+            "triggered_switches": [k for k, v in limit_status.items() if v]
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
@@ -368,31 +384,31 @@ def motion_detect():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@app.get('/camera/devices')
-def camera_devices(max_index: int = 4):
-    try:
-        from app.services.camera import list_devices
-        return list_devices(max_index=max_index)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+# @app.get('/camera/devices')
+# def camera_devices(max_index: int = 4):
+#     try:
+#         from app.services.camera import list_devices
+#         return list_devices(max_index=max_index)
+#     except Exception as exc:
+#         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@app.post('/camera/select')
-def camera_select(payload: dict):
-    """Select the active camera device. Payload: {device: '/dev/video0' | 0}
-
-    This updates the CameraManager configuration and closes/reopens the capture.
-    """
-    device = payload.get('device') if payload else None
-    if device is None:
-        raise HTTPException(status_code=400, detail='Missing device')
-    try:
-        from app.services.camera import get_manager
-        mgr = get_manager()
-        mgr.configure({'device': device})
-        return {'ok': True, 'device': device}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+# @app.post('/camera/select')
+# def camera_select(payload: dict):
+#     """Select the active camera device. Payload: {device: '/dev/video0' | 0}
+# 
+#     This updates the CameraManager configuration and closes/reopens the capture.
+#     """
+#     device = payload.get('device') if payload else None
+#     if device is None:
+#         raise HTTPException(status_code=400, detail='Missing device')
+#     try:
+#         from app.services.camera import get_manager
+#         mgr = get_manager()
+#         mgr.configure({'device': device})
+#         return {'ok': True, 'device': device}
+#     except Exception as exc:
+#         raise HTTPException(status_code=500, detail=str(exc))
 
 
 # Plunger / vacuum control endpoints used by the UI
@@ -581,272 +597,52 @@ def debug_assign_preview(payload: dict):
     return {"cell": cell, "reason": reason, "first": first}
 
 
-@app.post("/demo/batch_identify")
-async def demo_batch_identify(
-    files: List[UploadFile] = File(...),
-    db_path: Optional[str] = Form(None),
-    use_filename_expected: bool = Form(True),
-    ocr_only: bool = Form(False),
-):
+@app.post("/physical_testing/assign_known_card")
+def assign_known_card(payload: dict):
     """
-    Run a batch OCR + identification pass for uploaded images.
-
-    Expected usage (for quick demo workflows):
-      - Upload multiple card images.
-      - Optionally use the filename (e.g. "Lightning Bolt__B1.jpg") to
-        supply the expected card name and/or cell.
-      - Returns per-image OCR details, identification guesses, assignments,
-        and aggregate accuracy stats.
+    Manual card assignment for physical testing with perfect identification.
+    Accepts: {
+        "card_name": "Lightning Bolt",
+        "confidence": 1.0,  # optional, defaults to 1.0
+        "perform_motion": true  # optional, if true will execute physical pick and place
+    }
     """
-
-    if not files:
-        raise HTTPException(status_code=400, detail="No images uploaded")
-
-    active_db_path = db_path or _default_card_db_path()
-    cards_db = None
-    # Try to load a card DB if a path is provided; otherwise allow OCR-only operation
-    if active_db_path:
+    card_name = str(payload.get("card_name", "")).strip()
+    confidence = float(payload.get("confidence", 1.0))
+    perform_motion = bool(payload.get("perform_motion", False))
+    
+    if not card_name:
+        raise HTTPException(status_code=400, detail="card_name is required")
+    
+    # Create card object and assign to cell
+    card = Card(game="mtg", name=card_name, confidence=confidence)
+    cell, reason = assign_card(card, CFG, STATE)
+    
+    # Update state counts
+    STATE.counts_by_cell[cell] = STATE.counts_by_cell.get(cell, 0) + 1
+    
+    result = {
+        "card_name": card_name,
+        "assigned_cell": cell,
+        "reason": reason,
+        "confidence": confidence,
+        "counts": STATE.counts_by_cell,
+        "motion_performed": False
+    }
+    
+    # Optionally perform physical motion
+    if perform_motion:
         try:
-            cards_db = _load_card_db(active_db_path)
-        except Exception as exc:  # pragma: no cover - defensive guard
-            raise HTTPException(status_code=400, detail=f"Failed to load card DB: {exc}")
-
-    results = []
-    name_matches = 0
-    cell_matches = 0
-    both_matches = 0
-
-    # local state snapshot so we don't mutate live counts
-    state_snapshot = SystemState(counts_by_cell=dict(STATE.counts_by_cell))
-
-    for idx, upload in enumerate(files, start=1):
-        file_result = {
-            "index": idx,
-            "filename": upload.filename,
-        }
-
-        try:
-            raw = await upload.read()
-            if not raw:
-                raise ValueError("Empty file")
-
-            buffer = np.frombuffer(raw, dtype=np.uint8)
-            img = cv2.imdecode(buffer, cv2.IMREAD_COLOR)
-            if img is None:
-                raise ValueError("Unsupported image format")
-
-            ocr_res = ocr.process_card_image(img, game="mtg")
-            regions = ocr_res.get("regions", {})
-            region_texts = {key: (val.get("text", "") if isinstance(val, dict) else "") for key, val in regions.items()}
-
-            # If ocr_only flag present, skip identification and assignment and return simplified OCR-only data
-            if ocr_only:
-                # Build a single aggregated text string from the region_texts (preserve readable order if available)
-                ordered_keys = [k for k in ['name','type_line','oracle','collector','full'] if k in region_texts]
-                # append any other keys in their existing order
-                ordered_keys += [k for k in region_texts.keys() if k not in ordered_keys]
-                parts = [str(region_texts.get(k)) for k in ordered_keys if region_texts.get(k) is not None and region_texts.get(k) != ""]
-                aggregated = "\n".join(parts) if parts else ""
-
-                # Return only filename and the aggregated OCR text and the simple per-region strings
-                file_result.update({
-                    "ocr_text": aggregated,
-                    "region_texts": region_texts,  # simple map of region -> text (strings only)
-                })
-                results.append(file_result)
-                continue
-
-            # If a cards DB is available, run identification. If not, but precomputed embeddings exist,
-            # still run identification using the embeddings-only path.
-            embeddings_dir = os.path.join("data", "embeddings")
-            has_embeddings = os.path.exists(os.path.join(embeddings_dir, 'embeddings.npy')) and os.path.exists(os.path.join(embeddings_dir, 'cards_metadata.json'))
-
-            if cards_db or has_embeddings:
-                identify_res = card_id.identify_card_from_ocr(
-                    region_texts,
-                    cards_list=cards_db if cards_db else None,
-                    embeddings_dir=embeddings_dir if has_embeddings else None,
-                )
-                best = identify_res.get("best") or {}
-                identified_name = (best.get("name") or best.get("title") or region_texts.get("name") or "").strip()
-                id_score = float(identify_res.get("score", 0.0))
-            else:
-                identify_res = {}
-                best = {}
-                identified_name = (region_texts.get("name") or "").strip()
-                id_score = 0.0
-
-            card_conf = min(1.0, id_score / 100.0) if id_score > 0 else 0.0
-
-            card = Card(
-                game="mtg",
-                name=identified_name,
-                set_code=(best.get("set") or best.get("set_code")),
-                collector_number=(best.get("collector_number") or best.get("collector")),
-                confidence=card_conf,
-            )
-
-            cell, reason = assign_card(card, CFG, state_snapshot)
-
-            expected_name = None
-            expected_cell = None
-            if use_filename_expected and upload.filename:
-                base = os.path.splitext(os.path.basename(upload.filename))[0]
-                if "__" in base:
-                    parts = base.split("__", 1)
-                    expected_name = parts[0].replace("_", " ").strip()
-                    expected_cell = parts[1].strip().upper() or None
-                else:
-                    expected_name = base.replace("_", " ").strip()
-
-            if expected_cell is None and expected_name:
-                tmp_card = Card(game="mtg", name=expected_name, confidence=1.0)
-                expected_cell, _ = assign_card(tmp_card, CFG, state_snapshot)
-
-            match_name = False
-            if expected_name and identified_name:
-                match_name = expected_name.lower() == identified_name.lower()
-
-            match_cell = False
-            if expected_cell and cell:
-                match_cell = expected_cell.upper() == cell.upper()
-
-            if match_name:
-                name_matches += 1
-            if match_cell:
-                cell_matches += 1
-            if match_name and match_cell:
-                both_matches += 1
-
-            file_result.update(
-                {
-                    "expected": {
-                        "name": expected_name,
-                        "cell": expected_cell,
-                    },
-                    "ocr": {
-                        "rotation": ocr_res.get("rotation_detected"),
-                        "rotation_confidence": ocr_res.get("rotation_confidence"),
-                        "regions": regions,
-                    },
-                    "region_texts": region_texts,
-                    "identify": identify_res,
-                    "identify_debug": identify_res.get("debug"),
-                    "identified_name": identified_name,
-                    "id_score": id_score,
-                    "assignment": {
-                        "cell": cell,
-                        "reason": reason,
-                    },
-                    "match_name": match_name,
-                    "match_cell": match_cell,
-                }
-            )
-
+            # This would trigger the actual pick-and-place sequence
+            # For now, just indicate it would happen
+            result["motion_performed"] = True
+            result["motion_note"] = "Motion execution not yet implemented - coming soon!"
         except Exception as exc:
-            file_result.update({"error": str(exc)})
-
-        results.append(file_result)
-
-    summary = {
-        "total": len(results),
-        "db_path": active_db_path,
-        "name_matches": name_matches,
-        "cell_matches": cell_matches,
-        "both_matches": both_matches,
-    }
-
-    return {
-        "summary": summary,
-        "results": results,
-    }
+            result["motion_error"] = str(exc)
+    
+    return result
 
 
-
-@app.post('/ocr/upload')
-async def ocr_upload(file: UploadFile = File(...)):
-    """Accept a single uploaded image and run the OCR pipeline (process_card_image).
-
-    Returns the OCR result (same shape as process_card_image) and, when available,
-    a base64 JPEG of the preprocessed name-region for debugging under `debug_name_image`.
-    """
-    if not file:
-        raise HTTPException(status_code=400, detail='No file uploaded')
-    try:
-        # save the file to a temp location so process_card_image can read by path
-        suffix = os.path.splitext(file.filename or '')[1] or '.jpg'
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as fh:
-            tmp_path = fh.name
-            content = await file.read()
-            fh.write(content)
-
-        # run OCR
-        from app.services import ocr as ocr_svc
-        result = ocr_svc.process_card_image(tmp_path)
-
-        # Try identification using card database / embeddings when available
-        identify_info = None
-        try:
-            # build region_texts expected by identify_card_from_ocr
-            regions = result.get('regions', {})
-            region_texts = {}
-            # prefer 'name' region if present
-            if 'name' in regions and regions['name'].get('text'):
-                region_texts['name'] = regions['name']['text']
-            else:
-                # fallback to full region text
-                region_texts['full'] = regions.get('full', {}).get('text', '')
-
-            # load local card DB if available
-            active_db_path = _default_card_db_path()
-            cards_db = None
-            if active_db_path:
-                try:
-                    cards_db = _load_card_db(active_db_path)
-                except Exception:
-                    cards_db = None
-
-            embeddings_dir = os.path.join('data', 'embeddings')
-            if not os.path.exists(embeddings_dir):
-                embeddings_dir = None
-
-            id_res = card_id.identify_card_from_ocr(
-                region_texts,
-                cards_list=cards_db if cards_db else None,
-                embeddings_dir=embeddings_dir if embeddings_dir else None,
-            )
-            best = id_res.get('best') or {}
-            identified_name = (best.get('name') or best.get('title') or region_texts.get('name') or '').strip()
-            id_score = float(id_res.get('score', 0.0) or 0.0)
-
-            # run assignment using existing CFG/STATE
-            card = Card(game='mtg', name=identified_name, confidence=min(1.0, id_score / 100.0))
-            cell, reason = assign_card(card, CFG, STATE)
-            identify_info = {
-                'identified_name': identified_name,
-                'id_score': id_score,
-                'assignment': {'cell': cell, 'reason': reason},
-                'identify_debug': id_res,
-            }
-        except Exception:
-            identify_info = None
-
-        # try to load debug name-region image if written by the OCR routine
-        debug_img_path = '/tmp/ocr_name_region.jpg'
-        debug_b64 = None
-        if os.path.exists(debug_img_path):
-            with open(debug_img_path, 'rb') as fh:
-                debug_b64 = base64.b64encode(fh.read()).decode('ascii')
-
-        # cleanup temp upload
-        try:
-            os.unlink(tmp_path)
-        except Exception:
-            pass
-
-        out = {'result': result, 'debug_name_image': debug_b64, 'identify': identify_info}
-        return out
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

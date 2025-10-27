@@ -45,6 +45,48 @@
         </div>
 
         <div class="card">
+          <h3>Limit Switch Calibration</h3>
+          <p class="muted">Use limit switches to find true home position and set A1 reference.</p>
+          <div class="row">
+            <button id="btnCalibrateHome" class="primary">Find Home (Limit Switches)</button>
+          </div>
+          <div class="row">
+            <span>Status:</span>
+            <span id="calibrationStatus" class="chip muted">Not calibrated</span>
+          </div>
+          <div class="calibration-controls hidden" id="calibrationControls">
+            <h4>Manual Positioning</h4>
+            <p class="muted">Jog to position A1, then save reference.</p>
+            <div class="jog-controls">
+              <div class="jog-row">
+                <label>X Axis:</label>
+                <button id="btnJogXNeg" class="jog-btn">-1mm</button>
+                <button id="btnJogXPos" class="jog-btn">+1mm</button>
+                <button id="btnJogXNeg10" class="jog-btn secondary">-10mm</button>
+                <button id="btnJogXPos10" class="jog-btn secondary">+10mm</button>
+              </div>
+              <div class="jog-row">
+                <label>Y Axis:</label>
+                <button id="btnJogYNeg" class="jog-btn">-1mm</button>
+                <button id="btnJogYPos" class="jog-btn">+1mm</button>
+                <button id="btnJogYNeg10" class="jog-btn secondary">-10mm</button>
+                <button id="btnJogYPos10" class="jog-btn secondary">+10mm</button>
+              </div>
+              <div class="jog-row">
+                <label>Z Axis:</label>
+                <button id="btnJogZNeg" class="jog-btn">-1mm</button>
+                <button id="btnJogZPos" class="jog-btn">+1mm</button>
+                <button id="btnJogZNeg5" class="jog-btn secondary">-5mm</button>
+                <button id="btnJogZPos5" class="jog-btn secondary">+5mm</button>
+              </div>
+            </div>
+            <div class="row" style="margin-top:12px">
+              <button id="btnSaveA1" class="success">Save A1 Reference</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
           <h3>Pickup Assembly Test</h3>
           <p class="muted">Verify plunger motion, limit switch, and vacuum.</p>
           <div class="row">
@@ -77,8 +119,45 @@
             <button id="btnOpenCamPanel" class="secondary">Select Camera…</button>
           </div>
           <div class="row">
-            <button id="btnSnap" class="secondary">Snapshot OCR</button>
-            <span id="ocrPreview" class="ocr-text muted">No text yet</span>
+            <button id="btnSnap" class="secondary">Single OCR</button>
+            <button id="btnDualSnap" class="primary">Dual OCR (44mm)</button>
+          </div>
+          <div class="row">
+            <label for="dualCell">Cell:</label>
+            <select id="dualCell">
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="A3">A3</option>
+              <option value="B1">B1</option>
+              <option value="B2">B2</option>
+              <option value="B3">B3</option>
+            </select>
+            <label for="offsetMm">Offset (mm):</label>
+            <input id="offsetMm" type="number" value="44" min="10" max="100" style="width:60px">
+          </div>
+          <div class="ocr-results">
+            <div class="ocr-section">
+              <span class="ocr-label">Text:</span>
+              <span id="ocrPreview" class="ocr-text muted">No text yet</span>
+            </div>
+            <div class="ocr-section hidden" id="dualResults">
+              <div class="ocr-result-item">
+                <span class="ocr-label">Card Name:</span>
+                <span id="cardNameResult" class="ocr-text">-</span>
+              </div>
+              <div class="ocr-result-item">
+                <span class="ocr-label">Set Code:</span>
+                <span id="setCodeResult" class="ocr-text">-</span>
+              </div>
+              <div class="ocr-result-item">
+                <span class="ocr-label">Rules Text:</span>
+                <span id="rulesTextResult" class="ocr-text">-</span>
+              </div>
+              <div class="ocr-result-item">
+                <span class="ocr-label">Orientation:</span>
+                <span id="orientationResult" class="ocr-text">-</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

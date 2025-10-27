@@ -132,7 +132,43 @@ on($('btnSnap'), 'click', async ()=>{
   try{
     const res = await api('/camera/ocr_snapshot',{method:'POST'});
     $('ocrPreview').textContent = (res && res.text) ? res.text : '(no text)';
+    hide($('dualResults'));
   }catch(e){ toast(`OCR failed: ${e.message}`); }
+});
+
+on($('btnDualSnap'), 'click', async ()=>{
+  try{
+    const cell = $('dualCell').value || 'A1';
+    const offsetMm = parseFloat($('offsetMm').value) || 44.0;
+    
+    toast(`Starting dual OCR: ${cell} + ${offsetMm}mm offset...`);
+    
+    const res = await api('/camera/dual_ocr_snapshot', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ cell, offset_mm: offsetMm })
+    });
+    
+    if(res && res.success) {
+      // Update single OCR display for backward compatibility
+      const combinedText = [res.card_name, res.rules_text].filter(t => t).join(' ');
+      $('ocrPreview').textContent = combinedText || '(no text)';
+      
+      // Update dual OCR specific displays
+      $('cardNameResult').textContent = res.card_name || '-';
+      $('setCodeResult').textContent = res.set_code || '-';
+      $('rulesTextResult').textContent = res.rules_text || '-';
+      $('orientationResult').textContent = res.orientation?.determination || '-';
+      
+      show($('dualResults'));
+      toast(`Dual OCR complete: ${res.card_name || 'Unknown card'}`);
+    } else {
+      throw new Error('Dual OCR failed: no valid response');
+    }
+  }catch(e){ 
+    toast(`Dual OCR failed: ${e.message}`); 
+    hide($('dualResults'));
+  }
 });
 
 function refreshCamera(){
@@ -335,6 +371,53 @@ on($('btnSetCurrent'), 'click', async ()=>{
 on($('btnHomeAll2'),'click', ()=> api('/motion/home_all',{method:'POST'}).then(()=>toast('Homed all')).catch(e=>toast(e.message)));
 on($('btnHomeXY'),'click',  ()=> api('/motion/home_xy',{method:'POST'}).then(()=>toast('Homed XY')).catch(e=>toast(e.message)));
 on($('btnHomeZ'),'click',   ()=> api('/motion/home_z',{method:'POST'}).then(()=>toast('Homed Z')).catch(e=>toast(e.message)));
+
+// ------------- Calibration Controls -------------
+on($('btnCalibrateHome'),'click', async ()=> {
+  try {
+    toast('Starting limit switch calibration...');
+    const res = await api('/motion/calibrate',{method:'POST'});
+    toast('Calibration complete! Position manually and save A1 reference.');
+    console.log('calibrate ->', res);
+  } catch(e) {
+    toast(`Calibration failed: ${e.message}`);
+  }
+});
+
+on($('btnSaveA1'),'click', async ()=> {
+  try {
+    const res = await api('/motion/save_a1_reference',{method:'POST'});
+    toast('A1 reference saved successfully!');
+    $('btnSaveA1').classList.add('success');
+    setTimeout(() => $('btnSaveA1').classList.remove('success'), 2000);
+    console.log('save_a1_reference ->', res);
+  } catch(e) {
+    toast(`Save A1 failed: ${e.message}`);
+  }
+});
+
+// Jog controls
+const jogDistance = 1.0; // 1mm steps
+on($('btnJogXPos'),'click', ()=> jogAxis('X', jogDistance));
+on($('btnJogXNeg'),'click', ()=> jogAxis('X', -jogDistance));
+on($('btnJogYPos'),'click', ()=> jogAxis('Y', jogDistance));
+on($('btnJogYNeg'),'click', ()=> jogAxis('Y', -jogDistance));
+on($('btnJogZPos'),'click', ()=> jogAxis('Z', jogDistance));
+on($('btnJogZNeg'),'click', ()=> jogAxis('Z', -jogDistance));
+
+async function jogAxis(axis, distance) {
+  try {
+    const res = await api('/motion/jog', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({axis: axis, distance: distance})
+    });
+    console.log(`jog ${axis} ${distance} ->`, res);
+  } catch(e) {
+    toast(`Jog ${axis} failed: ${e.message}`);
+  }
+}
+
 on($('btnVacOnRun'),'click', ()=> api('/vacuum/on',{method:'POST'}).then(()=>toast('Vacuum on')).catch(e=>toast(e.message)));
 on($('btnVacOffRun'),'click',()=> api('/vacuum/off',{method:'POST'}).then(()=>toast('Vacuum off')).catch(e=>toast(e.message)));
 on($('btnPlunge'),'click',   ()=> api('/plunger/down',{method:'POST'}).then(()=>toast('Plunge')).catch(e=>toast(e.message)));
@@ -898,6 +981,31 @@ async function demoApi(path, opts){
       return {}; // images handled by refreshCamera with data uri
     case '/camera/ocr_snapshot':
       return {text:'Lightning Bolt — M11'};
+    case '/camera/dual_ocr_snapshot': {
+      const payload = opts?.body ? JSON.parse(opts.body) : {};
+      const cell = payload.cell || 'A1';
+      const offsetMm = payload.offset_mm || 44.0;
+      return {
+        success: true,
+        dual_mode: true,
+        offset_mm: offsetMm,
+        cell: cell,
+        final_position: [125.0, 44.0, 15.0],
+        card_name: 'Lightning Bolt',
+        set_code: 'M11',
+        rules_text: 'Lightning Bolt deals 3 damage to any target',
+        orientation: {
+          determination: 'img1_top (score: 3.25 vs 1.80)',
+          top_half_shape: [480, 640],
+          bottom_half_shape: [480, 640]
+        },
+        regions: {
+          card_name: { text: 'Lightning Bolt', confidence: 85.2 },
+          set_code: { text: 'M11', confidence: 92.1 },
+          rules_text: { text: 'Lightning Bolt deals 3 damage to any target', confidence: 78.5 }
+        }
+      };
+    }
 
     // Run control & status
     case '/run/start': return {ok:true};

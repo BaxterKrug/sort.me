@@ -1,6 +1,0 @@
-pillow
-pytesseract
-opencv-python-headless
-numpy
-scikit-learn
-pytest

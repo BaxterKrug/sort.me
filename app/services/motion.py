@@ -57,94 +57,7 @@ class MotionDriver:
         (GRBL) and parse the response."""
         raise NotImplementedError()
 
-# Simple simulated driver for local testing
-class SimulatedDriver(MotionDriver):
-    def __init__(self):
-        self.pos = (0.0, 0.0, 0.0)
-        self.speed = 100.0
-        self.vacuum = False
-        self.plunger = "up"
 
-    async def _fake_move(self, x, y, z, speed):
-        dist = ((self.pos[0]-x)**2 + (self.pos[1]-y)**2 + (self.pos[2]-z)**2) ** 0.5
-        # simple time model: dist / (speed/100) seconds (speed is arbitrary)
-        duration = max(0.02, dist / max(1.0, speed/100.0))
-        LOG.info("Simulated move -> (%.2f,%.2f,%.2f) speed=%.1f (t=%.2fs)", x, y, z, speed, duration)
-        await asyncio.sleep(duration)
-        self.pos = (x, y, z)
-
-    async def move_absolute(self, x: float, y: float, z: float, speed: float) -> None:
-        await self._fake_move(x, y, z, speed)
-
-    async def set_speed(self, speed: float) -> None:
-        LOG.info("Simulated set_speed=%s", speed)
-        self.speed = speed
-
-    async def vacuum_on(self) -> None:
-        LOG.info("Simulated vacuum ON")
-        self.vacuum = True
-        await asyncio.sleep(0.05)
-
-    async def vacuum_off(self) -> None:
-        LOG.info("Simulated vacuum OFF")
-        self.vacuum = False
-        await asyncio.sleep(0.02)
-
-    async def plunger_down(self) -> None:
-        LOG.info("Simulated plunger DOWN")
-        self.plunger = "down"
-        await asyncio.sleep(0.07)
-
-    async def plunger_up(self) -> None:
-        LOG.info("Simulated plunger UP")
-        self.plunger = "up"
-        await asyncio.sleep(0.07)
-
-    async def stop(self) -> None:
-        LOG.info("Simulated stop")
-        # no-op for simulation
-
-    async def home_all(self) -> None:
-        LOG.info("Simulated homing all axes")
-        await asyncio.sleep(0.5)
-        self.pos = (0.0, 0.0, 0.0)
-
-    async def move_until_limit(self, axis: str, direction: int, speed: float) -> float:
-        """Simulate moving until a limit switch is hit.
-        For negative direction we clamp the coordinate to 0.0 (home).
-        For positive direction we simulate a large travel (e.g., +1000.0).
-        """
-        assert axis in ('x', 'y', 'z')
-        assert direction in (-1, 1)
-        # current coordinates
-        cur_x, cur_y, cur_z = self.pos
-        coord = {'x': cur_x, 'y': cur_y, 'z': cur_z}[axis]
-        if direction < 0:
-            target = 0.0
-        else:
-            # simulate an upper travel limit far away
-            target = coord + 1000.0
-        dist = abs(coord - target)
-        duration = max(0.02, dist / max(1.0, speed/100.0))
-        LOG.info("Simulated move_until_limit axis=%s dir=%s -> target=%.2f (t=%.2fs)", axis, direction, target, duration)
-        await asyncio.sleep(duration)
-        # update position
-        if axis == 'x':
-            self.pos = (target, cur_y, cur_z)
-        elif axis == 'y':
-            self.pos = (cur_x, target, cur_z)
-        else:
-            self.pos = (cur_x, cur_y, target)
-        return getattr(self, 'pos')[('x','y','z').index(axis)]
-
-    async def send_gcode(self, cmd: str, wait_ok: bool = True, timeout: float = 2.0) -> List[str]:
-        LOG.info("Simulated send_gcode: %s", cmd.strip())
-        # simple simulation: return ok
-        await asyncio.sleep(0.01)
-        return ["ok"]
-
-    async def query_position(self) -> Tuple[float, float, float]:
-        return self.pos
 
 
 class GCodeDriver(MotionDriver):
@@ -286,48 +199,65 @@ class GCodeDriver(MotionDriver):
             await self.send_gcode('$H')
 
     async def move_until_limit(self, axis: str, direction: int, speed: float) -> float:
-        # Move via small incremental relative steps while querying limit status via M119 or firmware-specific
-        # This is a best-effort: many firmwares do not expose live limit status over G-code; prefer homing.
-        # We'll perform a loop of small relative moves and query position.
+        """
+        Move along an axis until a limit switch is triggered.
+        Uses incremental moves with position feedback to detect when movement stops.
+        """
+        axis_upper = axis.upper()
         step = 1.0 * (1 if direction > 0 else -1)
+        
+        LOG.info("Moving until limit: axis=%s, direction=%d, speed=%.1f", axis_upper, direction, speed)
+        
+        # Switch to relative positioning mode
         await self.send_gcode('G91')
+        
         try:
-            for _ in range(2000):
-                await self.send_gcode(f'G1 {axis.upper()}{step:.3f} F{int(speed)}')
-                pos = await self.query_position()
-                # naive limit detection: if position did not change in the intended direction, assume limit
-                coord = pos[('x','y','z').index(axis)]
-                # no robust detection available here; return current pos
-                return coord
+            last_pos = None
+            stuck_count = 0
+            max_steps = 2000
+            
+            for step_num in range(max_steps):
+                # Get current position before move
+                try:
+                    current_pos = await self.query_position()
+                    axis_index = {'X': 0, 'Y': 1, 'Z': 2}.get(axis_upper, 0)
+                    current_axis_pos = current_pos[axis_index] if current_pos else 0.0
+                    
+                    # Check if we're stuck (limit switch triggered)
+                    if last_pos is not None:
+                        movement = abs(current_axis_pos - last_pos)
+                        if movement < 0.1:  # Less than 0.1mm movement indicates limit hit
+                            stuck_count += 1
+                            if stuck_count >= 3:  # Require 3 consecutive stuck moves
+                                LOG.info("Limit switch detected at position %.3f (axis %s)", current_axis_pos, axis_upper)
+                                return current_axis_pos
+                        else:
+                            stuck_count = 0
+                    
+                    last_pos = current_axis_pos
+                except Exception:
+                    # If position query fails, continue with the move
+                    pass
+                
+                # Make incremental move
+                await self.send_gcode(f'G1 {axis_upper}{step:.3f} F{int(speed)}')
+                await asyncio.sleep(0.05)  # Small delay for movement
+                
+            # If we reach here, we've moved the maximum distance without hitting a limit
+            LOG.warning("Reached maximum steps (%d) without detecting limit switch", max_steps)
+            try:
+                final_pos = await self.query_position()
+                axis_index = {'X': 0, 'Y': 1, 'Z': 2}.get(axis_upper, 0)
+                return final_pos[axis_index] if final_pos else 0.0
+            except Exception:
+                return 0.0
+            
         finally:
+            # Always return to absolute positioning mode
             await self.send_gcode('G90')
-        return 0.0
 
 
-class LoggingDriver(SimulatedDriver):
-    """Driver used in demo mode: logs the G-code that would be sent and simulates responses.
 
-    This is a friendly, safe simulation that prints the commands to stdout (so they
-    appear in the server terminal) and otherwise behaves like the SimulatedDriver.
-    """
-    def __init__(self):
-        super().__init__()
-
-    async def send_gcode(self, cmd: str, wait_ok: bool = True, timeout: float = 2.0) -> List[str]:
-        # Print to stdout for easy terminal visibility and also log
-        s = cmd.strip()
-        print(f"[DEMO GCODE] {s}")
-        LOG.info("Demo GCODE: %s", s)
-        # keep simulation small delay
-        await asyncio.sleep(0.01)
-        return ["ok"]
-
-    async def move_absolute(self, x: float, y: float, z: float, speed: float) -> None:
-        # Log the G-code that would be used for a move
-        cmd = f'G90\nG1 X{float(x):.3f} Y{float(y):.3f} Z{float(z):.3f} F{int(speed)}'
-        await self.send_gcode(cmd)
-        # update simulated position
-        self.pos = (x, y, z)
 
 class MotionController:
     """
@@ -337,7 +267,9 @@ class MotionController:
     All coordinates are assumed to be in the same units as the real driver expects.
     """
     def __init__(self, driver: Optional[MotionDriver] = None):
-        self.driver = driver or SimulatedDriver()
+        if driver is None:
+            raise ValueError("MotionController requires a driver - no default simulation available")
+        self.driver = driver
         self.cells: Dict[str, Dict[str, float]] = {}
         self.current: Tuple[float, float, float] = (0.0, 0.0, 0.0)
         self.homed = False
@@ -416,29 +348,244 @@ class MotionController:
             LOG.info("Jogged %s by %s -> pos=%s", axis, delta, self.current)
             return self.current
 
+    # Backwards-compatible adapter methods expected by main.py endpoints
+    async def jog_axis(self, axis: str, distance: float, speed: Optional[float] = None) -> Tuple[float,float,float]:
+        """Compatibility wrapper for jog_axis calls from main.py"""
+        return await self.jog(axis.lower(), distance, speed)
+
+    async def home_x(self) -> None:
+        """Home X axis using move_until_limit"""
+        limit_speed = max(50.0, self.default_speed / 4)
+        x_limit = await self.driver.move_until_limit('x', -1, limit_speed)
+        self.current = (float(x_limit), self.current[1], self.current[2])
+        self.homed = True
+
+    async def home_y(self) -> None:
+        """Home Y axis using move_until_limit"""
+        limit_speed = max(50.0, self.default_speed / 4)
+        y_limit = await self.driver.move_until_limit('y', -1, limit_speed)
+        self.current = (self.current[0], float(y_limit), self.current[2])
+        self.homed = True
+
+    async def home_z(self) -> None:
+        """Home Z axis using move_until_limit"""
+        limit_speed = max(50.0, self.default_speed / 4)
+        z_limit = await self.driver.move_until_limit('z', -1, limit_speed)
+        self.current = (self.current[0], self.current[1], float(z_limit))
+        self.homed = True
+
+    async def get_limit_switch_status(self) -> Dict[str, bool]:
+        """Query limit switch status using M119"""
+        status: Dict[str, bool] = {}
+        try:
+            lines = await self.driver.send_gcode('M119', wait_ok=True, timeout=1.0)
+            for ln in lines:
+                low = ln.strip().lower()
+                if ':' in low:
+                    parts = [p.strip() for p in low.split(':', 1)]
+                    if len(parts) == 2:
+                        key, val = parts[0], parts[1]
+                        triggered = ('trigger' in val) or ('closed' in val)
+                        status[key] = bool(triggered)
+        except Exception as exc:
+            LOG.debug("get_limit_switch_status failed: %s", exc)
+        return status
+
     async def calibrate_routine(self, points: Optional[Dict[str, Dict[str, float]]] = None) -> Dict[str, Any]:
         """
-        Run a simple calibration routine:
-          - home all
-          - visit each provided point (mapping name->pos) and record actual driver pos
-        Returns mapping name -> observed_pos for user to confirm/save.
-        If no points provided, will iterate configured cells but only a small sample to speed up.
+        Run a comprehensive calibration routine:
+          1. Home to limit switches (find true mechanical zero)
+          2. Allow manual positioning to establish A1 reference
+          3. Visit sample points and record actual positions
+        Returns calibration results for user confirmation.
         """
         async with self.lock:
-            await self.home_all()
+            # Step 1: Home to limit switches to find true mechanical zero
+            LOG.info("Starting calibration: finding home position using limit switches")
+            await self._calibrate_home_with_limits()
+            
+            # Step 2: A1 reference positioning will be handled by UI
+            # The user can manually jog to position A1 and then call save_a1_reference()
+            
+            # Step 3: Visit sample points if provided
             observed = {}
-            sample_keys = list(points.keys()) if points else list(self.cells.keys())[:12]
-            for k in sample_keys:
-                if k not in self.cells:
-                    continue
-                pos = self.cells[k]
-                await self.driver.move_absolute(pos['x'], pos['y'], pos.get('z',0.0), self.default_speed)
-                # small settle
-                await asyncio.sleep(0.05)
-                # read back driver pos if driver exposes it; SimulatedDriver stores it in .pos
-                observed[k] = getattr(self.driver, "pos", (pos['x'], pos['y'], pos.get('z',0.0)))
-                LOG.info("Calib visit %s -> observed %s", k, observed[k])
-            return {"observed": observed, "sampled": len(observed)}
+            if points:
+                sample_keys = list(points.keys())
+                for k in sample_keys:
+                    if k not in self.cells:
+                        continue
+                    pos = self.cells[k]
+                    await self.driver.move_absolute(pos['x'], pos['y'], pos.get('z',0.0), self.default_speed)
+                    # small settle
+                    await asyncio.sleep(0.05)
+                    # read back driver pos if driver exposes it via query_position
+                    try:
+                        observed[k] = await self.driver.query_position()
+                    except Exception:
+                        observed[k] = (pos['x'], pos['y'], pos.get('z',0.0))
+                    LOG.info("Calib visit %s -> observed %s", k, observed[k])
+            
+            return {
+                "home_position": self.current,
+                "observed": observed, 
+                "sampled": len(observed),
+                "status": "homed_to_limits",
+                "message": "Homed to limit switches. Use manual positioning to set A1 reference."
+            }
+
+    async def _calibrate_home_with_limits(self) -> None:
+        """
+        Use limit switches to find the true home position in the top-left corner.
+        This moves the device until both X and Y limit switches are triggered.
+        """
+        LOG.info("Moving to top-left corner using limit switches")
+        
+        # Set slow speed for limit switch approach
+        limit_speed = max(50.0, self.default_speed / 4)
+        await self.driver.set_speed(limit_speed)
+        
+        # First, move to X limit (negative direction, left side)
+        LOG.info("Finding X limit switch (moving left)")
+        x_limit = await self.driver.move_until_limit('X', -1, limit_speed)
+        LOG.info("X limit found at position: %.3f", x_limit)
+        
+        # Then move to Y limit (negative direction, towards front/top)
+        LOG.info("Finding Y limit switch (moving forward)")
+        y_limit = await self.driver.move_until_limit('Y', -1, limit_speed)
+        LOG.info("Y limit found at position: %.3f", y_limit)
+        
+        # Move to Z home if available
+        LOG.info("Homing Z axis")
+        try:
+            await self.driver.send_gcode('G28 Z')
+            z_home = 0.0
+        except Exception:
+            # If Z homing fails, just move to a safe height
+            await self.driver.move_absolute(x_limit, y_limit, 10.0, limit_speed)
+            z_home = 10.0
+        
+        # Set our current position to the limit switch positions
+        self.current = (x_limit, y_limit, z_home)
+        self.homed = True
+        
+        LOG.info("Limit switch calibration complete. Home position: %.3f, %.3f, %.3f", 
+                x_limit, y_limit, z_home)
+        
+        # Restore normal speed
+        await self.driver.set_speed(self.default_speed)
+
+    async def save_a1_reference(self) -> Dict[str, Any]:
+        """
+        Save the current position as the A1 reference point.
+        This should be called after manually positioning the head over cell A1.
+        """
+        if not self.homed:
+            raise ValueError("Must home to limit switches before setting A1 reference")
+        
+        # Store the current position as A1
+        a1_x, a1_y, a1_z = self.current
+        
+        # Update the A1 cell position
+        self.cells['A1'] = {'x': a1_x, 'y': a1_y, 'z': a1_z}
+        
+        # Recalculate all other cell positions based on the new A1 reference
+        spacing_x = 25.0  # Same as the default spacing
+        spacing_y = 25.0
+        
+        updated_cells = {}
+        for cid, pos in self.cells.items():
+            if cid == 'A1':
+                updated_cells[cid] = {'x': a1_x, 'y': a1_y, 'z': a1_z}
+                continue
+                
+            # Parse cell ID to determine offset from A1
+            letters = ''.join([ch for ch in cid if ch.isalpha()]) or 'A'
+            nums = ''.join([ch for ch in cid if ch.isdigit()]) or '1'
+            
+            # Calculate column and row offsets from A1
+            col_index = 0
+            for ch in letters.upper():
+                col_index = col_index * 26 + (ord(ch) - ord('A'))
+            
+            try:
+                row_index = max(0, int(nums) - 1)
+            except Exception:
+                row_index = 0
+            
+            # Calculate new position relative to A1
+            new_x = a1_x + (col_index * spacing_x)
+            new_y = a1_y + (row_index * spacing_y)
+            new_z = a1_z  # Keep same Z as A1
+            
+            updated_cells[cid] = {'x': new_x, 'y': new_y, 'z': new_z}
+        
+        self.cells = updated_cells
+        
+        LOG.info("A1 reference saved at (%.3f, %.3f, %.3f). Updated %d cell positions.", 
+                a1_x, a1_y, a1_z, len(updated_cells))
+        
+        return {
+            "a1_reference": (a1_x, a1_y, a1_z),
+            "cells_updated": len(updated_cells),
+            "status": "a1_reference_saved",
+            "message": f"A1 reference set to ({a1_x:.3f}, {a1_y:.3f}, {a1_z:.3f}). All cell positions updated."
+        }
+
+    async def capture_dual_card_photos_no_cell(self, offset_mm: float = 44.0) -> Tuple[float, float, float]:
+        """
+        Capture dual photos workflow: take photo at current position, move offset_mm in Y direction, take second photo.
+        Does NOT move to any cell - just moves from current position.
+        
+        Args:
+            offset_mm: Distance to move in positive Y direction for second photo (default 44mm)
+            
+        Returns:
+            Final position tuple (x, y, z)
+        """
+        async with self.lock:
+            # Get current position - don't move anywhere, just use current position as first photo spot
+            current_x, current_y, current_z = self.current
+            LOG.info("First photo position: current position (%.1f, %.1f, %.1f)", current_x, current_y, current_z)
+            
+            # Second position: move offset_mm in positive Y direction only
+            new_y = current_y + offset_mm
+            
+            await self.driver.set_speed(self.default_speed)
+            await self.driver.move_absolute(current_x, new_y, current_z, self.default_speed)
+            self.current = (current_x, new_y, current_z)
+            
+            LOG.info("Second photo position reached: moved %.1fmm in Y direction to (%.1f, %.1f, %.1f)", 
+                    offset_mm, current_x, new_y, current_z)
+            
+            return self.current
+
+    async def capture_dual_card_photos(self, cell: str, offset_mm: float = 44.0) -> Tuple[float, float, float]:
+        """
+        Capture dual photos workflow: take photo at current position, move offset_mm in Y direction, take second photo.
+        
+        Args:
+            cell: Target cell ID (used for reference, but we just move from current position)
+            offset_mm: Distance to move in positive Y direction for second photo (default 44mm)
+            
+        Returns:
+            Final position tuple (x, y, z)
+        """
+        async with self.lock:
+            # Get current position - don't move to cell, just use current position as first photo spot
+            current_x, current_y, current_z = self.current
+            LOG.info("First photo position: current position (%.1f, %.1f, %.1f)", current_x, current_y, current_z)
+            
+            # Second position: move offset_mm in positive Y direction only
+            new_y = current_y + offset_mm
+            
+            await self.driver.set_speed(self.default_speed)
+            await self.driver.move_absolute(current_x, new_y, current_z, self.default_speed)
+            self.current = (current_x, new_y, current_z)
+            
+            LOG.info("Second photo position reached: moved %.1fmm in Y direction to (%.1f, %.1f, %.1f)", 
+                    offset_mm, current_x, new_y, current_z)
+            
+            return self.current
 
     async def home_to_a1(self, a1_pos: Optional[Tuple[float,float,float]] = None) -> None:
         """Home all axes and park at cell A1 before resuming operations."""
@@ -582,27 +729,6 @@ class MotionController:
 
     async def _pick_card_from_cell_locked(self, cell_id: str, pick_z_offset: float) -> None:
         x, y, base_z = self._cell_coords(cell_id)
-        if is_demo_mode():
-            safe_z = base_z + max(self.pick_clearance, 10.0)
-            await self._move_head_locked(x, y, safe_z, self.default_speed)
-            try:
-                await self.driver.plunger_down()
-            except Exception:
-                pass
-            pick_z = base_z + pick_z_offset
-            await self._move_head_locked(x, y, pick_z, self.default_speed / 2)
-            try:
-                await self.driver.vacuum_on()
-            except Exception:
-                pass
-            await asyncio.sleep(0.06)
-            try:
-                await self.driver.plunger_up()
-            except Exception:
-                pass
-            await self._move_head_locked(x, y, safe_z, self.default_speed / 2)
-            return
-
         safe_x, safe_y, _ = await self._move_to_cell_safe_locked(cell_id, self.pick_clearance)
         try:
             await self.driver.plunger_down()
@@ -631,28 +757,6 @@ class MotionController:
 
     async def _place_card_to_cell_locked(self, cell_id: str, place_z_offset: float) -> None:
         x, y, base_z = self._cell_coords(cell_id)
-        if is_demo_mode():
-            safe_z = base_z + max(self.place_clearance, 10.0)
-            await self._move_head_locked(x, y, safe_z, self.default_speed)
-            drop_z = base_z + place_z_offset
-            await self._move_head_locked(x, y, drop_z, self.default_speed / 2)
-            try:
-                await self.driver.vacuum_off()
-            except Exception:
-                pass
-            await asyncio.sleep(0.03)
-            try:
-                await self.driver.plunger_down()
-                await asyncio.sleep(0.03)
-            except Exception:
-                pass
-            try:
-                await self.driver.plunger_up()
-            except Exception:
-                pass
-            await self._move_head_locked(x, y, safe_z, self.default_speed / 2)
-            return
-
         safe_x, safe_y, _ = await self._move_to_cell_safe_locked(cell_id, self.place_clearance)
         drop_z = base_z + place_z_offset
         await self._move_head_locked(safe_x, safe_y, drop_z, self.default_speed / 4)
@@ -725,7 +829,47 @@ _controller: Optional[MotionController] = None
 def get_controller() -> MotionController:
     global _controller
     if _controller is None:
-        _controller = MotionController()
+        # Create GCode driver from config
+        import yaml
+        try:
+            with open('config.yaml', 'r', encoding='utf8') as f:
+                config = yaml.safe_load(f)
+            gcode_opts = config.get('gcode', {})
+            configured_port = gcode_opts.get('port', '/dev/ttyACM0')
+            baud = int(gcode_opts.get('baud', 115200))
+            mcodes = gcode_opts.get('mcodes')
+            feedrates = gcode_opts.get('feedrates')
+            
+            # Try multiple common ports for V1CNC/Marlin hardware
+            ports_to_try = [configured_port]
+            if configured_port not in ['/dev/ttyACM0', '/dev/ttyACM1']:
+                ports_to_try.extend(['/dev/ttyACM0', '/dev/ttyACM1'])
+            
+            driver = None
+            for port in ports_to_try:
+                try:
+                    import os
+                    if not os.path.exists(port):
+                        LOG.debug("Port %s does not exist, skipping", port)
+                        continue
+                    
+                    test_driver = GCodeDriver(port=port, baud=baud, mcodes=mcodes, feedrates=feedrates)
+                    test_driver._ensure_serial()
+                    LOG.info("Successfully connected to %s at %d baud", port, baud)
+                    driver = test_driver
+                    break
+                except Exception as port_exc:
+                    LOG.warning("Failed to connect to %s: %s", port, port_exc)
+                    continue
+            
+            if driver is None:
+                raise RuntimeError(f"Could not connect to any serial port from {ports_to_try}")
+            
+            _controller = MotionController(driver)
+            LOG.info("Created MotionController with GCodeDriver port=%s baud=%s", driver.port, baud)
+        except Exception as exc:
+            LOG.exception("Failed to create GCodeDriver from config: %s", exc)
+            raise RuntimeError(f"Cannot initialize motion controller: {exc}")
     return _controller
 
 # helper to wire cells from config YAML/dict
@@ -778,8 +922,8 @@ def configure_from_cfg(cfg: Any) -> None:
 
     # If cells have no explicit x/y coordinates, fill a simple grid layout based on the cell id
     # e.g., A1 -> x=0, y=0; B1 -> x=spacing, y=0; A2 -> x=0, y=spacing
-    spacing_x = 25.0
-    spacing_y = 25.0
+    spacing_x = 84.0
+    spacing_y = 104.0
     filled: Dict[str, Dict[str, float]] = {}
     for cid, pos in cells.items():
         x = float(pos.get('x', 0.0))
@@ -805,84 +949,7 @@ def configure_from_cfg(cfg: Any) -> None:
     ctrl.configure_cells(filled)
 
 
-# Demo mode helper: swap controller driver to a logging/simulated driver
-_demo_mode = False
 
-def set_demo_mode(enabled: bool, gcode_opts: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Toggle demo mode.
-
-    Returns a dict with keys:
-      - ok: bool
-      - driver: name of the driver that was selected
-      - error: optional error message if driver creation/validation failed
-
-    Behavior: when enabled, controller.driver is set to LoggingDriver. When
-    disabled, prefer a GCodeDriver if gcode_opts provided and it validates; on
-    failure fall back to SimulatedDriver and return the diagnostic message.
-    """
-    global _demo_mode
-    ctrl = get_controller()
-    if enabled:
-        LOG.info("Switching to demo LoggingDriver")
-        ctrl.driver = LoggingDriver()
-        _demo_mode = True
-        return {"ok": True, "driver": type(ctrl.driver).__name__}
-
-    # disable demo: prefer a real GCodeDriver if options provided, else SimulatedDriver
-    if gcode_opts and isinstance(gcode_opts, dict):
-        try:
-            port = gcode_opts.get('port', '/dev/ttyUSB0')
-            baud = int(gcode_opts.get('baud', 115200))
-            mcodes = gcode_opts.get('mcodes')
-            feedrates = gcode_opts.get('feedrates')
-            # Instantiate the driver object
-            gd = GCodeDriver(port=port, baud=baud, mcodes=mcodes, feedrates=feedrates)
-            # Attempt to open the serial port and do a light validation handshake
-            try:
-                # try to open the serial port (may raise if pyserial missing or permission denied)
-                gd._ensure_serial()
-                # send a basic firmware query (M115) and read any immediate lines to validate presence
-                try:
-                    gd._write_blocking('M115')
-                    lines = gd._read_lines_blocking(0.5)
-                except Exception:
-                    # If write/read fails, try a small pause and a read to capture any boot banner
-                    time.sleep(0.05)
-                    lines = gd._read_lines_blocking(0.2)
-                LOG.info("GCodeDriver probe lines=%s", lines)
-                # parse simple firmware banner heuristics
-                fw = None
-                for ln in lines:
-                    low = ln.lower()
-                    if 'firmware' in low or 'marlin' in low or 'grbl' in low or 'smoothie' in low:
-                        fw = ln
-                        break
-                fw_summary = fw or (', '.join(lines) if lines else None)
-            except Exception as e:
-                # failed to open/validate serial device
-                LOG.exception("GCodeDriver serial probe failed: %s", e)
-                ctrl.driver = SimulatedDriver()
-                _demo_mode = False
-                return {"ok": False, "driver": type(ctrl.driver).__name__, "error": f"Serial probe failed: {str(e)}"}
-
-            # If we got this far, consider the driver usable
-            ctrl.driver = gd
-            LOG.info("Switched to GCodeDriver port=%s baud=%s", port, baud)
-            _demo_mode = False
-            return {"ok": True, "driver": type(ctrl.driver).__name__, "firmware": fw_summary}
-        except Exception as exc:
-            LOG.exception("Failed to create GCodeDriver, falling back to SimulatedDriver: %s", exc)
-            ctrl.driver = SimulatedDriver()
-            _demo_mode = False
-            return {"ok": False, "driver": type(ctrl.driver).__name__, "error": str(exc)}
-
-    ctrl.driver = SimulatedDriver()
-    _demo_mode = False
-    return {"ok": True, "driver": type(ctrl.driver).__name__}
-
-
-def is_demo_mode() -> bool:
-    return bool(_demo_mode)
 
 
 def get_driver_name() -> str:
