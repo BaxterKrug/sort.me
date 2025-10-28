@@ -493,6 +493,30 @@ async def vacuum_off():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@app.post("/motion/test_vacuum")
+async def test_vacuum():
+    """Simple test to activate vacuum"""
+    try:
+        await motion_controller.vacuum_on()
+        return {"status": "success", "message": "Vacuum activated"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.post("/motion/z_drop_and_vacuum")
+async def z_drop_and_vacuum():
+    """Drop Z a fixed amount and activate vacuum (simplified version)"""
+    try:
+        # Move Z down by 10mm (safer than using limit switch detection)
+        await motion_controller.jog('z', -10)
+        
+        # Activate vacuum
+        await motion_controller.vacuum_on()
+        
+        return {"status": "success", "message": "Z dropped 10mm and vacuum activated"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
 @app.post("/motion/set_current")
 async def motion_set_current(payload: dict):
     """Set the server's notion of the current head position using a named cell id or explicit x/y/z."""

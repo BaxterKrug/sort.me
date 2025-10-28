@@ -180,6 +180,9 @@ feeder:
 gcode:
   baud: 115200
   port: /dev/ttyACM1
+  mcodes:
+    vacuum_on: "M104 S255"    # Heat extruder command (repurposed for vacuum on)
+    vacuum_off: "M104 S0"     # Turn off extruder heat (repurposed for vacuum off)
 motion:
   default_speed: 1600.0     # Default movement speed in mm/min (doubled from 800)
   rapid_speed: 2400.0       # Fast positioning speed for non-critical moves (doubled from 1200)

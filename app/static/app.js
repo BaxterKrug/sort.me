@@ -116,6 +116,44 @@ on($('btnJogZMinus'), 'click', ()=> {
   jogAxis('Z', -distance);
 });
 
+    // Test vacuum button
+    const btnTestVacuum = document.getElementById('btnTestVacuum');
+    if (btnTestVacuum) {
+        btnTestVacuum.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/motion/test_vacuum', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                console.log('Test vacuum result:', result);
+            } catch (error) {
+                console.error('Error testing vacuum:', error);
+            }
+        });
+    }
+
+    // Z drop and vacuum button
+    const btnZDropVacuum = document.getElementById('btnZDropVacuum');
+    if (btnZDropVacuum) {
+        btnZDropVacuum.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/motion/z_drop_and_vacuum', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                console.log('Z drop and vacuum result:', result);
+            } catch (error) {
+                console.error('Error with Z drop and vacuum:', error);
+            }
+        });
+    }
+
+on($('btnVacuumOff'), 'click', ()=> {
+  api('/vacuum/off', {method:'POST'})
+    .then(() => toast('Vacuum off'))
+    .catch(e => toast(e.message));
+});
+
 // ------------- Grid / Cells -------------
 let cells = []; // [{id,x,y,z}, ...]
 

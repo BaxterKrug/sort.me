@@ -172,6 +172,8 @@ label.checkbox{display:flex;align-items:center;gap:8px;margin-top:8px}
 .jog-btn:hover{background:var(--primary);color:var(--primary-ink)}
 .jog-btn.secondary{background:var(--ghost);color:var(--muted)}
 .jog-btn.secondary:hover{background:var(--secondary);color:var(--secondary-ink)}
+.jog-btn.warning{background:#ffc107;color:#212529;border:1px solid #ffc107}
+.jog-btn.warning:hover{background:#e0a800}
 .success{background:#28a745;color:#fff;border:1px solid #28a745}
 .success:hover{background:#218838}
 
