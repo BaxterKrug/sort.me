@@ -14,17 +14,8 @@
     </div>
     <nav class="right">
       <button id="btnEStop" class="danger">E-STOP</button>
-  <span id="motionStatus" class="chip muted">Motion: -</span>
-  <span id="cameraStatus" class="chip muted">Camera: unknown</span>
-  <span id="deviceStatus" class="chip muted">Device: unknown</span>
-  <button id="btnScanDevice" class="secondary">Scan USB</button>
-  <button id="btnScanCamera" class="secondary">Scan Cameras</button>
-      <button id="btnPause" class="secondary">Pause</button>
-      <button id="btnResume" class="primary hidden">Resume</button>
-      <label class="toggle">
-        <input type="checkbox" id="demoToggle" />
-        <span>Demo Mode</span>
-      </label>
+      <span id="motionStatus" class="chip muted">Motion: -</span>
+      <span id="cameraStatus" class="chip muted">Camera: unknown</span>
     </nav>
   </header>
 
@@ -34,34 +25,10 @@
       <h2>Onboarding & Calibration</h2>
       <p class="muted">Quick, safe checks you can run anytime.</p>
 
-      <div class="grid-3">
-        <div class="card">
-          <h3>Home Axes</h3>
-          <p class="muted">Homes X/Y/Z. Required before motion.</p>
-          <div class="row">
-            <button id="btnHomeAll" class="primary">Home All</button>
-            <button id="btnHomeA1" class="secondary">Home A1</button>
-          </div>
-          <div class="row">
-            <button id="btnHomeX" class="secondary">Home X</button>
-            <button id="btnHomeY" class="secondary">Home Y</button>
-            <button id="btnHomeZ" class="secondary">Home Z</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Position Status</h3>
-          <p class="muted">Current position and motion system status.</p>
-          <div id="positionStatusCard" class="position-display">
-            <div class="status-row">
-              <span id="currentPosition">Position: ---</span>
-            </div>
-          </div>
-        </div>
-
+      <div class="grid-2">
         <div class="card">
           <h3>Jog Controls</h3>
-          <p class="muted">Manual axis movement for positioning and testing.</p>
+          <p class="muted">Manual axis movement for positioning, testing, and homing.</p>
           <div class="jog-controls">
             <div class="jog-section">
               <label>X Axis</label>
@@ -93,6 +60,14 @@
               </div>
             </div>
             <div class="jog-section">
+              <label>Homing</label>
+              <div class="jog-buttons">
+                <button id="btnHomeX" class="jog-btn secondary">Home X</button>
+                <button id="btnHomeY" class="jog-btn secondary">Home Y</button>
+                <button id="btnHomeZ" class="jog-btn secondary">Home Z</button>
+              </div>
+            </div>
+            <div class="jog-section">
               <label for="jogDistance">Distance (mm)</label>
               <select id="jogDistance">
                 <option value="0.1">0.1mm</option>
@@ -104,52 +79,50 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="row end">
-        <button id="btnToSetup" class="primary">Proceed to Sorting Setup</button>
-      </div>
-    </section>
-
-    <!-- Step 2: Sorting Setup -->
-    <section id="panelSetup" class="panel hidden">
-      <h2>Sorting Setup</h2>
-      <div class="grid-2">
-        <div class="card">
-          <h3>Parameters</h3>
-          <div class="form">
-            <label for="gameSelect">Card Game</label>
-            <select id="gameSelect" required>
-              <option value="" disabled selected>Select a game</option>
-              <option value="mtg">Magic: The Gathering</option>
-              <option value="ygo">Yu-Gi-Oh!</option>
-            </select>
-
-            <label for="sortSelect">Sorting Type</label>
-            <select id="sortSelect" required>
-              <option value="" disabled selected>Loading modes…</option>
-            </select>
-
-            <label for="feederCapacity">Feeder Count (est.)</label>
-            <input id="feederCapacity" type="number" min="1" max="500" placeholder="e.g., 100" />
-
-            <label class="checkbox">
-              <input type="checkbox" id="divertUncertain" checked />
-              <span>Divert low-confidence OCR to error cell (K3)</span>
-            </label>
-          </div>
-        </div>
 
         <div class="card">
-          <h3>Grid & Cells</h3>
+          <h3>Grid &amp; Cells</h3>
           <p class="muted">Excel-style grid: <strong>Columns = letters</strong>, <strong>Rows = numbers</strong>. A-row is feeders; <strong>K3 is the error cell.</strong></p>
           <div id="gridPreview" class="grid-preview"></div>
           <div class="row">
             <button id="btnReloadGrid" class="secondary">Reload Grid</button>
             <button id="btnTestCellMoves" class="secondary">Test Moves…</button>
           </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row end">
+  <button id="btnToSetup" class="primary">Jump to Sorting Setup</button>
+      </div>
+    </section>
+
+    <!-- Step 2: Sorting Setup -->
+  <section id="panelSetup" class="panel">
+      <h2>Sorting Setup</h2>
+      <div class="card">
+        <h3>Parameters</h3>
+        <div class="form">
+          <label for="gameSelect">Card Game</label>
+          <select id="gameSelect" required>
+            <option value="" disabled selected>Select a game</option>
+            <option value="mtg">Magic: The Gathering</option>
+            <option value="ygo">Yu-Gi-Oh!</option>
+          </select>
+
+          <label for="sortSelect">Sorting Type</label>
+          <select id="sortSelect" required>
+            <option value="" disabled selected>Loading modes…</option>
+          </select>
+
+          <label for="feederCapacity">Feeder Count (est.)</label>
+          <input id="feederCapacity" type="number" min="1" max="500" placeholder="e.g., 100" />
+
+          <label class="checkbox">
+            <input type="checkbox" id="divertUncertain" checked />
+            <span>Divert low-confidence OCR to error cell (K3)</span>
+          </label>
         </div>
       </div>
 
@@ -236,7 +209,7 @@
 
       <div class="row between">
         <div class="row">
-          <button id="btnBackToCal" class="ghost">Back</button>
+          <button id="btnBackToCal" class="ghost">Scroll to Calibration</button>
         </div>
         <div class="row">
           <button id="btnStartRun" class="primary">Start Sorting</button>
@@ -245,7 +218,7 @@
     </section>
 
     <!-- Step 3: Run View -->
-    <section id="panelRun" class="panel hidden">
+  <section id="panelRun" class="panel">
       <h2>Run</h2>
       <div class="grid-3">
         <div class="card">
@@ -291,7 +264,7 @@
             <div class="row compact">
               <button id="btnJogUp">Z+</button>
               <button id="btnJogDown">Z-</button>
-              <button id="btnHomeZ">Home Z</button>
+              <button id="btnHomeZRun">Home Z</button>
             </div>
             <div class="row compact">
               <button id="btnHomeXY">Home XY</button>

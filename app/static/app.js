@@ -7,9 +7,9 @@ let demo = false;
 
 // ------------- tiny DOM helpers -------------
 const $ = (id) => document.getElementById(id);
-const on = (el, ev, fn) => el.addEventListener(ev, fn);
-const show = (el) => el.classList.remove('hidden');
-const hide = (el) => el.classList.add('hidden');
+const on = (el, ev, fn) => { if (el) el.addEventListener(ev, fn); };
+const show = (el) => { if (el) el.classList.remove('hidden'); };
+const hide = (el) => { if (el) el.classList.add('hidden'); };
 const toast = (msg) => {
   const t = document.createElement('div');
   t.className = 'toast'; t.textContent = msg;
@@ -59,8 +59,12 @@ const panelCalibrate = $('panelCalibrate');
 const panelSetup = $('panelSetup');
 const panelRun = $('panelRun');
 
-on($('btnToSetup'), 'click', ()=>{ hide(panelCalibrate); show(panelSetup); });
-on($('btnBackToCal'), 'click', ()=>{ show(panelCalibrate); hide(panelSetup); });
+on($('btnToSetup'), 'click', ()=>{
+  panelSetup.scrollIntoView({behavior:'smooth', block:'start'});
+});
+on($('btnBackToCal'), 'click', ()=>{
+  panelCalibrate.scrollIntoView({behavior:'smooth', block:'start'});
+});
 on($('demoToggle'), 'change', async (e)=>{
   demo = e.target.checked;
   toast(`Demo Mode ${demo?'ON':'OFF'}`);
@@ -122,13 +126,9 @@ on($('btnResume'), 'click', async ()=>{
 });
 
 // ------------- Calibration -------------
-on($('btnHomeAll'), 'click', ()=> api('/motion/home_all',{method:'POST'}).then(()=>toast('Homed all')).catch(e=>toast(e.message)));
 on($('btnHomeX'), 'click', ()=> api('/motion/home_x',{method:'POST'}).then(()=>toast('Homed X axis')).catch(e=>toast(e.message)));
 on($('btnHomeY'), 'click', ()=> api('/motion/home_y',{method:'POST'}).then(()=>toast('Homed Y axis')).catch(e=>toast(e.message)));
 on($('btnHomeZ'), 'click', ()=> api('/motion/home_z',{method:'POST'}).then(()=>toast('Homed Z axis')).catch(e=>toast(e.message)));
-on($('btnHomeA1'), 'click', ()=> api('/motion/home_a1',{method:'POST'}).then(res=>{
-  toast('Homed to A1'); console.log('/motion/home_a1 ->', res);
-}).catch(e=>toast(e.message)));
 
 // Jog controls
 on($('btnJogXPlus'), 'click', ()=> {
@@ -234,14 +234,13 @@ function renderGridPreview(hostId, list){
   host.style.gap = '4px';
 
   // Sort cells for proper display order (A1, A2, A3, B1, B2, B3, etc.)
-  const sortedCells = list.sort((a, b) => {
-    const aCol = a.id.replace(/[0-9]/g, '');
-    const bCol = b.id.replace(/[0-9]/g, '');
+  const sortedCells = [...list].sort((a, b) => {
     const aRow = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
     const bRow = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
-    
-    if (aCol !== bCol) return aCol.localeCompare(bCol);
-    return aRow - bRow;
+    if (aRow !== bRow) return aRow - bRow;
+    const aCol = a.id.replace(/[0-9]/g, '');
+    const bCol = b.id.replace(/[0-9]/g, '');
+    return aCol.localeCompare(bCol);
   });
 
   sortedCells.forEach(c=>{
@@ -299,14 +298,13 @@ on($('btnTestCellMoves'), 'click', ()=>{
   host.style.gap = '4px';
 
   // Sort cells for proper display order
-  const sortedCells = cells.sort((a, b) => {
-    const aCol = a.id.replace(/[0-9]/g, '');
-    const bCol = b.id.replace(/[0-9]/g, '');
+  const sortedCells = [...cells].sort((a, b) => {
     const aRow = parseInt(a.id.replace(/[A-Z]/g, '')) || 0;
     const bRow = parseInt(b.id.replace(/[A-Z]/g, '')) || 0;
-    
-    if (aCol !== bCol) return aCol.localeCompare(bCol);
-    return aRow - bRow;
+    if (aRow !== bRow) return aRow - bRow;
+    const aCol = a.id.replace(/[0-9]/g, '');
+    const bCol = b.id.replace(/[0-9]/g, '');
+    return aCol.localeCompare(bCol);
   });
 
   sortedCells.forEach(c=>{
@@ -353,8 +351,8 @@ on($('btnStartRun'), 'click', async ()=>{
     };
     payload.sort_mode = sort;
     await api('/run/start', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
-    hide(panelSetup); show(panelRun);
     runLoop.start();
+    panelRun.scrollIntoView({behavior:'smooth', block:'start'});
   }catch(e){ toast(`Start failed: ${e.message}`); }
 });
 
@@ -362,7 +360,8 @@ on($('btnEndRun'), 'click', async ()=>{
   if(!confirm('End the current run?')) return;
   try{
     await api('/run/end', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({notes: $('runNotes').value})});
-    runLoop.stop(); toast('Run ended'); hide(panelRun); show(panelCalibrate);
+    runLoop.stop(); toast('Run ended');
+    panelCalibrate.scrollIntoView({behavior:'smooth', block:'start'});
   }catch(e){ toast(`End failed: ${e.message}`); }
 });
 
@@ -389,7 +388,7 @@ on($('btnSetCurrent'), 'click', async ()=>{
 });
 on($('btnHomeAll2'),'click', ()=> api('/motion/home_all',{method:'POST'}).then(()=>toast('Homed all')).catch(e=>toast(e.message)));
 on($('btnHomeXY'),'click',  ()=> api('/motion/home_xy',{method:'POST'}).then(()=>toast('Homed XY')).catch(e=>toast(e.message)));
-on($('btnHomeZ'),'click',   ()=> api('/motion/home_z',{method:'POST'}).then(()=>toast('Homed Z')).catch(e=>toast(e.message)));
+on($('btnHomeZRun'),'click',   ()=> api('/motion/home_z',{method:'POST'}).then(()=>toast('Homed Z')).catch(e=>toast(e.message)));
 
 async function jogAxis(axis, distance) {
   try {
