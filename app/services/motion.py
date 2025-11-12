@@ -13,8 +13,10 @@ methods (move_absolute, set_speed, vacuum_on/off, plunger_up/down, stop).
 """
 from typing import Dict, Any, Optional, Tuple, List
 import asyncio
-import time
 import logging
+import math
+import os
+import time
 
 LOG = logging.getLogger("sort.motion")
 logging.basicConfig(level=logging.DEBUG)
@@ -59,6 +61,79 @@ class MotionDriver:
 
 
 
+class VirtualMotionDriver(MotionDriver):
+    """In-memory driver used when no hardware is available."""
+
+    LIMITS: Dict[str, Tuple[float, float]] = {
+        "x": (0.0, 920.0),
+        "y": (0.0, 320.0),
+        "z": (0.0, 250.0),
+    }
+
+    def __init__(self) -> None:
+        self.port = "virtual"
+        self.mcodes: Dict[str, str] = {
+            "vacuum_on": "M100",
+            "vacuum_off": "M101",
+            "plunger_down": "M110",
+            "plunger_up": "M111",
+        }
+        self.feedrates: Dict[str, float] = {}
+        self._position: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+        self._speed: float = 800.0
+        self._vacuum: bool = False
+        self._plunger: str = "up"
+        LOG.info("VirtualMotionDriver initialised")
+
+    async def move_absolute(self, x: float, y: float, z: float, speed: float) -> None:
+        target = (float(x), float(y), float(z))
+        self._speed = float(speed)
+        dist = math.sqrt(sum((target[i] - self._position[i]) ** 2 for i in range(3)))
+        await asyncio.sleep(min(0.01 + dist / max(self._speed, 1.0), 0.1))
+        self._position = target
+        LOG.debug("Virtual driver move -> %s", self._position)
+
+    async def set_speed(self, speed: float) -> None:
+        self._speed = float(speed)
+
+    async def vacuum_on(self) -> None:
+        self._vacuum = True
+
+    async def vacuum_off(self) -> None:
+        self._vacuum = False
+
+    async def plunger_down(self) -> None:
+        self._plunger = "down"
+
+    async def plunger_up(self) -> None:
+        self._plunger = "up"
+
+    async def stop(self) -> None:
+        LOG.debug("Virtual driver stop")
+
+    async def home_all(self) -> None:
+        await asyncio.sleep(0.05)
+        self._position = (0.0, 0.0, 0.0)
+
+    async def move_until_limit(self, axis: str, direction: int, speed: float) -> float:
+        axis = axis.lower()
+        low, high = self.LIMITS.get(axis, (0.0, 0.0))
+        idx = {"x": 0, "y": 1, "z": 2}.get(axis, 0)
+        target = low if direction < 0 else high
+        pos = list(self._position)
+        pos[idx] = target
+        await asyncio.sleep(0.05)
+        self._position = (pos[0], pos[1], pos[2])
+        return target
+
+    async def send_gcode(self, cmd: str, wait_ok: bool = True, timeout: float = 2.0) -> List[str]:
+        LOG.debug("Virtual driver gcode -> %s", cmd.strip())
+        return ["ok"]
+
+    async def query_position(self) -> Tuple[float, float, float]:
+        return self._position
+
+
 
 class GCodeDriver(MotionDriver):
     """Driver that communicates with firmware over a serial port by sending G-code.
@@ -87,7 +162,7 @@ class GCodeDriver(MotionDriver):
         if self._serial:
             return
         try:
-            import serial
+            import serial  # type: ignore[import-not-found]
         except Exception as exc:
             raise RuntimeError("pyserial is required for GCodeDriver: install pyserial") from exc
         self._serial = serial.Serial(self.port, self.baud, timeout=0.1)
@@ -233,7 +308,7 @@ class GCodeDriver(MotionDriver):
             for step_num in range(max_steps):
                 # Check limit switches before each move
                 try:
-                    switches = await self.get_limit_switch_status()
+                    switches = await self.get_limit_switch_status()  # type: ignore[attr-defined]
                     axis_lower = axis.lower()
                     
                     # Check if we've hit the target limit switch
@@ -1037,53 +1112,66 @@ class MotionController:
 
 # convenience singleton used by endpoints
 _controller: Optional[MotionController] = None
+_driver_is_virtual: bool = False
 
 def get_controller() -> MotionController:
-    global _controller
-    if _controller is None:
-        # Create GCode driver from config
-        import yaml
-        try:
-            with open('config.yaml', 'r', encoding='utf8') as f:
-                config = yaml.safe_load(f)
-            gcode_opts = config.get('gcode', {})
-            configured_port = gcode_opts.get('port', '/dev/ttyACM0')
-            baud = int(gcode_opts.get('baud', 115200))
-            mcodes = gcode_opts.get('mcodes')
-            feedrates = gcode_opts.get('feedrates')
-            
-            # Try multiple common ports for V1CNC/Marlin hardware
-            ports_to_try = [configured_port]
-            # Always add both ACM ports as fallbacks if not already included
-            for fallback_port in ['/dev/ttyACM0', '/dev/ttyACM1']:
-                if fallback_port not in ports_to_try:
-                    ports_to_try.append(fallback_port)
-            
-            driver = None
-            for port in ports_to_try:
-                try:
-                    import os
-                    if not os.path.exists(port):
-                        LOG.debug("Port %s does not exist, skipping", port)
-                        continue
-                    
-                    test_driver = GCodeDriver(port=port, baud=baud, mcodes=mcodes, feedrates=feedrates)
-                    test_driver._ensure_serial()
-                    LOG.info("Successfully connected to %s at %d baud", port, baud)
-                    driver = test_driver
-                    break
-                except Exception as port_exc:
-                    LOG.warning("Failed to connect to %s: %s", port, port_exc)
+    global _controller, _driver_is_virtual
+    if _controller is not None:
+        return _controller
+
+    config: Dict[str, Any] = {}
+    try:
+        import yaml  # type: ignore[import-not-found]
+
+        with open('config.yaml', 'r', encoding='utf8') as f:
+            config = yaml.safe_load(f) or {}
+    except Exception as exc:
+        LOG.warning("Unable to read config.yaml (%s); continuing with defaults", exc)
+        config = {}
+
+    gcode_opts = config.get('gcode', {}) if isinstance(config, dict) else {}
+    configured_port = gcode_opts.get('port') if isinstance(gcode_opts, dict) else None
+    baud = int(gcode_opts.get('baud', 115200)) if isinstance(gcode_opts, dict) else 115200
+    mcodes = gcode_opts.get('mcodes') if isinstance(gcode_opts, dict) else None
+    feedrates = gcode_opts.get('feedrates') if isinstance(gcode_opts, dict) else None
+    fallback_ports = gcode_opts.get('fallback_ports', []) if isinstance(gcode_opts, dict) else []
+
+    force_virtual = str(os.environ.get('SORTME_FORCE_VIRTUAL_DRIVER', '')).lower() in {'1', 'true', 'yes'}
+
+    candidate_ports: List[str] = []
+    for base in ['/dev/ttyACM0', '/dev/ttyACM1']:
+        if base not in candidate_ports:
+            candidate_ports.append(base)
+    if configured_port and configured_port not in candidate_ports:
+        candidate_ports.append(str(configured_port))
+    for extra in fallback_ports:
+        if extra not in candidate_ports:
+            candidate_ports.append(str(extra))
+
+    driver: Optional[MotionDriver] = None
+    if not force_virtual:
+        for port in candidate_ports:
+            try:
+                if not os.path.exists(port):
+                    LOG.debug("Motion port %s not present", port)
                     continue
-            
-            if driver is None:
-                raise RuntimeError(f"Could not connect to any serial port from {ports_to_try}")
-            
-            _controller = MotionController(driver)
-            LOG.info("Created MotionController with GCodeDriver port=%s baud=%s", driver.port, baud)
-        except Exception as exc:
-            LOG.exception("Failed to create GCodeDriver from config: %s", exc)
-            raise RuntimeError(f"Cannot initialize motion controller: {exc}")
+                test_driver = GCodeDriver(port=port, baud=baud, mcodes=mcodes, feedrates=feedrates)
+                test_driver._ensure_serial()
+                LOG.info("Connected to motion hardware on %s", port)
+                driver = test_driver
+                break
+            except Exception as exc:
+                LOG.warning("Failed to initialise driver on %s: %s", port, exc)
+                continue
+
+    if driver is None:
+        driver = VirtualMotionDriver()
+        _driver_is_virtual = True
+        LOG.info("Using virtual motion driver")
+    else:
+        _driver_is_virtual = isinstance(driver, VirtualMotionDriver)
+
+    _controller = MotionController(driver)
     return _controller
 
 # helper to wire cells from config YAML/dict
@@ -1140,6 +1228,10 @@ def configure_from_cfg(cfg: Any) -> None:
 
 def get_driver_name() -> str:
     return type(get_controller().driver).__name__
+
+
+def is_demo_mode() -> bool:
+    return isinstance(get_controller().driver, VirtualMotionDriver)
 
 
 def render_gcode_for_cell(cell_id: str, action: str = 'pick', pick_z_offset: float = -5.0, safe_z_offset: float = 10.0, feed_travel: Optional[float] = None, feed_pick: Optional[float] = None) -> List[str]:

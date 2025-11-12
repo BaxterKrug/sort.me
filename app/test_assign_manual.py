@@ -7,6 +7,8 @@ with open("config.yaml","r") as f:
 
 # Initialize empty counts
 state = SystemState(counts_by_cell={cid: 0 for cid in CFG.cells})
+state.active_sort_operation = CFG.default_sort_operation
+state.active_sort_mode = CFG.default_sort_mode
 
 def place(name, conf=1.0):
     card = Card(game="mtg", name=name, confidence=conf)

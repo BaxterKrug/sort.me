@@ -7,7 +7,7 @@ import glob
 import os
 
 import cv2  # type: ignore
-import numpy as np
+import numpy as np  # type: ignore[import-not-found]
 
 LOG = logging.getLogger("sort.camera")
 
@@ -59,6 +59,26 @@ class CameraManager:
     def close(self) -> None:
         with self._lock:
             self._dispose_locked()
+
+    def current_device(self) -> Any:
+        with self._lock:
+            return self._cfg.get("device")
+
+    def info(self) -> Dict[str, Any]:
+        with self._lock:
+            online = bool(self._capture and self._capture.isOpened())
+            return {
+                "device": self._cfg.get("device"),
+                "resolution": tuple(self._cfg.get("resolution", (1280, 720))),
+                "fps": self._cfg.get("fps"),
+                "online": online,
+                "last_frame_ts": self._last_ts,
+            }
+
+    def last_frame_age(self) -> Optional[float]:
+        if not self._last_ts:
+            return None
+        return time.time() - self._last_ts
 
     # ------------------------------------------------------------------
     # capture helpers
@@ -188,55 +208,6 @@ def list_devices(max_index: int = 4) -> Dict[str, Any]:
         candidates.append({'id': i, 'type': 'index', 'available': available})
 
     return {'candidates': candidates}
-
-    def _read_frame_locked(self) -> np.ndarray:
-        cap = self._ensure_capture_locked()
-        if cap is None or not cap.isOpened():
-            return self._load_fallback_frame()
-        ok, frame = cap.read()
-        if not ok or frame is None:
-            LOG.warning("Camera read failed; using fallback frame")
-            return self._load_fallback_frame()
-        self._last_frame = frame
-        self._last_ts = time.time()
-        return frame
-
-    def _load_fallback_frame(self) -> np.ndarray:
-        fb = self._cfg.get("fallback_image")
-        if not fb:
-            raise RuntimeError("No camera frame available and no fallback image configured")
-        frame = cv2.imread(fb, cv2.IMREAD_COLOR)
-        if frame is None:
-            raise RuntimeError(f"Fallback image could not be loaded: {fb}")
-        self._last_frame = frame
-        self._last_ts = time.time()
-        return frame
-
-    def grab_frame_sync(self, max_age: float = 0.0) -> np.ndarray:
-        with self._lock:
-            if max_age > 0 and self._last_frame is not None:
-                if (time.time() - self._last_ts) <= max_age:
-                    return self._last_frame.copy()
-            return self._read_frame_locked().copy()
-
-    async def grab_frame(self, max_age: float = 0.0) -> np.ndarray:
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self.grab_frame_sync, max_age)
-
-    def encode_jpeg(self, frame: np.ndarray, quality: int = 80) -> bytes:
-        params = [int(cv2.IMWRITE_JPEG_QUALITY), int(quality)]
-        ok, buf = cv2.imencode('.jpg', frame, params)
-        if not ok or buf is None:
-            raise RuntimeError("Failed to encode frame to JPEG")
-        return buf.tobytes()
-
-    async def grab_jpeg(self, quality: int = 80, max_age: float = 0.0) -> bytes:
-        frame = await self.grab_frame(max_age=max_age)
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self.encode_jpeg, frame, quality)
-
-    def snapshot_for_ocr(self) -> np.ndarray:
-        return self.grab_frame_sync(max_age=0.2)
 
 
 _manager: Optional[CameraManager] = None

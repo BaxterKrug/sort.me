@@ -194,6 +194,52 @@ sorting:
   default_mode: alpha_exact
   low_confidence_threshold: 0.8
   near_full_threshold: 0.9
+  modes:
+    alpha_exact:
+      label: Alphabetical (A–Z)
+      type: alpha
+      fallback: J3
+    release_year:
+      label: Release Year
+      type: year
+      fallback: K1
+      mapping:
+        "<=1995": B1
+        "1996-2002": B2
+        "2003-2009": B3
+        "2010-2014": C1
+        "2015-2017": C2
+        "2018": C3
+        "2019": D1
+        "2020": D2
+        "2021": D3
+        "2022": E1
+        "2023": E2
+        "2024": E3
+        ">=2025": F1
+        "*": K1
+    set_focus:
+      label: Set Families
+      type: set
+      fallback: K2
+      mapping:
+        mh1: C1
+        "modern horizons": C1
+        mh2: C1
+        grn: D1
+        "guilds of ravnica": D1
+        rna: D1
+        one: D2
+        "phyrexia: all will be one": D2
+        neo: D3
+        "kamigawa: neon dynasty": D3
+        otj: E1
+        "outlaws of thunder junction": E1
+        eld: E2
+        "throne of eldraine": E2
+        khm: E3
+        kaldheim: E3
+        "*": K2
 camera:
   device: 0
   resolution:

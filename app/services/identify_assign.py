@@ -34,11 +34,14 @@ def identify_and_assign(ocr_map: Dict[str, str],
     collector = (best.get('collector_number') or best.get('collector') or ocr_map.get('collector') or None)
 
     card = assign.Card(
-        game = 'mtg',                # change per-game when needed
-        name = name,
-        set_code = set_code,
-        collector_number = collector,
-        confidence = float(id_conf)
+        game='mtg',                # change per-game when needed
+        name=name,
+        set_code=set_code,
+        collector_number=collector,
+        scryfall_id=best.get('id') or best.get('scryfall_id'),
+        confidence=float(id_conf),
+        printed_name=best.get("printed_name"),
+        flavor_name=best.get("flavor_name"),
     )
 
     cell, reason = assign.assign_card(card, cfg, state)
@@ -47,5 +50,5 @@ def identify_and_assign(ocr_map: Dict[str, str],
         'cell': cell,
         'reason': reason,
         'card': card,
-        'identify': id_res
+        'identify': id_res,
     }

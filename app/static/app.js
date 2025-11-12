@@ -17,6 +17,29 @@ const toast = (msg) => {
   setTimeout(()=> t.remove(), 3200);
 };
 
+function setCameraStatus(state){
+  const chip = $('cameraStatus');
+  if(!chip) return;
+  if(!state || state.error){
+    chip.textContent = 'Camera: error';
+    chip.classList.add('muted');
+    return;
+  }
+  const online = !!state.online;
+  const path = state.path || state.device || 'unknown';
+  chip.textContent = `Camera: ${online ? 'online' : 'offline'} ${path}`.trim();
+  chip.classList.toggle('muted', !online);
+}
+
+async function pollCameraStatus(){
+  try{
+    const info = await api('/camera/status');
+    setCameraStatus(info);
+  }catch(err){
+    setCameraStatus({error: err.message});
+  }
+}
+
 // ------------- API wrapper -------------
 function api(path, opts){
   if(demo) return demoApi(path, opts);
@@ -55,6 +78,23 @@ const demoFilenameExpect = $('demoFilenameExpect');
 const demoBatchSummary = $('demoBatchSummary');
 const demoBatchWrap = $('demoBatchTableWrap');
 const demoBatchTableBody = $('demoBatchTableBody');
+
+const sortModeSelect = $('sortSelect');
+const sortOperationSelect = $('sortOperationSelect');
+const setupLookupInput = $('lookupScryfallSetup');
+const setupLookupButton = $('btnLookupScryfallSetup');
+const lookupCardName = $('lookupCardName');
+const lookupCardPrinted = $('lookupCardPrinted');
+const lookupCardSet = $('lookupCardSet');
+const lookupCardYear = $('lookupCardYear');
+const lookupCardValue = $('lookupCardValue');
+const lookupCardMode = $('lookupCardMode');
+const lookupCardMatch = $('lookupCardMatch');
+const lookupCardCell = $('lookupCardCell');
+const lookupCardReason = $('lookupCardReason');
+
+let sortModeReady = false;
+let sortOperationReady = false;
 
 // ------------- E-STOP / Pause / Resume -------------
 on($('btnEStop'), 'click', async ()=>{
@@ -303,7 +343,7 @@ on($('btnCloseTestMoves'),'click',()=> $('dlgTestMoves').close());
 // ------------- Run Controls -------------
 on($('btnStartRun'), 'click', async ()=>{
   const game = $('gameSelect').value;
-  const sort = $('sortSelect').value;
+  const sort = (sortModeSelect && sortModeSelect.value) || 'alpha_exact';
   if(!game || !sort){ toast('Select game and sorting'); return; }
   try{
     const payload = {
@@ -311,6 +351,7 @@ on($('btnStartRun'), 'click', async ()=>{
       feeder_estimate: Number($('feederCapacity').value||0),
       divert_uncertain: $('divertUncertain').checked
     };
+    payload.sort_mode = sort;
     await api('/run/start', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
     hide(panelSetup); show(panelRun);
     runLoop.start();
@@ -414,6 +455,283 @@ on($('btnSimulateAssign'), 'click', async ()=>{
   }catch(e){ toast(`Simulate failed: ${e.message}`); }
 });
 
+function resetLookupDetails(){
+  if(lookupCardName) lookupCardName.textContent = '—';
+  if(lookupCardPrinted) lookupCardPrinted.textContent = '—';
+  if(lookupCardSet) lookupCardSet.textContent = '—';
+  if(lookupCardYear) lookupCardYear.textContent = '—';
+  if(lookupCardValue) lookupCardValue.textContent = '—';
+  if(lookupCardMode) lookupCardMode.textContent = '—';
+  if(lookupCardMatch) lookupCardMatch.textContent = '—';
+  if(lookupCardCell) lookupCardCell.textContent = '—';
+  if(lookupCardReason) lookupCardReason.textContent = '—';
+}
+
+function renderLookupDetails(payload){
+  resetLookupDetails();
+  if(!payload || typeof payload !== 'object') return;
+  const card = payload.card || {};
+  if(lookupCardName) lookupCardName.textContent = card.name || '—';
+  if(lookupCardPrinted) lookupCardPrinted.textContent = card.printed_name || card.flavor_name || '—';
+
+  if(lookupCardSet){
+    const setParts = [];
+    const setName = card.set_name || card.setName;
+    if(setName) setParts.push(String(setName));
+    const code = card.set_code || card.set;
+    if(code) setParts.push(String(code).toUpperCase());
+    const collector = card.collector_number || card.collectorNumber;
+    if(collector) setParts.push(`#${collector}`);
+    lookupCardSet.textContent = setParts.length ? setParts.join(' · ') : '—';
+  }
+
+  if(lookupCardYear){
+    const year = card.released_year || (card.released_at ? String(card.released_at).slice(0, 4) : '');
+    lookupCardYear.textContent = year || '—';
+  }
+
+  if(lookupCardValue){
+    const usd = card.price_usd || (card.prices && card.prices.usd);
+    if(usd === null || usd === undefined || usd === ''){
+      lookupCardValue.textContent = '—';
+    }else{
+      const num = Number(usd);
+      lookupCardValue.textContent = Number.isFinite(num) ? `$${num.toFixed(2)}` : `$${usd}`;
+    }
+  }
+
+  if(lookupCardMode){
+    const label = payload.mode_label || payload.mode;
+    lookupCardMode.textContent = label || '—';
+  }
+
+  if(lookupCardMatch){
+    const details = payload.reason_details || {};
+    let matchText = '—';
+    if(details.kind === 'sort_op'){
+      const opLabel = details.operation || 'override';
+      matchText = `Sort op: ${opLabel}`;
+    }else if(details.divert){
+      matchText = details.reason ? `Divert: ${details.reason}` : 'Divert';
+    }else if(details.overflow){
+      const key = details.key || details.mode;
+      matchText = key ? `Overflow (${key})` : 'Overflow';
+    }else if(details.key){
+      matchText = details.key;
+    }
+    lookupCardMatch.textContent = matchText;
+  }
+
+  if(lookupCardCell) lookupCardCell.textContent = payload.cell || '—';
+  if(lookupCardReason) lookupCardReason.textContent = payload.reason || '—';
+}
+
+async function lookupScryfallId(){
+  if(!setupLookupInput){
+    return;
+  }
+  const scryId = setupLookupInput.value.trim();
+  if(!scryId){
+    resetLookupDetails();
+    return;
+  }
+  const sortMode = (sortModeSelect && sortModeSelect.value) || 'alpha_exact';
+  const payload = {
+    scryfall_id: scryId,
+    sorting: sortMode,
+    name: scryId,
+    confidence: 1.0,
+  };
+  payload.sort_mode = sortMode;
+  if(sortOperationSelect && !sortOperationSelect.disabled && sortOperationSelect.value){
+    payload.sort_operation = sortOperationSelect.value;
+  }
+  try{
+    const res = await api('/debug/assign_preview', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    renderLookupDetails(res);
+  }catch(err){
+    toast(`Lookup failed: ${err.message}`);
+  }
+}
+
+if(setupLookupButton){
+  on(setupLookupButton, 'click', lookupScryfallId);
+}
+if(setupLookupInput){
+  on(setupLookupInput, 'keydown', (ev)=>{
+    if(ev.key === 'Enter'){
+      ev.preventDefault();
+      lookupScryfallId();
+    }
+  });
+}
+
+async function setSortMode(modeId){
+  if(!sortModeSelect) return;
+  try{
+    const res = await api('/sorting/mode', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({mode: modeId}),
+    });
+    const activeId = typeof res?.active === 'string' ? res.active : (typeof modeId === 'string' ? modeId : '');
+    if(activeId){
+      sortModeSelect.value = activeId;
+    }
+    if(res?.ok){
+      const label = res.label || activeId || 'mode';
+      toast(`Sort mode set to ${label}`);
+    }else if(res?.message){
+      toast(res.message);
+    }
+  }catch(err){
+    toast(`Failed to set sort mode: ${err.message}`);
+    sortModeReady = false;
+    await loadSortModes();
+    return;
+  }
+  if(typeof doPreview === 'function') doPreview();
+  lookupScryfallId();
+}
+
+async function loadSortModes(){
+  if(!sortModeSelect) return;
+  sortModeReady = false;
+  sortModeSelect.disabled = true;
+  sortModeSelect.innerHTML = '<option value="">Loading sort modes…</option>';
+  try{
+    const res = await api('/sorting/modes');
+    const modes = Array.isArray(res?.modes) ? res.modes : [];
+    sortModeSelect.innerHTML = '';
+    if(modes.length === 0){
+      const opt = document.createElement('option');
+      opt.value = 'alpha_exact';
+      opt.textContent = 'Alphabetical (A–Z)';
+      sortModeSelect.appendChild(opt);
+      sortModeSelect.value = 'alpha_exact';
+      sortModeSelect.disabled = false;
+      sortModeReady = true;
+      return;
+    }
+    modes.forEach((mode)=>{
+      const opt = document.createElement('option');
+      opt.value = mode.id;
+      let label = mode.label || mode.id;
+      if(mode.type === 'year') label = 'Year';
+      else if(mode.type === 'set') label = 'Set';
+      else if(mode.type === 'alpha') label = 'Alphabetical (A–Z)';
+      const countLabel = typeof mode.count === 'number' && mode.count > 0 ? ` (${mode.count})` : '';
+      opt.textContent = `${label}${countLabel}`;
+      sortModeSelect.appendChild(opt);
+    });
+    let active = res?.active && modes.find(m=>m.id === res.active) ? res.active : null;
+    if(!active && res?.default && modes.find(m=>m.id === res.default)){
+      active = res.default;
+    }
+    if(!active){
+      active = modes[0].id;
+    }
+    sortModeSelect.value = active;
+    sortModeSelect.disabled = false;
+    sortModeReady = true;
+    if(typeof doPreview === 'function') doPreview();
+    lookupScryfallId();
+  }catch(err){
+    console.warn('Unable to load sort modes', err);
+    sortModeSelect.innerHTML = '<option value="alpha_exact">Alphabetical (fallback)</option>';
+    sortModeSelect.disabled = false;
+    sortModeSelect.value = 'alpha_exact';
+    sortModeReady = true;
+    if(typeof doPreview === 'function') doPreview();
+    lookupScryfallId();
+  }
+}
+
+async function setSortOperation(opId){
+  if(!sortOperationSelect) return;
+  try{
+    const res = await api('/sorting/operation', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({operation: opId})
+    });
+    const activeId = typeof res?.active === 'string' ? res.active : (typeof opId === 'string' ? opId : '');
+    if(activeId && sortOperationSelect){
+      sortOperationSelect.value = activeId;
+    }
+    if(res?.ok){
+      const option = sortOperationSelect.querySelector(`option[value="${activeId}"]`);
+      const label = option?.textContent || activeId || 'default';
+      toast(`Sort operation set to ${label}`);
+    }else if(res?.message){
+      toast(res.message);
+    }
+    lookupScryfallId();
+  }catch(err){
+    toast(`Failed to set sort operation: ${err.message}`);
+    sortOperationReady = false;
+    await loadSortOperations();
+  }
+}
+
+async function loadSortOperations(){
+  if(!sortOperationSelect) return;
+  sortOperationReady = false;
+  sortOperationSelect.disabled = true;
+  sortOperationSelect.innerHTML = '<option value="">Loading operations…</option>';
+  try{
+    const res = await api('/sorting/operations');
+    const ops = Array.isArray(res?.operations) ? res.operations : [];
+    sortOperationSelect.innerHTML = '';
+    if(ops.length === 0){
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No operations configured';
+      sortOperationSelect.appendChild(opt);
+      sortOperationSelect.disabled = true;
+      resetLookupDetails();
+      return;
+    }
+    ops.forEach((op)=>{
+      const opt = document.createElement('option');
+      opt.value = op.id;
+      const countLabel = typeof op.count === 'number' ? ` (${op.count})` : '';
+      opt.textContent = `${op.label || op.id}${countLabel}`;
+      sortOperationSelect.appendChild(opt);
+    });
+    const active = (res?.active && ops.find(o=>o.id === res.active)) ? res.active : ops[0].id;
+    sortOperationSelect.value = active;
+    sortOperationSelect.disabled = false;
+    sortOperationReady = true;
+    lookupScryfallId();
+  }catch(err){
+    console.warn('Unable to load sort operations', err);
+    sortOperationSelect.innerHTML = '<option value="">Operations unavailable</option>';
+    sortOperationSelect.disabled = true;
+    resetLookupDetails();
+  }
+}
+
+if(sortOperationSelect){
+  on(sortOperationSelect, 'change', (ev)=>{
+    if(!sortOperationReady || sortOperationSelect.disabled) return;
+    const opId = ev.target.value;
+    setSortOperation(opId);
+  });
+}
+
+if(sortModeSelect){
+  on(sortModeSelect, 'change', (ev)=>{
+    if(!sortModeReady || sortModeSelect.disabled) return;
+    const modeId = ev.target.value;
+    setSortMode(modeId);
+  });
+}
+
 // ------------- Run status loop -------------
 const runLoop = (()=>{
   let timer = null;
@@ -485,6 +803,9 @@ async function pollMotionStatus(){
 setInterval(pollMotionStatus, 1000);
 pollMotionStatus();
 on($('btnScanDevice'), 'click', async ()=>{ await scanDevice(); toast('Scan complete'); });
+
+setInterval(pollCameraStatus, 4000);
+pollCameraStatus();
 
 // Auto-scan periodically when not in demo mode so UI updates when device is plugged/unplugged
 setInterval(()=>{ if(!demo) scanDevice(); }, 5000);
@@ -575,7 +896,7 @@ on($('btnSelectCam'), 'click', async ()=>{
       toast(`Camera selected: ${device}`);
       $('dlgCamera').close();
       // refresh preview immediately
-      try{ refreshCamera(); setCameraStatus('online', true); }catch(e){}
+  try{ refreshCamera(); pollCameraStatus(); }catch(e){}
       // optional persist: attempt to write to config via /demo/mode persistence trick is not supported here
       if(persist) toast('Note: persisting camera to config.yaml is not implemented on this endpoint');
     }else{
@@ -604,7 +925,7 @@ function firstLetter(name){
 }
 
 async function previewAssign(name, confidence){
-  const sort = $('sortSelect').value || 'alpha_exact';
+  const sort = (sortModeSelect && sortModeSelect.value) || 'alpha_exact';
   // Prefer a non-mutating backend preview
   try{
     const res = await api('/debug/assign_preview', {
@@ -650,7 +971,6 @@ on($('previewName'), 'input', ()=>{
   clearTimeout(previewDeb); previewDeb = setTimeout(doPreview, 250);
 });
 on($('previewConf'), 'input', ()=> { clearTimeout(previewDeb); previewDeb = setTimeout(doPreview, 250); });
-on($('sortSelect'), 'change', doPreview);
 
 // ------------- Simulator -------------
 function parseSimInput(){
@@ -671,7 +991,7 @@ function simRow(idx, name, first, cell, reason){
   const s3 = document.createElement('span'); s3.textContent = first;
   const s4 = document.createElement('span'); s4.textContent = cell;
   const s5 = document.createElement('span'); s5.textContent = reason;
-  const ok = reason.startsWith('alpha_exact');
+  const ok = !(reason?.startsWith('overflow') || reason?.startsWith('divert'));
   [s1,s2,s3,s4,s5].forEach(el=> el.className = ok ? 'sim-ok' : 'sim-divert');
   row.append(s1,s2,s3,s4,s5);
   host.appendChild(row);
@@ -1108,4 +1428,7 @@ async function demoApi(path, opts){
 }
 
 // ------------- boot -------------
+resetLookupDetails();
 loadGrid();
+loadSortModes();
+loadSortOperations();

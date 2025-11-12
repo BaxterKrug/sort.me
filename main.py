@@ -1,717 +1,1171 @@
-# app/main.py (or similar)
+from __future__ import annotations
+
 import asyncio
+import base64
+import json
 import logging
 import os
-from typing import List, Optional
+from datetime import datetime
+from io import BytesIO, StringIO
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-import cv2
-import numpy as np
-import yaml
-from fastapi import File, Form, HTTPException, UploadFile
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response, StreamingResponse
-import base64
-import tempfile
+from urllib import error as urlerror, request as urlrequest
 
-from app.services import card_id  # , ocr  # OCR temporarily disabled for physical testing
-from app.services.assign import Card, SystemState, assign_card, load_config
-from app.services.motion import configure_from_cfg, get_controller
-# from app.services import camera as camera_svc  # Camera temporarily disabled for physical testing
+import yaml  # type: ignore[import-not-found]
+from fastapi import FastAPI, File, HTTPException, UploadFile  # type: ignore[import-not-found]
+from fastapi.responses import FileResponse, Response  # type: ignore[import-not-found]
+from fastapi.staticfiles import StaticFiles  # type: ignore[import-not-found]
+
+from app.services import card_id
+from app.services import camera as camera_svc
 from app.services import feeder_monitor
+from app.services import ocr_pipeline
+from app.services import sort_session
+from app.services.assign import (
+    DEFAULT_SORT_MODE,
+    DEFAULT_SORT_OPERATION,
+    Card,
+    SystemState,
+    assign_card,
+    configure_detail_provider,
+    load_config,
+)
+from app.services.motion import configure_from_cfg, get_controller, is_demo_mode
+
+LOG = logging.getLogger("sort.api")
 
 app = FastAPI()
 
-# Serve the single-page UI and static assets from the `app/static/` folder
-# - GET / will return app/static/index.html
-# - static assets (JS/CSS) will be available under /static/
-static_dir = os.path.join("app", "static")
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
+static_dir = Path("app") / "static"
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+
+def _load_raw_config() -> Dict[str, Any]:
+    try:
+        with open("config.yaml", "r", encoding="utf8") as cfg_fh:
+            data = yaml.safe_load(cfg_fh) or {}
+            return data if isinstance(data, dict) else {}
+    except Exception as exc:
+        LOG.warning("Unable to load config.yaml: %s", exc)
+        return {}
+
+
+raw_cfg = _load_raw_config()
+CFG = load_config(raw_cfg)
+STATE = SystemState(counts_by_cell={cid: 0 for cid in CFG.cells})
+STATE.active_sort_operation = CFG.default_sort_operation
+STATE.active_sort_mode = CFG.default_sort_mode
+
+configure_from_cfg(raw_cfg)
+
+camera_cfg = raw_cfg.get("camera") if isinstance(raw_cfg, dict) else None
+try:
+    camera_svc.configure(camera_cfg)
+except Exception as exc:  # pragma: no cover - best effort on startup
+    LOG.warning("Camera configuration failed: %s", exc)
+
+try:
+    feeder_monitor.configure_from_cfg(CFG, camera_cfg)
+except Exception as exc:  # pragma: no cover - best effort on startup
+    LOG.warning("Feeder monitor configuration failed: %s", exc)
+
+MOTION = get_controller()
+SESSION = sort_session.get_manager()
+ERROR_LOG: List[Dict[str, Any]] = []
+
+CARD_METADATA_CACHE: Dict[str, Dict[str, Any]] = {}
+CARD_DETAILS_CACHE: Dict[str, Dict[str, Any]] = {}
+SET_CACHE: Dict[str, Dict[str, Any]] = {}
+
+SCRYFALL_TIMEOUT = float(os.environ.get("SCRYFALL_TIMEOUT", "4.0"))
+SCRYFALL_ENABLED = os.environ.get("SCRYFALL_LOOKUPS", "1") != "0"
+
+
+def _card_metadata_path() -> Optional[Path]:
+    sorting_cfg = raw_cfg.get("sorting") if isinstance(raw_cfg, dict) else {}
+    meta_path = None
+    if isinstance(sorting_cfg, dict):
+        meta_path = sorting_cfg.get("card_metadata_path")
+    if isinstance(meta_path, str) and meta_path:
+        path = Path(meta_path)
+        if not path.is_absolute():
+            path = Path.cwd() / path
+        return path
+    default_path = Path("data/embeddings/cards_metadata.json")
+    return default_path
+
+
+def _load_cards_metadata() -> Dict[str, Dict[str, Any]]:
+    global CARD_METADATA_CACHE
+    if CARD_METADATA_CACHE:
+        return CARD_METADATA_CACHE
+    path = _card_metadata_path()
+    if not path or not path.exists():
+        LOG.debug("Card metadata file %s not found", path)
+        CARD_METADATA_CACHE = {}
+        return CARD_METADATA_CACHE
+    try:
+        with path.open("r", encoding="utf8") as fh:
+            raw_meta = json.load(fh)
+        mapping: Dict[str, Dict[str, Any]] = {}
+        if isinstance(raw_meta, list):
+            for item in raw_meta:
+                if not isinstance(item, dict):
+                    continue
+                card_id = str(item.get("id") or "").strip().lower()
+                if not card_id:
+                    continue
+                mapping[card_id] = {
+                    "scryfall_id": item.get("id"),
+                    "name": item.get("name"),
+                    "set_code": item.get("set"),
+                    "collector_number": item.get("collector_number"),
+                    "printed_name": item.get("printed_name"),
+                    "flavor_name": item.get("flavor_name"),
+                    "set_name": item.get("set_name"),
+                    "released_at": item.get("released_at"),
+                    "released_year": item.get("released_year"),
+                    "prices": item.get("prices"),
+                }
+        CARD_METADATA_CACHE = mapping
+    except Exception as exc:  # pragma: no cover - robustness
+        LOG.warning("Failed to load card metadata from %s: %s", path, exc)
+        CARD_METADATA_CACHE = {}
+    return CARD_METADATA_CACHE
+
+
+def _fetch_scryfall_json(url: str) -> Optional[Dict[str, Any]]:
+    if not SCRYFALL_ENABLED:
+        return None
+    try:
+        req = urlrequest.Request(url, headers={"User-Agent": "sort.me/1.0"})
+        with urlrequest.urlopen(req, timeout=SCRYFALL_TIMEOUT) as resp:  # type: ignore[arg-type]
+            if getattr(resp, "status", 200) != 200:
+                return None
+            data = resp.read()
+        return json.loads(data.decode("utf8"))
+    except (urlerror.URLError, TimeoutError, ValueError, json.JSONDecodeError) as exc:  # pragma: no cover - network variability
+        LOG.debug("Scryfall fetch failed for %s: %s", url, exc)
+        return None
+
+
+def _get_set_info(set_code: Optional[str]) -> Dict[str, Any]:
+    if not set_code:
+        return {}
+    code = str(set_code).strip().lower()
+    if not code:
+        return {}
+    if code in SET_CACHE:
+        return SET_CACHE[code]
+    data = _fetch_scryfall_json(f"https://api.scryfall.com/sets/{code}")
+    info: Dict[str, Any] = {}
+    if data:
+        info = {
+            "code": data.get("code"),
+            "name": data.get("name"),
+            "released_at": data.get("released_at"),
+        }
+        released_at = info.get("released_at")
+        if isinstance(released_at, str) and released_at:
+            info["released_year"] = released_at.split("-")[0]
+    SET_CACHE[code] = info
+    return info
+
+
+def _get_card_details(scryfall_id: Optional[str]) -> Dict[str, Any]:
+    sid = str(scryfall_id or "").strip()
+    if not sid:
+        return {}
+    key = sid.lower()
+    if key in CARD_DETAILS_CACHE:
+        return CARD_DETAILS_CACHE[key]
+    meta = _load_cards_metadata().get(key, {})
+    details: Dict[str, Any] = {
+        "scryfall_id": sid,
+        "name": meta.get("name"),
+        "set_code": meta.get("set_code"),
+        "collector_number": meta.get("collector_number"),
+        "printed_name": meta.get("printed_name"),
+        "flavor_name": meta.get("flavor_name"),
+        "price_usd": meta.get("price_usd"),
+    }
+    if meta.get("set_name"):
+        details["set_name"] = meta.get("set_name")
+    if meta.get("released_at"):
+        details["released_at"] = meta.get("released_at")
+    if meta.get("released_year"):
+        details["released_year"] = meta.get("released_year")
+    if meta.get("prices"):
+        details["prices"] = meta.get("prices")
+    meta_prices = meta.get("prices")
+    if isinstance(meta_prices, dict) and not details.get("price_usd"):
+        details["price_usd"] = meta_prices.get("usd")
+    card_json = _fetch_scryfall_json(f"https://api.scryfall.com/cards/{sid}")
+    if card_json:
+        details["name"] = card_json.get("name") or details.get("name")
+        details["set_code"] = card_json.get("set") or details.get("set_code")
+        details["collector_number"] = card_json.get("collector_number") or details.get("collector_number")
+        details["set_name"] = card_json.get("set_name")
+        details["released_at"] = card_json.get("released_at")
+        details["flavor_name"] = card_json.get("flavor_name") or details.get("flavor_name")
+        details["printed_name"] = (
+            card_json.get("printed_name")
+            or details.get("printed_name")
+            or card_json.get("flavor_name")
+            or details.get("flavor_name")
+        )
+        if card_json.get("prices"):
+            details["prices"] = card_json.get("prices")
+        prices = card_json.get("prices")
+        if isinstance(prices, dict):
+            usd_price = prices.get("usd") or prices.get("usd_foil") or prices.get("usd_etched")
+            if usd_price:
+                details["price_usd"] = usd_price
+        released_at = details.get("released_at")
+        if isinstance(released_at, str) and released_at:
+            details["released_year"] = released_at.split("-")[0]
+
+    set_code = details.get("set_code")
+    if set_code and not details.get("set_name"):
+        set_info = _get_set_info(set_code)
+        if set_info:
+            details.setdefault("set_name", set_info.get("name"))
+            released_at = set_info.get("released_at")
+            if isinstance(released_at, str) and released_at and not details.get("released_at"):
+                details["released_at"] = released_at
+                details["released_year"] = released_at.split("-")[0]
+
+    if not details.get("printed_name") and details.get("flavor_name"):
+        details["printed_name"] = details["flavor_name"]
+
+    CARD_DETAILS_CACHE[key] = details
+    return details
+
+
+configure_detail_provider(_get_card_details)
+
+
+def _normalize_operation_id(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    op = str(value).strip().lower()
+    return op or None
+
+
+def _normalize_mode_id(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    mode = str(value).strip().lower()
+    return mode or None
+
+
+def _summarize_reason(reason: Optional[str]) -> Dict[str, Any]:
+    summary: Dict[str, Any] = {"raw": reason}
+    if not reason:
+        return summary
+    parts = [segment for segment in str(reason).split(":") if segment != ""]
+    if not parts:
+        return summary
+
+    head = parts[0]
+    summary["kind"] = head
+
+    if head == "sort_op":
+        if len(parts) > 1:
+            summary["operation"] = parts[1]
+        if len(parts) > 2:
+            summary["token"] = parts[2]
+        return summary
+
+    if head == "overflow":
+        summary["overflow"] = True
+        if len(parts) > 1:
+            summary["mode"] = parts[1]
+        if len(parts) > 2:
+            summary["key"] = parts[2]
+        if len(parts) > 3:
+            summary["token"] = parts[3]
+        return summary
+
+    if head == "divert":
+        summary["divert"] = True
+        if len(parts) > 1:
+            summary["reason"] = parts[1]
+        return summary
+
+    summary["mode"] = head
+    if len(parts) > 1:
+        summary["key"] = parts[1]
+    if len(parts) > 2:
+        summary["token"] = parts[2]
+    return summary
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _grid_cells_from_config() -> List[Dict[str, Any]]:
+    cells: List[Dict[str, Any]] = []
+    grid_cfg = raw_cfg.get("grid", {}) if isinstance(raw_cfg, dict) else {}
+    positions = grid_cfg.get("positions") if isinstance(grid_cfg, dict) else None
+    if isinstance(positions, dict) and positions:
+        for cell_id, pos in positions.items():
+            if len(cell_id) == 2 and cell_id[0].isalpha() and cell_id[1].isdigit():
+                if isinstance(pos, (list, tuple)) and len(pos) >= 2:
+                    x, y = pos[:2]
+                else:
+                    x = y = 0.0
+                cells.append({"id": cell_id, "x": float(x), "y": float(y), "z": 0.0})
+        cells.sort(key=lambda item: item["id"])
+        return cells
+
+    spacing_x = float(grid_cfg.get("column_spacing", 84.0)) if isinstance(grid_cfg, dict) else 84.0
+    spacing_y = float(grid_cfg.get("row_spacing", 104.0)) if isinstance(grid_cfg, dict) else 104.0
+    columns = [chr(ord("A") + i) for i in range(11)]
+    for row in range(1, 4):
+        for col_index, col in enumerate(columns):
+            cell_id = f"{col}{row}"
+            cells.append({
+                "id": cell_id,
+                "x": float(col_index * spacing_x),
+                "y": float((row - 1) * spacing_y),
+                "z": 0.0,
+            })
+    return cells
+
+
+async def _motion_status_payload() -> Dict[str, Any]:
+    ctrl = MOTION
+    driver = ctrl.driver
+    driver_name = type(driver).__name__
+    port = getattr(driver, "port", "virtual")
+    pos = ctrl.current
+    try:
+        pos = await driver.query_position()  # type: ignore[attr-defined]
+        ctrl.current = pos
+    except Exception:
+        pass
+    payload = {
+        "driver": driver_name,
+        "pos": (float(pos[0]), float(pos[1]), float(pos[2])),
+        "homed": bool(ctrl.homed),
+        "cells_configured": len(ctrl.cells),
+        "port": port,
+        "demo": is_demo_mode(),
+        "virtual": is_demo_mode(),
+        "connected": not is_demo_mode() or hasattr(driver, "_serial"),
+        "ok": True,
+    }
+    return payload
+
+
+def _append_error(reason: str, meta: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    entry = {
+        "id": f"K3-{len(ERROR_LOG) + 1}",
+        "reason": reason,
+        "timestamp": datetime.utcnow().isoformat(timespec="seconds"),
+        "meta": meta or {},
+    }
+    ERROR_LOG.append(entry)
+    return entry
+
+
+# ---------------------------------------------------------------------------
+# Static + middleware
+# ---------------------------------------------------------------------------
 
 
 @app.get("/")
-def read_index():
-    index_path = os.path.join(static_dir, "index.html")
-    if os.path.exists(index_path):
-        resp = FileResponse(index_path)
-        # prevent aggressive caching during development so UI JS updates are picked up
-        resp.headers['Cache-Control'] = 'no-store, must-revalidate'
+def read_index() -> Response:
+    index_path = static_dir / "index.html"
+    if index_path.exists():
+        resp = FileResponse(str(index_path))
+        resp.headers["Cache-Control"] = "no-store, must-revalidate"
         return resp
-    # If index.html is missing, return a small JSON explaining the issue
     raise HTTPException(status_code=404, detail="Web UI not found. Ensure app/static/index.html exists.")
 
 
 @app.middleware("http")
 async def dev_cache_control(request, call_next):
-    # Set no-store for the main JS bundle to avoid stale scripts during iterative development.
-    path = request.url.path
-    resp = await call_next(request)
-    if path == '/static/app.js' or path == '/':
-        resp.headers['Cache-Control'] = 'no-store, must-revalidate'
-    return resp
+    response = await call_next(request)
+    if request.url.path in {"/", "/static/app.js"}:
+        response.headers["Cache-Control"] = "no-store, must-revalidate"
+    return response
 
-# Load raw YAML so we can extract optional gcode/driver options in addition to the
-# typed Config used by assignment logic.
-with open("config.yaml", "r", encoding="utf8") as cfg_fh:
-    raw_cfg = yaml.safe_load(cfg_fh)
-CFG = load_config(raw_cfg)
-STATE = SystemState(counts_by_cell={cid: 0 for cid in CFG.cells})
-# configure motion controller cells from config, pass raw_cfg for grid positions
-configure_from_cfg(raw_cfg)
-# Configure camera + feeder monitor services so they share runtime config
-# CAMERA CONFIGURATION TEMPORARILY DISABLED FOR PHYSICAL TESTING
-# try:
-#     camera_svc.configure(raw_cfg.get('camera'))
-# except Exception as exc:
-#     print(f"[camera] configuration failed: {exc}")
-try:
-    feeder_monitor.configure_from_cfg(CFG, raw_cfg.get('camera'))
-except Exception as exc:
-    print(f"[feeder monitor] configuration failed: {exc}")
-# Wire G-code driver from config
-gcode_opts = raw_cfg.get('gcode')
 
-from app.services.motion import get_controller
-# Controller singleton
-MOTION = get_controller()
+# ---------------------------------------------------------------------------
+# Grid + configuration
+# ---------------------------------------------------------------------------
+
+
+@app.get("/grid/cells")
+def grid_cells() -> Dict[str, Any]:
+    return {"cells": _grid_cells_from_config()}
+
+
+# ---------------------------------------------------------------------------
+# Sorting helpers
+# ---------------------------------------------------------------------------
+
+
+@app.get("/sorting/modes")
+def sorting_modes() -> Dict[str, Any]:
+    modes_payload: List[Dict[str, Any]] = []
+    for mode_id, mode in CFG.sort_modes.items():
+        modes_payload.append({
+            "id": mode_id,
+            "label": mode.label,
+            "type": mode.type,
+            "count": len(mode.mapping),
+            "default_cell": mode.default_cell,
+        })
+
+    modes_payload.sort(key=lambda item: item["label"].lower())
+
+    default_mode = CFG.default_sort_mode or DEFAULT_SORT_MODE
+    if default_mode in CFG.sort_modes:
+        modes_payload.sort(key=lambda item: 0 if item["id"] == default_mode else 1)
+
+    active = STATE.active_sort_mode or default_mode
+    if active not in CFG.sort_modes and default_mode in CFG.sort_modes:
+        active = default_mode
+
+    return {
+        "modes": modes_payload,
+        "active": active if active in CFG.sort_modes else None,
+        "default": default_mode if default_mode in CFG.sort_modes else None,
+        "has_modes": bool(modes_payload),
+    }
+
+
+@app.post("/sorting/mode")
+def sorting_set_mode(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    if not CFG.sort_modes:
+        STATE.active_sort_mode = CFG.default_sort_mode
+        return {"ok": False, "active": STATE.active_sort_mode, "message": "No sort modes configured"}
+
+    requested = (
+        _normalize_mode_id((payload or {}).get("mode"))
+        or _normalize_mode_id((payload or {}).get("id"))
+        or _normalize_mode_id((payload or {}).get("sort_mode"))
+    )
+
+    if not requested:
+        STATE.active_sort_mode = CFG.default_sort_mode
+    else:
+        if requested not in CFG.sort_modes:
+            raise HTTPException(status_code=404, detail=f"Unknown sort mode '{requested}'")
+        STATE.active_sort_mode = requested
+
+    active_id = STATE.active_sort_mode or CFG.default_sort_mode or DEFAULT_SORT_MODE
+    mode_cfg = CFG.sort_modes.get(active_id)
+    label = mode_cfg.label if mode_cfg else active_id
+    return {"ok": True, "active": active_id, "label": label}
+
+
+@app.get("/sorting/operations")
+def sorting_operations() -> Dict[str, Any]:
+    operations_payload: List[Dict[str, Any]] = []
+    for op_id, mapping in CFG.sort_operations.items():
+        label = "Default" if op_id == DEFAULT_SORT_OPERATION else op_id.replace("_", " ").title()
+        operations_payload.append({
+            "id": op_id,
+            "label": label,
+            "count": len(mapping),
+        })
+
+    # Stable sort: alpha by label, but keep configured default first if present
+    operations_payload.sort(key=lambda item: item["label"].lower())
+    default_op = CFG.default_sort_operation
+    if default_op:
+        operations_payload.sort(key=lambda item: 0 if item["id"] == default_op else 1)
+
+    active = STATE.active_sort_operation or default_op
+    if active not in CFG.sort_operations:
+        active = None
+
+    return {
+        "operations": operations_payload,
+        "active": active,
+        "default": default_op,
+        "has_operations": bool(operations_payload),
+    }
+
+
+@app.post("/sorting/operation")
+def sorting_set_operation(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    if not CFG.sort_operations:
+        STATE.active_sort_operation = None
+        return {"ok": False, "active": None, "message": "No sort operations configured"}
+
+    operation = _normalize_operation_id((payload or {}).get("operation") if payload else None)
+    if not operation:
+        STATE.active_sort_operation = CFG.default_sort_operation
+        return {"ok": True, "active": STATE.active_sort_operation}
+
+    if operation not in CFG.sort_operations:
+        raise HTTPException(status_code=404, detail=f"Unknown sort operation '{operation}'")
+
+    STATE.active_sort_operation = operation
+    return {"ok": True, "active": operation}
+
+
+# ---------------------------------------------------------------------------
+# Motion endpoints
+# ---------------------------------------------------------------------------
+
 
 @app.post("/motion/move")
-async def motion_move(payload: dict):
-    """Move the head to a named cell (XY-only, demo-safe). Expects {'cell': 'A1'}"""
-    cell = str(payload.get('cell', '')).strip().upper()
+async def motion_move(payload: Dict[str, Any]) -> Dict[str, Any]:
+    cell = str(payload.get("cell", "")).strip().upper()
     if not cell:
-        raise HTTPException(status_code=400, detail="Missing 'cell' in payload")
-    try:
-        # Special case: clicking A1 homes the machine in X and Y
-        if cell == 'A1':
-            await MOTION.home_x()
-            await MOTION.home_y()
-            return {"ok": True, "cell": cell, "pos": MOTION.current, "action": "homed_to_A1"}
-        
-        # Move to cell using XY-only movement to avoid Z crashes
-        await MOTION.move_to_cell_xy(cell)
-        return {"ok": True, "cell": cell, "pos": MOTION.current}
-    except KeyError:
-        raise HTTPException(status_code=404, detail=f"Unknown cell {cell}")
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=400, detail="Missing 'cell'")
 
+    ctrl = MOTION
+    if cell == "A1":
+        await ctrl.home_x()
+        await ctrl.home_y()
+        return {"ok": True, "cell": cell, "pos": ctrl.current, "action": "homed_to_A1"}
 
-# Simple grid endpoint used by the UI to populate the cell selector
-@app.get("/grid/cells")
-def grid_cells():
-    # Return cells with their actual positions from config.yaml grid section
-    out = []
     try:
-        # Use grid positions from raw config if available
-        grid_positions = raw_cfg.get("grid", {}).get("positions", {})
-        
-        if grid_positions:
-            # Filter out ERR1 and other non-grid cells, include only A1-K3 range
-            for cell_id, pos in grid_positions.items():
-                # Skip error cells and only include A-K, 1-3 range
-                if (cell_id.startswith(('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K')) and 
-                    len(cell_id) == 2 and cell_id[1] in '123'):
-                    x, y = pos if isinstance(pos, (list, tuple)) and len(pos) >= 2 else (0, 0)
-                    out.append({
-                        "id": cell_id, 
-                        "x": float(x), 
-                        "y": float(y), 
-                        "z": 0.0
-                    })
-        else:
-            # Fallback: generate positions using spacing from config
-            spacing = raw_cfg.get("grid", {})
-            col_spacing = float(spacing.get("column_spacing", 84.0))
-            row_spacing = float(spacing.get("row_spacing", 104.0))
-            
-            cols = ['A','B','C','D','E','F','G','H','I','J','K']
-            for r in range(1, 4):  # rows 1, 2, 3
-                for col_idx, col in enumerate(cols):
-                    cell_id = f"{col}{r}"
-                    x = col_idx * col_spacing
-                    y = (r - 1) * row_spacing
-                    out.append({
-                        "id": cell_id,
-                        "x": float(x),
-                        "y": float(y), 
-                        "z": 0.0
-                    })
-                    
-    except Exception as e:
-        # Fallback simple grid with proper spacing
-        cols = ['A','B','C','D','E','F','G','H','I','J','K']
-        for r in range(1, 4):
-            for col_idx, col in enumerate(cols):
-                out.append({
-                    "id": f"{col}{r}", 
-                    "x": col_idx * 84.0, 
-                    "y": (r - 1) * 104.0, 
-                    "z": 0.0
-                })
-                
-    return {"cells": out}
+        await ctrl.move_to_cell_xy(cell)
+        return {"ok": True, "cell": cell, "pos": ctrl.current}
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:  # pragma: no cover - motion errors
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.post("/motion/home_all")
-async def motion_home_all():
-    try:
-        await MOTION.home_all()
-        return {"ok": True, "pos": MOTION.current}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+async def motion_home_all() -> Dict[str, Any]:
+    await MOTION.home_all()
+    return {"ok": True, "pos": MOTION.current}
 
 
 @app.post("/motion/home_x")
-async def motion_home_x():
-    try:
-        await MOTION.home_x()
-        return {"ok": True, "pos": MOTION.current}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+async def motion_home_x() -> Dict[str, Any]:
+    await MOTION.home_x()
+    return {"ok": True, "pos": MOTION.current}
 
 
 @app.post("/motion/home_y")
-async def motion_home_y():
-    try:
-        await MOTION.home_y()
-        return {"ok": True, "pos": MOTION.current}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+async def motion_home_y() -> Dict[str, Any]:
+    await MOTION.home_y()
+    return {"ok": True, "pos": MOTION.current}
 
 
 @app.post("/motion/home_z")
-async def motion_home_z():
-    try:
-        await MOTION.home_z()
-        return {"ok": True, "pos": MOTION.current}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+async def motion_home_z() -> Dict[str, Any]:
+    await MOTION.home_z()
+    return {"ok": True, "pos": MOTION.current}
 
 
 @app.post("/motion/home_xy")
-async def motion_home_xy():
-    try:
-        await MOTION.home_x()
-        await MOTION.home_y()
-        return {"ok": True, "pos": MOTION.current}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+async def motion_home_xy() -> Dict[str, Any]:
+    await MOTION.home_x()
+    await MOTION.home_y()
+    return {"ok": True, "pos": MOTION.current}
 
 
 @app.post("/motion/home_a1")
-async def motion_home_a1():
-    """Home X and Y, then move to A1 position"""
-    try:
-        await MOTION.home_x()
-        await MOTION.home_y()
-        if 'A1' in MOTION.cells:
-            await MOTION.move_to_cell_xy('A1')
-        return {"ok": True, "pos": MOTION.current}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+async def motion_home_a1() -> Dict[str, Any]:
+    await MOTION.home_x()
+    await MOTION.home_y()
+    if 'A1' in MOTION.cells:
+        await MOTION.move_to_cell_xy('A1')
+    return {"ok": True, "pos": MOTION.current}
 
 
 @app.post("/motion/jog")
-async def motion_jog(payload: dict):
-    try:
-        axis = str(payload.get('axis', '')).strip().upper()
-        distance = float(payload.get('distance', 0))
-        if not axis:
-            raise HTTPException(status_code=400, detail="Missing 'axis' in payload")
-        await MOTION.jog_axis(axis, distance)
-        return {"ok": True, "pos": MOTION.current}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+async def motion_jog(payload: Dict[str, Any]) -> Dict[str, Any]:
+    axis = str(payload.get('axis', '')).strip().upper()
+    distance = float(payload.get('distance', 0.0))
+    if axis not in {"X", "Y", "Z"}:
+        raise HTTPException(status_code=400, detail="axis must be X, Y or Z")
+    await MOTION.jog_axis(axis, distance)
+    return {"ok": True, "pos": MOTION.current}
 
 
 @app.post("/motion/estop")
-async def motion_estop():
-    try:
-        await MOTION.emergency_stop()
-        return {"ok": True, "message": "Emergency stop activated"}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+async def motion_estop() -> Dict[str, Any]:
+    await MOTION.emergency_stop()
+    return {"ok": True, "message": "Emergency stop activated"}
 
 
 @app.post("/motion/reset_position")
-async def motion_reset_position(payload: dict = None):
-    """Reset firmware position coordinates to specified values (default 0,0,0)."""
-    try:
-        if payload is None:
-            payload = {}
-        x = float(payload.get('x', 0.0))
-        y = float(payload.get('y', 0.0))
-        z = float(payload.get('z', 0.0))
-        await MOTION.reset_position(x, y, z)
-        return {"ok": True, "position": [x, y, z]}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.get("/motion/status")
-async def motion_status():
-    """Get current motion system status for UI polling"""
-    try:
-        driver_name = type(MOTION.driver).__name__ if MOTION.driver else "None"
-        
-        # Check if serial connection exists and is open
-        connected = False
-        if hasattr(MOTION.driver, '_serial') and MOTION.driver._serial is not None:
-            try:
-                connected = MOTION.driver._serial.is_open
-            except Exception:
-                connected = False
-        
-        # Get current position from hardware
-        current_pos = MOTION.current
-        try:
-            if connected:
-                hardware_pos = await MOTION.driver.query_position()
-                MOTION.current = hardware_pos
-                current_pos = hardware_pos
-        except Exception:
-            pass  # Use last known position
-        
-        # Get limit switch status
-        # Note: Limit switches are used for safety during homing/movement but not displayed
-        
-        return {
-            "ok": True,
-            "driver": driver_name,
-            "demo": False,  # We removed demo mode
-            "pos": current_pos,
-            "connected": connected,
-            "port": getattr(MOTION.driver, 'port', 'unknown')
-        }
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.get("/motion/detect")
-async def motion_detect():
-    """Detect/scan for motion hardware"""
-    try:
-        driver_name = type(MOTION.driver).__name__ if MOTION.driver else "None"
-        connected = hasattr(MOTION.driver, 'ser') and MOTION.driver.ser is not None
-        
-        # Check if the serial port is accessible
-        port_status = "unknown"
-        if hasattr(MOTION.driver, 'port'):
-            import os
-            if os.path.exists(MOTION.driver.port):
-                port_status = "available"
-            else:
-                port_status = "missing"
-        
-        return {
-            "ok": True,
-            "driver": driver_name,
-            "connected": connected,
-            "port": getattr(MOTION.driver, 'port', 'unknown'),
-            "port_status": port_status
-        }
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.post("/motion/calibrate")
-async def motion_calibrate():
-    """Run calibration sequence"""
-    try:
-        # Basic calibration: home all axes
-        await MOTION.home_all()
-        return {"ok": True, "message": "Calibration complete", "pos": MOTION.current}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.post("/motion/save_a1_reference")
-async def motion_save_a1_reference():
-    """Save current position as A1 reference"""
-    try:
-        # This would typically save to config, for now just acknowledge
-        return {"ok": True, "message": "A1 reference saved", "pos": MOTION.current}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.get('/motion/status')
-def motion_status():
-    try:
-        from app.services.motion import get_controller, get_driver_name
-        ctrl = get_controller()
-        return {
-            "driver": get_driver_name(),
-            "pos": tuple(ctrl.current),
-            "homed": bool(ctrl.homed),
-            "cells_configured": len(getattr(ctrl, 'cells', {}) or {}),
-        }
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.post('/simulate/assign_move')
-def simulate_assign_move(payload: dict):
-    """Simulate assignment and return the cell plus G-code that would be used.
-    Expects {name: str, game: str (optional), action: 'pick'|'place' (optional)}"""
-    try:
-        name = str(payload.get('name', '')).strip()
-        if not name:
-            raise HTTPException(status_code=400, detail='Missing name')
-        game = payload.get('game', 'mtg')
-        action = payload.get('action', 'pick')
-        from app.services.assign import Card
-        from app.services.assign import assign_card
-        from app.services.motion import render_gcode_for_cell
-
-        card = Card(game=game, name=name, confidence=1.0)
-        cell, reason = assign_card(card, CFG, STATE)
-        try:
-            gcode = render_gcode_for_cell(cell, action=action)
-        except KeyError:
-            gcode = ['; no gcode available for unknown cell']
-        return {"cell": cell, "reason": reason, "gcode": gcode}
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.get('/motion/detect')
-def motion_detect():
-    """Detect serial devices on the host and report whether the configured
-    gcode serial port (if any) is present. Returns a JSON with 'ports' list
-    and a 'connected' boolean and optional 'matched' port.
-    """
-    try:
-        try:
-            # lazy import so server can run without pyserial installed
-            from serial.tools import list_ports
-        except Exception:
-            return {"ports": [], "connected": False, "error": "pyserial not available"}
-
-        ports = []
-        for p in list_ports.comports():
-            ports.append({"device": p.device, "description": str(p.description)})
-
-        # see if CFG contains a configured gcode port
-        raw = globals().get('raw_cfg') or {}
-        gcode = raw.get('gcode') if isinstance(raw, dict) else None
-        cfg_port = None
-        if isinstance(gcode, dict):
-            cfg_port = gcode.get('port')
-        matched = None
-        note = None
-        if cfg_port:
-            for p in ports:
-                if p['device'] == cfg_port or (cfg_port in p.get('description','')):
-                    matched = p
-                    break
-        else:
-            # No configured port: try to heuristically find a likely controller
-            # Prefer ACM/USB devices or descriptions mentioning known firmware/serial chips
-            heuristics = ['acm', 'usb', 'cdc', 'marlin', 'arduino', 'ch340', 'cp210x']
-            for p in ports:
-                dev = (p.get('device') or '').lower()
-                desc = (p.get('description') or '').lower()
-                if any(h in dev for h in ['ttyacm', 'ttyusb']) or any(h in desc for h in heuristics):
-                    matched = p
-                    note = 'auto-detected'
-                    break
-
-        connected = bool(matched)
-        out = {"ports": ports, "connected": connected, "matched": matched}
-        if note:
-            out['note'] = note
-        return out
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-# @app.get('/camera/devices')
-# def camera_devices(max_index: int = 4):
-#     try:
-#         from app.services.camera import list_devices
-#         return list_devices(max_index=max_index)
-#     except Exception as exc:
-#         raise HTTPException(status_code=500, detail=str(exc))
-
-
-# @app.post('/camera/select')
-# def camera_select(payload: dict):
-#     """Select the active camera device. Payload: {device: '/dev/video0' | 0}
-# 
-#     This updates the CameraManager configuration and closes/reopens the capture.
-#     """
-#     device = payload.get('device') if payload else None
-#     if device is None:
-#         raise HTTPException(status_code=400, detail='Missing device')
-#     try:
-#         from app.services.camera import get_manager
-#         mgr = get_manager()
-#         mgr.configure({'device': device})
-#         return {'ok': True, 'device': device}
-#     except Exception as exc:
-#         raise HTTPException(status_code=500, detail=str(exc))
-
-
-# Plunger / vacuum control endpoints used by the UI
-@app.post("/plunger/down")
-async def plunger_down():
-    try:
-        await MOTION.driver.plunger_down()
-        return {"ok": True}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.post("/plunger/up")
-async def plunger_up():
-    try:
-        await MOTION.driver.plunger_up()
-        return {"ok": True}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.post("/vacuum/on")
-async def vacuum_on():
-    try:
-        await MOTION.driver.vacuum_on()
-        return {"ok": True}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.post("/vacuum/off")
-async def vacuum_off():
-    try:
-        await MOTION.driver.vacuum_off()
-        return {"ok": True}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-
-@app.post("/motion/test_vacuum")
-async def test_vacuum():
-    """Simple test to activate vacuum"""
-    try:
-        await motion_controller.vacuum_on()
-        return {"status": "success", "message": "Vacuum activated"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.post("/motion/z_drop_and_vacuum")
-async def z_drop_and_vacuum():
-    """Drop Z a fixed amount and activate vacuum (simplified version)"""
-    try:
-        # Move Z down by 10mm (safer than using limit switch detection)
-        await motion_controller.jog('z', -10)
-        
-        # Activate vacuum
-        await motion_controller.vacuum_on()
-        
-        return {"status": "success", "message": "Z dropped 10mm and vacuum activated"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+async def motion_reset_position(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    payload = payload or {}
+    x = float(payload.get('x', 0.0))
+    y = float(payload.get('y', 0.0))
+    z = float(payload.get('z', 0.0))
+    await MOTION.reset_position(x, y, z)
+    return {"ok": True, "position": [x, y, z]}
 
 
 @app.post("/motion/set_current")
-async def motion_set_current(payload: dict):
-    """Set the server's notion of the current head position using a named cell id or explicit x/y/z."""
+async def motion_set_current(payload: Dict[str, Any]) -> Dict[str, Any]:
     if not payload:
         raise HTTPException(status_code=400, detail="Missing payload")
-    # allow {cell: 'A1'} or {x:..., y:..., z:...}
+
     cell = payload.get('cell')
     if cell:
         cell = str(cell).strip().upper()
         if cell not in CFG.cells:
             raise HTTPException(status_code=404, detail=f"Unknown cell {cell}")
         pos = CFG.cells[cell]
-        # pos may be a dataclass Cell without x/y/z; default to 0
         x = float(getattr(pos, 'x', 0.0) or 0.0)
         y = float(getattr(pos, 'y', 0.0) or 0.0)
         z = float(getattr(pos, 'z', 0.0) or 0.0)
         MOTION.current = (x, y, z)
         return {"ok": True, "pos": MOTION.current}
 
+    x = float(payload.get('x', MOTION.current[0]))
+    y = float(payload.get('y', MOTION.current[1]))
+    z = float(payload.get('z', MOTION.current[2]))
+    MOTION.current = (x, y, z)
+    return {"ok": True, "pos": MOTION.current}
+
+
+    mode_request = (
+        _normalize_mode_id(payload.get("sorting"))
+        or _normalize_mode_id(payload.get("sort_mode"))
+        or _normalize_mode_id(payload.get("mode"))
+    )
+    previous_mode = STATE.active_sort_mode
+    activated_mode_override = False
+    if mode_request:
+        if mode_request not in CFG.sort_modes:
+            raise HTTPException(status_code=404, detail=f"Unknown sort mode '{mode_request}'")
+        STATE.active_sort_mode = mode_request
+        activated_mode_override = True
+@app.post("/motion/test_vacuum")
+async def motion_test_vacuum() -> Dict[str, Any]:
     try:
-        x = float(payload.get('x', MOTION.current[0]))
-        y = float(payload.get('y', MOTION.current[1]))
-        z = float(payload.get('z', MOTION.current[2]))
-        MOTION.current = (x, y, z)
-        return {"ok": True, "pos": MOTION.current}
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        await MOTION.driver.vacuum_on()
+        await asyncio.sleep(0.1)
+        await MOTION.driver.vacuum_off()
+        return {"ok": True, "message": "Vacuum toggled"}
+    except Exception as exc:  # pragma: no cover - hardware specific
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-@app.post('/gcode/send')
-async def gcode_send(payload: dict):
-    """Send a raw G-code command to the active driver and return the firmware response lines.
+@app.post("/motion/z_drop_and_vacuum")
+async def motion_z_drop_and_vacuum() -> Dict[str, Any]:
+    try:
+        await MOTION.jog('z', -10.0)
+        await MOTION.driver.vacuum_on()
+        return {"ok": True, "message": "Z dropped and vacuum engaged"}
+    except Exception as exc:  # pragma: no cover - hardware specific
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    Payload: {"cmd": "M110"}
-    """
+
+@app.get("/motion/status")
+async def motion_status() -> Dict[str, Any]:
+    return await _motion_status_payload()
+
+
+@app.get("/motion/detect")
+def motion_detect() -> Dict[str, Any]:
+    try:
+        from serial.tools import list_ports  # type: ignore[import-not-found]
+    except Exception:
+        return {"ports": [], "connected": not is_demo_mode(), "error": "pyserial not available"}
+
+    ports = [{"device": p.device, "description": str(p.description)} for p in list_ports.comports()]
+    port = getattr(MOTION.driver, 'port', 'virtual')
+    matched = next((p for p in ports if p['device'] == port), None)
+    return {"ports": ports, "connected": bool(matched) or is_demo_mode(), "matched": matched}
+
+
+@app.post("/motion/calibrate")
+async def motion_calibrate() -> Dict[str, Any]:
+    await MOTION.home_all()
+    return {"ok": True, "message": "Calibration complete", "pos": MOTION.current}
+
+
+@app.post("/motion/save_a1_reference")
+async def motion_save_a1_reference() -> Dict[str, Any]:
+    result = await MOTION.save_a1_reference()
+    return {"ok": True, **result}
+
+
+# ---------------------------------------------------------------------------
+# Plunger / vacuum
+# ---------------------------------------------------------------------------
+
+
+@app.post("/plunger/down")
+async def plunger_down() -> Dict[str, Any]:
+    await MOTION.driver.plunger_down()
+    return {"ok": True}
+
+
+@app.post("/plunger/up")
+async def plunger_up() -> Dict[str, Any]:
+    await MOTION.driver.plunger_up()
+    return {"ok": True}
+
+
+@app.post("/vacuum/on")
+async def vacuum_on() -> Dict[str, Any]:
+    await MOTION.driver.vacuum_on()
+    return {"ok": True}
+
+
+@app.post("/vacuum/off")
+async def vacuum_off() -> Dict[str, Any]:
+    await MOTION.driver.vacuum_off()
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# G-code helpers
+# ---------------------------------------------------------------------------
+
+
+@app.post("/gcode/send")
+async def gcode_send(payload: Dict[str, Any]) -> Dict[str, Any]:
     cmd = payload.get('cmd') if payload else None
     if not cmd or not isinstance(cmd, str):
-        raise HTTPException(status_code=400, detail="Missing or invalid 'cmd' in payload")
+        raise HTTPException(status_code=400, detail="Missing or invalid 'cmd'")
+    if not hasattr(MOTION.driver, 'send_gcode'):
+        raise HTTPException(status_code=400, detail="Current driver does not support raw G-code send")
+    lines = await MOTION.driver.send_gcode(cmd)
+    return {"ok": True, "cmd": cmd, "lines": lines}
+
+
+@app.get("/gcode/mcodes")
+def gcode_mcodes_get() -> Dict[str, Any]:
+    mc = getattr(MOTION.driver, 'mcodes', None)
+    return {"mcodes": mc}
+
+
+@app.post("/gcode/mcodes")
+def gcode_mcodes_update(payload: Dict[str, Any]) -> Dict[str, Any]:
+    mc = payload.get('mcodes') if payload else None
+    if not isinstance(mc, dict):
+        raise HTTPException(status_code=400, detail="Missing or invalid 'mcodes'")
+    driver = MOTION.driver
+    if not hasattr(driver, 'mcodes'):
+        raise HTTPException(status_code=400, detail="Current driver does not support mcodes mapping")
+    current = getattr(driver, 'mcodes', None)
+    if not isinstance(current, dict):
+        raise HTTPException(status_code=400, detail="Driver mcodes not mutable")
+    current.update(mc)
+    return {"ok": True, "mcodes": current}
+
+
+# ---------------------------------------------------------------------------
+# Run/session management
+# ---------------------------------------------------------------------------
+
+
+@app.post("/run/start")
+def run_start(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    meta = dict(payload or {})
+
+    requested_mode = (
+        _normalize_mode_id(meta.get("sorting"))
+        or _normalize_mode_id(meta.get("sort_mode"))
+        or _normalize_mode_id(meta.get("mode"))
+    )
+    if requested_mode:
+        if requested_mode not in CFG.sort_modes:
+            raise HTTPException(status_code=404, detail=f"Unknown sort mode '{requested_mode}'")
+        STATE.active_sort_mode = requested_mode
+    else:
+        STATE.active_sort_mode = CFG.default_sort_mode
+
+    requested_op = (
+        _normalize_operation_id(meta.get("sort_operation"))
+        or _normalize_operation_id(meta.get("operation"))
+    )
+    if requested_op:
+        if requested_op not in CFG.sort_operations:
+            raise HTTPException(status_code=404, detail=f"Unknown sort operation '{requested_op}'")
+        STATE.active_sort_operation = requested_op
+    else:
+        STATE.active_sort_operation = CFG.default_sort_operation
+
+    active_mode = STATE.active_sort_mode or CFG.default_sort_mode or DEFAULT_SORT_MODE
+    mode_cfg = CFG.sort_modes.get(active_mode)
+    meta["sorting"] = active_mode
+    if mode_cfg:
+        meta.setdefault("sort_mode_label", mode_cfg.label)
+        meta.setdefault("sort_mode_type", mode_cfg.type)
+
+    active_operation = STATE.active_sort_operation or CFG.default_sort_operation or DEFAULT_SORT_OPERATION
+    if CFG.sort_operations:
+        if active_operation not in CFG.sort_operations:
+            active_operation = CFG.default_sort_operation or DEFAULT_SORT_OPERATION
+    else:
+        active_operation = None
+    STATE.active_sort_operation = active_operation
+    if active_operation:
+        meta.setdefault("sort_operation", active_operation)
+
     try:
-        drv = MOTION.driver
-        if not hasattr(drv, 'send_gcode'):
-            raise HTTPException(status_code=400, detail="Current driver does not support raw G-code send")
-        lines = await drv.send_gcode(cmd)
-        return {"ok": True, "cmd": cmd, "lines": lines}
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        session = SESSION.start_session(meta)
+        return {"ok": True, "session": session}
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
-@app.get('/gcode/mcodes')
-def gcode_mcodes_get():
-    """Return the active driver's mcodes mapping (if available).
-
-    This is useful to verify which M-codes are configured for plunger/vacuum.
-    """
+@app.post("/run/pause")
+def run_pause() -> Dict[str, Any]:
     try:
-        drv = MOTION.driver
-        mc = getattr(drv, 'mcodes', None)
-        return {"mcodes": mc}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        session = SESSION.update_state("Paused")
+        return {"ok": True, "session": session}
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
-@app.post('/gcode/mcodes')
-def gcode_mcodes_update(payload: dict):
-    """Update the active driver's mcodes mapping in-memory. Payload: {"mcodes": {"plunger_down": "M42 P.. S.."}}
-
-    This does not persist to config.yaml; use the device adoption UI to persist.
-    """
+@app.post("/run/resume")
+def run_resume() -> Dict[str, Any]:
     try:
-        mc = payload.get('mcodes') if payload else None
-        if not isinstance(mc, dict):
-            raise HTTPException(status_code=400, detail="Missing or invalid 'mcodes' mapping")
-        drv = MOTION.driver
-        if not hasattr(drv, 'mcodes'):
-            raise HTTPException(status_code=400, detail="Current driver does not support mcodes mapping")
-        # update in-place
-        drv.mcodes.update(mc)
-        return {"ok": True, "mcodes": drv.mcodes}
-    except HTTPException:
-        raise
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        session = SESSION.update_state("Running")
+        return {"ok": True, "session": session}
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
-def _default_card_db_path() -> Optional[str]:
-    """Return the default card database path if available."""
-    env_path = os.environ.get("SORTME_CARD_DB_PATH")
-    if env_path:
-        env_path = os.path.expanduser(env_path)
-        if os.path.exists(env_path):
-            return env_path
-    local_path = os.path.join("data", "demo_cards.json")
-    if os.path.exists(local_path):
-        return local_path
-    return None
+@app.post("/run/end")
+def run_end(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    notes = (payload or {}).get("notes") if payload else None
+    try:
+        session = SESSION.end_session(notes=notes)
+        return {"ok": True, "session": session}
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
-_CARD_DB_CACHE: Optional[List[dict]] = None
-_CARD_DB_PATH: Optional[str] = None
+@app.get("/run/status")
+def run_status() -> Dict[str, Any]:
+    status = SESSION.status()
+    status.setdefault("state", "Idle")
+    status.setdefault("throughput_cpm", 0.0)
+    return status
 
 
-def _load_card_db(path: str) -> List[dict]:
-    """Load and cache the local card DB to avoid repeated disk hits."""
+@app.post("/run/divert_current")
+def run_divert_current() -> Dict[str, Any]:
+    entry = _append_error("manual_divert")
+    return {"ok": True, "entry": entry}
 
-    global _CARD_DB_CACHE, _CARD_DB_PATH
 
-    if not path:
-        raise ValueError("Card database path is required")
+# ---------------------------------------------------------------------------
+# Error + log utilities
+# ---------------------------------------------------------------------------
 
-    path = os.path.expanduser(path)
-    if _CARD_DB_CACHE is None or _CARD_DB_PATH != path:
-        cards = card_id.load_local_db(path)
-        _CARD_DB_CACHE = cards
-        _CARD_DB_PATH = path
-    return _CARD_DB_CACHE
+
+@app.get("/errors/export")
+def errors_export() -> Any:
+    if not ERROR_LOG:
+        return {"ok": False, "message": "No errors recorded"}
+    import csv
+
+    buf = StringIO()
+    writer = csv.DictWriter(buf, fieldnames=["id", "reason", "timestamp"])
+    writer.writeheader()
+    for item in ERROR_LOG:
+        writer.writerow({
+            "id": item.get("id"),
+            "reason": item.get("reason"),
+            "timestamp": item.get("timestamp"),
+        })
+    csv_bytes = buf.getvalue().encode("utf8")
+    data = base64.b64encode(csv_bytes).decode("ascii")
+    return f"data:text/csv;base64,{data}"
+
+
+@app.post("/errors/clear")
+def errors_clear() -> Dict[str, Any]:
+    ERROR_LOG.clear()
+    return {"ok": True}
+
+
+@app.get("/logs/tail")
+def logs_tail() -> Dict[str, Any]:
+    lines = [f"[error] {item['timestamp']} {item['reason']}" for item in ERROR_LOG[-20:]]
+    text = "\n".join(lines) if lines else "(no recent log entries)"
+    return {"text": text}
+
+
+# ---------------------------------------------------------------------------
+# Camera endpoints
+# ---------------------------------------------------------------------------
+
+
+@app.get("/camera/devices")
+def camera_devices(max_index: int = 4) -> Dict[str, Any]:
+    return camera_svc.list_devices(max_index=max_index)
+
+
+@app.post("/camera/select")
+def camera_select(payload: Dict[str, Any]) -> Dict[str, Any]:
+    device = payload.get("device")
+    if device is None:
+        raise HTTPException(status_code=400, detail="Missing device")
+    camera_svc.configure({"device": device})
+    return {"ok": True, "device": device, "info": camera_svc.get_manager().info()}
+
+
+@app.get("/camera/status")
+def camera_status() -> Dict[str, Any]:
+    info = camera_svc.get_manager().info()
+    device = info.get("device")
+    path = str(device) if device is not None else "unknown"
+    if isinstance(device, int):
+        path = f"/dev/video{device}"
+    return {
+        "device": device,
+        "path": path,
+        "online": info.get("online"),
+        "resolution": info.get("resolution"),
+        "fps": info.get("fps"),
+        "last_frame_ts": info.get("last_frame_ts"),
+    }
+
+
+@app.post("/camera/dual_snapshot")
+async def camera_dual_snapshot(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    offset = 44.0
+    if payload and "offset_mm" in payload:
+        try:
+            offset = float(payload["offset_mm"])
+        except Exception:
+            raise HTTPException(status_code=400, detail="offset_mm must be numeric")
+    return await ocr_pipeline.capture_dual_snapshot(offset_mm=offset)
+
+
+# ---------------------------------------------------------------------------
+# Demo helpers / compatibility
+# ---------------------------------------------------------------------------
+
+
+@app.post("/demo/mode")
+def demo_mode(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    requested = bool((payload or {}).get("demo")) if payload else False
+    message = None
+    if requested and not is_demo_mode():
+        message = "Switching drivers at runtime is not supported; using current driver."
+    return {"ok": True, "demo": is_demo_mode(), "message": message}
+
+
+# ---------------------------------------------------------------------------
+# Debug + simulation APIs
+# ---------------------------------------------------------------------------
+
+
+@app.post("/simulate/assign_move")
+def simulate_assign_move(payload: Dict[str, Any]) -> Dict[str, Any]:
+    name = str(payload.get('name', '')).strip()
+    if not name:
+        raise HTTPException(status_code=400, detail='Missing name')
+    game = payload.get('game', 'mtg')
+    action = payload.get('action', 'pick')
+    card = Card(
+        game=game,
+        name=name,
+        confidence=1.0,
+        scryfall_id=payload.get('scryfall_id'),
+        printed_name=payload.get('printed_name'),
+        flavor_name=payload.get('flavor_name'),
+    )
+    cell, reason = assign_card(card, CFG, STATE)
+    try:
+        from app.services.motion import render_gcode_for_cell
+
+        gcode = render_gcode_for_cell(cell, action=action)
+    except Exception:
+        gcode = ['; gcode preview unavailable']
+    return {"cell": cell, "reason": reason, "gcode": gcode}
+
 
 @app.get("/debug/alpha_map")
-def alpha_map():
+def alpha_map() -> Dict[str, Any]:
     return {"letter_to_cell": CFG.letter_to_cell}
 
+
 @app.post("/debug/reset_counts")
-def reset_counts():
+def reset_counts() -> Dict[str, Any]:
     for k in STATE.counts_by_cell.keys():
         STATE.counts_by_cell[k] = 0
     return {"ok": True}
 
+
 @app.post("/debug/assign")
-def debug_assign(payload: dict):
-    name = str(payload.get("name","")).strip()
+def debug_assign(payload: Dict[str, Any]) -> Dict[str, Any]:
+    name = str(payload.get("name", "")).strip()
     conf = float(payload.get("confidence", 1.0))
-    card = Card(game=payload.get("game","mtg"), name=name, confidence=conf)
+    card = Card(
+        game=payload.get("game", "mtg"),
+        name=name,
+        confidence=conf,
+        scryfall_id=payload.get("scryfall_id"),
+        printed_name=payload.get("printed_name"),
+        flavor_name=payload.get("flavor_name"),
+    )
     cell, reason = assign_card(card, CFG, STATE)
     STATE.counts_by_cell[cell] = STATE.counts_by_cell.get(cell, 0) + 1
     return {"cell": cell, "reason": reason, "counts": STATE.counts_by_cell}
 
-# Non-mutating preview endpoint for the UI assignment preview
+
 @app.post("/debug/assign_preview")
-def debug_assign_preview(payload: dict):
-    name = str(payload.get("name","")).strip()
+def debug_assign_preview(payload: Dict[str, Any]) -> Dict[str, Any]:
+    raw_name = str(payload.get("name", "")).strip()
+    raw_id = str(payload.get("scryfall_id", "")).strip()
+    name = raw_name or raw_id
     conf = float(payload.get("confidence", 1.0))
-    card = Card(game=payload.get("game","mtg"), name=name, confidence=conf)
-    # reuse same assignment logic but DO NOT increment STATE
-    cell, reason = assign_card(card, CFG, STATE)
-    first = (name[:1].upper() if name and name[0].isalpha() else "A")
-    return {"cell": cell, "reason": reason, "first": first}
+    card = Card(
+        game=payload.get("game", "mtg"),
+        name=name,
+        confidence=conf,
+        scryfall_id=raw_id or None,
+        printed_name=payload.get("printed_name"),
+        flavor_name=payload.get("flavor_name"),
+    )
+
+    override = _normalize_operation_id(payload.get("sort_operation") or payload.get("operation"))
+    previous_operation = STATE.active_sort_operation
+    activated_override = False
+    if override:
+        if not CFG.sort_operations:
+            raise HTTPException(status_code=404, detail="No sort operations configured")
+        if override not in CFG.sort_operations:
+            raise HTTPException(status_code=404, detail=f"Unknown sort operation '{override}'")
+        STATE.active_sort_operation = override
+        activated_override = True
+
+    mode_request = (
+        _normalize_mode_id(payload.get("sorting"))
+        or _normalize_mode_id(payload.get("sort_mode"))
+        or _normalize_mode_id(payload.get("mode"))
+    )
+    previous_mode = STATE.active_sort_mode
+    activated_mode_override = False
+    if mode_request:
+        if mode_request not in CFG.sort_modes:
+            raise HTTPException(status_code=404, detail=f"Unknown sort mode '{mode_request}'")
+        STATE.active_sort_mode = mode_request
+        activated_mode_override = True
+
+    card_details = _get_card_details(raw_id) if raw_id else {}
+    card_details = dict(card_details or {})
+    if not card_details and raw_name:
+        card_details = {"name": raw_name}
+
+    metadata_name = card_details.get("name") if card_details else None
+    if card_details:
+        card.printed_name = card_details.get("printed_name") or card.printed_name
+        card.flavor_name = card_details.get("flavor_name") or card.flavor_name
+
+    if metadata_name and (not card.name or card.name == raw_id):
+        card.name = metadata_name
+
+    if card.printed_name and "printed_name" not in card_details:
+        card_details["printed_name"] = card.printed_name
+    if card.flavor_name and "flavor_name" not in card_details:
+        card_details["flavor_name"] = card.flavor_name
+    if card.name and "name" not in card_details:
+        card_details["name"] = card.name
+
+    display_name = (card.display_name() or "").strip()
+    first = (display_name[:1] or "#").upper()
+    if first < "A" or first > "Z":
+        first = "A"
+
+    reason_summary: Dict[str, Any] = {}
+    mode_used = STATE.active_sort_mode or CFG.default_sort_mode or DEFAULT_SORT_MODE
+    mode_cfg = CFG.sort_modes.get(mode_used)
+    operation_used = STATE.active_sort_operation or CFG.default_sort_operation
+
+    try:
+        cell, reason = assign_card(card, CFG, STATE)
+        operation_used = STATE.active_sort_operation or CFG.default_sort_operation
+        reason_summary = _summarize_reason(reason)
+        detected_mode = reason_summary.get("mode") if isinstance(reason_summary, dict) else None
+        if detected_mode:
+            mode_used = detected_mode
+            mode_cfg = CFG.sort_modes.get(mode_used) or mode_cfg
+    finally:
+        if activated_override:
+            STATE.active_sort_operation = previous_operation
+        if activated_mode_override:
+            STATE.active_sort_mode = previous_mode
+
+    mode_label = mode_cfg.label if mode_cfg else mode_used
+    mode_type = mode_cfg.type if mode_cfg else None
+    first_key = None
+    if isinstance(reason_summary, dict):
+        first_key = reason_summary.get("key") or reason_summary.get("token")
+    first_display = first_key or first
+
+    return {
+        "cell": cell,
+        "reason": reason,
+        "first": first_display,
+        "card": card_details,
+        "operation": operation_used,
+        "mode": mode_used,
+        "mode_label": mode_label,
+        "mode_type": mode_type,
+        "mode_key": first_key,
+        "reason_details": reason_summary,
+        "first_display": first_display,
+    }
 
 
 @app.post("/physical_testing/assign_known_card")
-def assign_known_card(payload: dict):
-    """
-    Manual card assignment for physical testing with perfect identification.
-    Accepts: {
-        "card_name": "Lightning Bolt",
-        "confidence": 1.0,  # optional, defaults to 1.0
-        "perform_motion": true  # optional, if true will execute physical pick and place
-    }
-    """
+def assign_known_card(payload: Dict[str, Any]) -> Dict[str, Any]:
     card_name = str(payload.get("card_name", "")).strip()
     confidence = float(payload.get("confidence", 1.0))
     perform_motion = bool(payload.get("perform_motion", False))
-    
     if not card_name:
         raise HTTPException(status_code=400, detail="card_name is required")
-    
-    # Create card object and assign to cell
-    card = Card(game="mtg", name=card_name, confidence=confidence)
+
+    card = Card(
+        game="mtg",
+        name=card_name,
+        confidence=confidence,
+        scryfall_id=payload.get("scryfall_id"),
+        printed_name=payload.get("printed_name"),
+        flavor_name=payload.get("flavor_name"),
+    )
     cell, reason = assign_card(card, CFG, STATE)
-    
-    # Update state counts
     STATE.counts_by_cell[cell] = STATE.counts_by_cell.get(cell, 0) + 1
-    
+
     result = {
         "card_name": card_name,
         "assigned_cell": cell,
         "reason": reason,
         "confidence": confidence,
         "counts": STATE.counts_by_cell,
-        "motion_performed": False
+        "motion_performed": False,
     }
-    
-    # Optionally perform physical motion
     if perform_motion:
-        try:
-            # This would trigger the actual pick-and-place sequence
-            # For now, just indicate it would happen
-            result["motion_performed"] = True
-            result["motion_note"] = "Motion execution not yet implemented - coming soon!"
-        except Exception as exc:
-            result["motion_error"] = str(exc)
-    
+        result["motion_performed"] = True
+        result["motion_note"] = "Motion execution not yet implemented"
     return result
 
 
-if __name__ == "__main__":
-    import uvicorn
+# ---------------------------------------------------------------------------
+# Upload endpoints (OCR experiments)
+# ---------------------------------------------------------------------------
+
+
+@app.post("/ocr/upload")
+async def ocr_upload(file: UploadFile = File(...)) -> Dict[str, Any]:  # pragma: no cover - tooling endpoint
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty upload")
+    encoded = base64.b64encode(data[:80]).decode("ascii")
+    return {"ok": True, "preview": encoded}
+
+
+if __name__ == "__main__":  # pragma: no cover - manual launch helper
+    import uvicorn  # type: ignore[import-not-found]
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

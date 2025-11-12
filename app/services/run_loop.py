@@ -3,12 +3,13 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
-import yaml
+import yaml  # type: ignore[import-not-found]
 
 from services.assign import Card, Config, SystemState, assign_card, load_config
 from services import camera as camera_svc
 from services import feeder_monitor as feeder_vision
 from services import motion as motion_svc
+from services import sort_session
 
 try:  # optional event bus
     from services import events  # type: ignore
@@ -22,6 +23,8 @@ with open("config.yaml", "r", encoding="utf8") as _cfg_fh:
 
 CFG: Config = load_config(_RAW_CFG)
 state = SystemState(counts_by_cell={cid: 0 for cid in CFG.cells})
+state.active_sort_operation = CFG.default_sort_operation
+state.active_sort_mode = CFG.default_sort_mode
 CAMERA_CFG = _RAW_CFG.get("camera", {}) if isinstance(_RAW_CFG, dict) else {}
 
 try:
@@ -226,7 +229,10 @@ async def _handle_card_identified_async(meta: dict):
             name=meta["name"],
             set_code=meta.get("set_code"),
             collector_number=meta.get("collector_number"),
+            scryfall_id=meta.get("scryfall_id") or meta.get("id"),
             confidence=float(meta.get("confidence", 1.0)),
+            printed_name=meta.get("printed_name"),
+            flavor_name=meta.get("flavor_name"),
         )
 
         cell_id, reason = assign_card(card, CFG, state)
@@ -284,6 +290,31 @@ async def _handle_card_identified_async(meta: dict):
                 events.publish("placement", {"card": card.name, "cell": cell_id, "reason": reason})
             except Exception:
                 LOG.debug("events.publish unavailable or failed")
+
+        # persist operation details for spreadsheet export
+        try:
+            orientation = meta.get("orientation") if isinstance(meta, dict) else None
+            image_paths = meta.get("image_paths") if isinstance(meta, dict) else None
+            ocr_map = None
+            if isinstance(meta, dict):
+                ocr_map = meta.get("ocr") or meta.get("ocr_map")
+
+            entry = {
+                "card_name": card.name,
+                "set_code": card.set_code,
+                "collector_number": card.collector_number,
+                "scryfall_id": card.scryfall_id,
+                "confidence": card.confidence,
+                "assigned_cell": cell_id,
+                "source_cell": source_cell,
+                "reason": reason,
+                "ocr_name": (ocr_map or {}).get("name") if isinstance(ocr_map, dict) else meta.get("name") if isinstance(meta, dict) else None,
+                "orientation": orientation,
+                "image_paths": image_paths,
+            }
+            await sort_session.log_operation_async(entry)
+        except Exception as log_exc:  # pragma: no cover - logging should not break sort flow
+            LOG.warning("Failed to record sort operation: %s", log_exc)
 
     except Exception as exc:
         LOG.exception("on_card_identified failed: %s", exc)
