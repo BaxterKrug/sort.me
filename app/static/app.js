@@ -17,18 +17,46 @@ const toast = (msg) => {
   setTimeout(()=> t.remove(), 3200);
 };
 
+function base64ToBlob(base64, mime){
+  try{
+    const binary = atob(base64);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for(let i=0;i<len;i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], {type: mime || 'application/octet-stream'});
+  }catch(err){
+    console.warn('Failed to decode base64 payload', err);
+    return null;
+  }
+}
+
 function setCameraStatus(state){
   const chip = $('cameraStatus');
   if(!chip) return;
-  if(!state || state.error){
-    chip.textContent = 'Camera: error';
+  if(!state){
+    chip.textContent = 'Camera: unknown';
     chip.classList.add('muted');
     return;
   }
   const online = !!state.online;
   const path = state.path || state.device || 'unknown';
-  chip.textContent = `Camera: ${online ? 'online' : 'offline'} ${path}`.trim();
+  let label = `Camera: ${online ? 'online' : 'offline'} ${path}`.trim();
+  if(!online && state.error){
+    label += ` — ${state.error}`;
+  }
+  chip.textContent = label;
   chip.classList.toggle('muted', !online);
+  if(online){
+    if(!cameraWasOnline){
+      captureSnapshot({silent:true});
+    }
+  }else{
+    if(cameraImg){
+      cameraImg.removeAttribute('src');
+      delete cameraImg.dataset.snapshotTs;
+    }
+  }
+  cameraWasOnline = online;
 }
 
 async function pollCameraStatus(){
@@ -58,6 +86,154 @@ function api(path, opts){
 const panelCalibrate = $('panelCalibrate');
 const panelSetup = $('panelSetup');
 const panelRun = $('panelRun');
+const cameraImg = $('cameraLive');
+const snapshotWrap = $('snapshotPreviewWrap');
+const snapshotImgTop = $('snapshotPreviewTop');
+const snapshotImgBottom = $('snapshotPreviewBottom');
+const snapshotTimestamp = $('snapshotTimestamp');
+const snapshotDownloadBtn = $('btnDownloadSnapshot');
+const snapshotLocation = $('snapshotLocation');
+let cameraObjUrl = null;
+let cameraWasOnline = false;
+let cameraSnapPending = false;
+let cameraBlob = null;
+let snapshotBottomUrl = null;
+let snapshotBottomBlob = null;
+let lastSnapshotMeta = null;
+
+function releaseSnapshotUrls(){
+  if(cameraObjUrl){
+    URL.revokeObjectURL(cameraObjUrl);
+    cameraObjUrl = null;
+  }
+  if(snapshotBottomUrl){
+    URL.revokeObjectURL(snapshotBottomUrl);
+    snapshotBottomUrl = null;
+  }
+}
+
+function clearSnapshotPreview(){
+  releaseSnapshotUrls();
+  cameraBlob = null;
+  snapshotBottomBlob = null;
+  lastSnapshotMeta = null;
+  if(snapshotImgTop){
+    snapshotImgTop.removeAttribute('src');
+  }
+  if(snapshotImgBottom){
+    snapshotImgBottom.removeAttribute('src');
+  }
+  if(snapshotTimestamp){
+    snapshotTimestamp.textContent = 'No snapshot yet';
+  }
+  if(snapshotLocation){
+    snapshotLocation.textContent = 'Not saved yet';
+  }
+  if(snapshotDownloadBtn){
+    snapshotDownloadBtn.disabled = true;
+  }
+}
+
+async function captureSnapshot(opts = {}){
+  if(!cameraImg || cameraSnapPending) return;
+  const silent = !!opts.silent;
+  const btn = $('btnCameraSnapshot');
+  const originalText = btn ? btn.textContent : '';
+  try{
+    cameraSnapPending = true;
+    if(btn && !silent){
+      btn.disabled = true;
+      btn.textContent = 'Capturing…';
+    }
+    const res = await fetch(`${BASE}/camera/snapshot?ts=${Date.now()}`, {cache: 'no-store'});
+    if(!res.ok){
+      throw new Error(`${res.status} ${res.statusText}`.trim());
+    }
+    const data = await res.json();
+    const frames = Array.isArray(data?.frames) ? data.frames : [];
+    if(frames.length === 0){
+      throw new Error('Snapshot response missing frames');
+    }
+    const topFrame = frames.find(f=> String(f.label||'').toLowerCase()==='top') || frames[0];
+    const bottomFrame = frames.find(f=> String(f.label||'').toLowerCase()==='bottom');
+    const topBlob = topFrame?.image ? base64ToBlob(topFrame.image, topFrame.mime || 'image/jpeg') : null;
+    if(!topBlob){
+      throw new Error('Unable to decode top snapshot');
+    }
+    const bottomBlob = bottomFrame?.image ? base64ToBlob(bottomFrame.image, bottomFrame.mime || 'image/jpeg') : null;
+    const previousTopUrl = cameraObjUrl;
+    const previousBottomUrl = snapshotBottomUrl;
+
+    cameraBlob = topBlob;
+    cameraObjUrl = URL.createObjectURL(topBlob);
+    cameraImg.src = cameraObjUrl;
+    const ts = typeof data?.timestamp === 'string' ? data.timestamp : String(Date.now());
+    cameraImg.dataset.snapshotTs = ts;
+    if(snapshotImgTop){
+      snapshotImgTop.src = cameraObjUrl;
+    }
+
+    if(bottomBlob){
+      snapshotBottomBlob = bottomBlob;
+      snapshotBottomUrl = URL.createObjectURL(bottomBlob);
+      if(snapshotImgBottom){
+        snapshotImgBottom.src = snapshotBottomUrl;
+      }
+    }else{
+      if(snapshotImgBottom){
+        snapshotImgBottom.removeAttribute('src');
+      }
+      if(snapshotBottomUrl){
+        URL.revokeObjectURL(snapshotBottomUrl);
+        snapshotBottomUrl = null;
+      }
+      snapshotBottomBlob = null;
+    }
+
+    lastSnapshotMeta = {
+      timestamp: ts,
+      offset: data?.offset_mm,
+      frames,
+    };
+
+    if(snapshotTimestamp){
+      let capturedAt = new Date(ts);
+      if(Number.isNaN(capturedAt.getTime())){
+        capturedAt = new Date();
+      }
+      snapshotTimestamp.textContent = `Captured ${capturedAt.toLocaleString()} (offset ${data?.offset_mm ?? 0} mm)`;
+    }
+    if(snapshotLocation){
+      const topPath = topFrame?.path || 'Not saved';
+      const bottomPath = bottomFrame?.path || 'Not saved';
+      snapshotLocation.textContent = `Top: ${topPath}\nBottom: ${bottomPath}`;
+    }
+    if(snapshotDownloadBtn){
+      snapshotDownloadBtn.disabled = false;
+    }
+
+    if(previousTopUrl){
+      URL.revokeObjectURL(previousTopUrl);
+    }
+    if(previousBottomUrl){
+      URL.revokeObjectURL(previousBottomUrl);
+    }
+  }catch(err){
+    if(!silent){
+      toast(`Snapshot failed: ${err.message}`);
+    }
+  }finally{
+    if(btn && !silent){
+      btn.disabled = false;
+      btn.textContent = originalText || 'Capture Snapshot';
+    }
+    cameraSnapPending = false;
+  }
+}
+
+window.addEventListener('beforeunload', ()=>{
+  clearSnapshotPreview();
+});
 
 on($('btnToSetup'), 'click', ()=>{
   panelSetup.scrollIntoView({behavior:'smooth', block:'start'});
@@ -130,64 +306,24 @@ on($('btnHomeX'), 'click', ()=> api('/motion/home_x',{method:'POST'}).then(()=>t
 on($('btnHomeY'), 'click', ()=> api('/motion/home_y',{method:'POST'}).then(()=>toast('Homed Y axis')).catch(e=>toast(e.message)));
 on($('btnHomeZ'), 'click', ()=> api('/motion/home_z',{method:'POST'}).then(()=>toast('Homed Z axis')).catch(e=>toast(e.message)));
 
-// Jog controls
-on($('btnJogXPlus'), 'click', ()=> {
-  const distance = parseFloat($('jogDistance').value) || 1.0;
-  jogAxis('X', distance);
+on($('btnTestVacuum'), 'click', async ()=>{
+  try{
+    const res = await api('/motion/test_vacuum', {method:'POST'});
+    const msg = res?.message || 'Vacuum toggled';
+    toast(msg);
+  }catch(err){
+    toast(`Vacuum test failed: ${err.message}`);
+  }
 });
-on($('btnJogXMinus'), 'click', ()=> {
-  const distance = parseFloat($('jogDistance').value) || 1.0;
-  jogAxis('X', -distance);
+on($('btnZDropVacuum'), 'click', async ()=>{
+  try{
+    const res = await api('/motion/z_drop_and_vacuum', {method:'POST'});
+    const msg = res?.message || 'Z dropped and vacuum engaged';
+    toast(msg);
+  }catch(err){
+    toast(`Z drop failed: ${err.message}`);
+  }
 });
-on($('btnJogYPlus'), 'click', ()=> {
-  const distance = parseFloat($('jogDistance').value) || 1.0;
-  jogAxis('Y', distance);
-});
-on($('btnJogYMinus'), 'click', ()=> {
-  const distance = parseFloat($('jogDistance').value) || 1.0;
-  jogAxis('Y', -distance);
-});
-on($('btnJogZPlus'), 'click', ()=> {
-  const distance = parseFloat($('jogDistance').value) || 1.0;
-  jogAxis('Z', distance);
-});
-on($('btnJogZMinus'), 'click', ()=> {
-  const distance = parseFloat($('jogDistance').value) || 1.0;
-  jogAxis('Z', -distance);
-});
-
-    // Test vacuum button
-    const btnTestVacuum = document.getElementById('btnTestVacuum');
-    if (btnTestVacuum) {
-        btnTestVacuum.addEventListener('click', async () => {
-            try {
-                const response = await fetch('/motion/test_vacuum', {
-                    method: 'POST'
-                });
-                const result = await response.json();
-                console.log('Test vacuum result:', result);
-            } catch (error) {
-                console.error('Error testing vacuum:', error);
-            }
-        });
-    }
-
-    // Z drop and vacuum button
-    const btnZDropVacuum = document.getElementById('btnZDropVacuum');
-    if (btnZDropVacuum) {
-        btnZDropVacuum.addEventListener('click', async () => {
-            try {
-                const response = await fetch('/motion/z_drop_and_vacuum', {
-                    method: 'POST'
-                });
-                const result = await response.json();
-                console.log('Z drop and vacuum result:', result);
-            } catch (error) {
-                console.error('Error with Z drop and vacuum:', error);
-            }
-        });
-    }
-
 on($('btnVacuumOff'), 'click', ()=> {
   api('/vacuum/off', {method:'POST'})
     .then(() => toast('Vacuum off'))
@@ -366,6 +502,63 @@ on($('btnEndRun'), 'click', async ()=>{
 });
 
 on($('btnManualDivert'),'click', ()=> api('/run/divert_current',{method:'POST'}).then(()=>toast('Current card diverted to K3')).catch(e=>toast(e.message)));
+on($('btnCameraSnapshot'),'click', ()=> captureSnapshot());
+on(snapshotDownloadBtn, 'click', ()=>{
+  if(!cameraBlob){
+    toast('No snapshot captured yet');
+    return;
+  }
+
+  const meta = lastSnapshotMeta || {};
+  let ts = meta.timestamp || cameraImg?.dataset?.snapshotTs;
+  let isoName;
+  try{
+    const dt = ts ? new Date(ts) : new Date();
+    isoName = dt.toISOString().replace(/[:.]/g,'-');
+  }catch{
+    ts = Date.now();
+    isoName = new Date(ts).toISOString().replace(/[:.]/g,'-');
+  }
+
+  const frames = Array.isArray(meta.frames) ? meta.frames : [];
+  const topFrame = frames.find(f=> String(f.label||'').toLowerCase()==='top') || frames[0] || {};
+  const bottomFrame = frames.find(f=> String(f.label||'').toLowerCase()==='bottom') || {};
+
+  const downloads = [];
+  downloads.push({
+    label: String(topFrame.label || 'top').toLowerCase(),
+    mime: topFrame.mime || 'image/jpeg',
+    blob: cameraBlob,
+    url: cameraObjUrl,
+  });
+  if(snapshotBottomBlob && snapshotBottomUrl){
+    downloads.push({
+      label: String(bottomFrame.label || 'bottom').toLowerCase(),
+      mime: bottomFrame.mime || 'image/jpeg',
+      blob: snapshotBottomBlob,
+      url: snapshotBottomUrl,
+    });
+  }
+
+  downloads.forEach(item=>{
+    if(!item.blob) return;
+    const ext = item.mime.includes('png') ? 'png' : (item.mime.includes('jpeg') || item.mime.includes('jpg') ? 'jpg' : 'bin');
+    const filename = `snapshot-${isoName}-${item.label}.${ext}`;
+    const anchor = document.createElement('a');
+    const downloadUrl = item.url || URL.createObjectURL(item.blob);
+    anchor.href = downloadUrl;
+    anchor.download = filename;
+    anchor.rel = 'noopener';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    if(!item.url){
+      setTimeout(()=> URL.revokeObjectURL(downloadUrl), 5000);
+    }
+  });
+
+  toast(downloads.length > 1 ? 'Downloaded top & bottom snapshots' : 'Downloaded snapshot');
+});
 
 on($('btnMoveToCell'), 'click', async ()=>{
   const id = $('positionSelect').value;

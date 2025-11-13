@@ -25,68 +25,107 @@
       <h2>Onboarding & Calibration</h2>
       <p class="muted">Quick, safe checks you can run anytime.</p>
 
-      <div class="grid-2">
-        <div class="card">
-          <h3>Jog Controls</h3>
-          <p class="muted">Manual axis movement for positioning, testing, and homing.</p>
-          <div class="jog-controls">
-            <div class="jog-section">
-              <label>X Axis</label>
-              <div class="jog-buttons">
-                <button id="btnJogXMinus" class="jog-btn">X-</button>
-                <button id="btnJogXPlus" class="jog-btn">X+</button>
+      <div class="calibration-layout">
+        <div class="calibration-left">
+          <div class="card camera-card">
+            <h3>Live Camera</h3>
+            <div class="camera large">
+              <img id="cameraLive" alt="Live stream" />
+            </div>
+            <div class="row">
+              <button id="btnCameraSnapshot" class="secondary">Capture Snapshot</button>
+            </div>
+            <div id="snapshotPreviewWrap" class="snapshot-preview">
+              <div class="snapshot-preview-images">
+                <div class="snapshot-image-block">
+                  <span class="muted">Top (Current)</span>
+                  <img id="snapshotPreviewTop" alt="Top snapshot" />
+                </div>
+                <div class="snapshot-image-block">
+                  <span class="muted">Bottom (+40mm)</span>
+                  <img id="snapshotPreviewBottom" alt="Bottom snapshot" />
+                </div>
+              </div>
+              <div class="snapshot-meta">
+                <span id="snapshotTimestamp" class="muted">No snapshot yet</span>
+                <span id="snapshotLocation" class="muted">Not saved yet</span>
+              </div>
+              <div class="row end">
+                <button id="btnDownloadSnapshot" class="secondary" disabled>Download Snapshot</button>
               </div>
             </div>
-            <div class="jog-section">
-              <label>Y Axis</label>
-              <div class="jog-buttons">
-                <button id="btnJogYMinus" class="jog-btn">Y-</button>
-                <button id="btnJogYPlus" class="jog-btn">Y+</button>
-              </div>
+            <div class="row">
+              <span class="muted">Current Card:</span>
+              <span id="currentCard" class="chip">—</span>
             </div>
-            <div class="jog-section">
-              <label>Z Axis</label>
-              <div class="jog-buttons">
-                <button id="btnJogZMinus" class="jog-btn">Z-</button>
-                <button id="btnJogZPlus" class="jog-btn">Z+</button>
-              </div>
-            </div>
-            <div class="jog-section">
-              <label>Vacuum Control</label>
-              <div class="jog-buttons">
-                <button id="btnTestVacuum" class="jog-btn warning">Test Vacuum</button>
-                <button id="btnZDropVacuum" class="jog-btn primary">Z Drop + Vacuum</button>
-                <button id="btnVacuumOff" class="jog-btn secondary">Vacuum Off</button>
-              </div>
-            </div>
-            <div class="jog-section">
-              <label>Homing</label>
-              <div class="jog-buttons">
-                <button id="btnHomeX" class="jog-btn secondary">Home X</button>
-                <button id="btnHomeY" class="jog-btn secondary">Home Y</button>
-                <button id="btnHomeZ" class="jog-btn secondary">Home Z</button>
-              </div>
-            </div>
-            <div class="jog-section">
-              <label for="jogDistance">Distance (mm)</label>
-              <select id="jogDistance">
-                <option value="0.1">0.1mm</option>
-                <option value="1" selected>1mm</option>
-                <option value="5">5mm</option>
-                <option value="10">10mm</option>
-                <option value="25">25mm</option>
-              </select>
+            <div class="row">
+              <button id="btnManualDivert" class="secondary">Divert This Card</button>
             </div>
           </div>
         </div>
+        <div class="calibration-right">
+          <div class="card">
+            <h3>Grid &amp; Cells</h3>
+            <p class="muted">Excel-style grid: <strong>Columns = letters</strong>, <strong>Rows = numbers</strong>. A-row is feeders; <strong>K3 is the error cell.</strong></p>
+            <div id="gridPreview" class="grid-preview"></div>
+            <div class="row">
+              <button id="btnReloadGrid" class="secondary">Reload Grid</button>
+              <button id="btnTestCellMoves" class="secondary">Test Moves…</button>
+            </div>
+          </div>
 
-        <div class="card">
-          <h3>Grid &amp; Cells</h3>
-          <p class="muted">Excel-style grid: <strong>Columns = letters</strong>, <strong>Rows = numbers</strong>. A-row is feeders; <strong>K3 is the error cell.</strong></p>
-          <div id="gridPreview" class="grid-preview"></div>
-          <div class="row">
-            <button id="btnReloadGrid" class="secondary">Reload Grid</button>
-            <button id="btnTestCellMoves" class="secondary">Test Moves…</button>
+          <div class="card">
+            <h3>Jog Controls</h3>
+            <p class="muted">Manual axis movement for positioning, testing, and homing.</p>
+            <div class="jog-controls">
+              <div class="jog-section">
+                <label>X Axis</label>
+                <div class="jog-buttons">
+                  <button id="btnJogXMinus" class="jog-btn">X-</button>
+                  <button id="btnJogXPlus" class="jog-btn">X+</button>
+                </div>
+              </div>
+              <div class="jog-section">
+                <label>Y Axis</label>
+                <div class="jog-buttons">
+                  <button id="btnJogYMinus" class="jog-btn">Y-</button>
+                  <button id="btnJogYPlus" class="jog-btn">Y+</button>
+                </div>
+              </div>
+              <div class="jog-section">
+                <label>Z Axis</label>
+                <div class="jog-buttons">
+                  <button id="btnJogZMinus" class="jog-btn">Z-</button>
+                  <button id="btnJogZPlus" class="jog-btn">Z+</button>
+                </div>
+              </div>
+              <div class="jog-section">
+                <label>Vacuum Control</label>
+                <div class="jog-buttons">
+                  <button id="btnTestVacuum" class="jog-btn warning">Test Vacuum</button>
+                  <button id="btnZDropVacuum" class="jog-btn primary">Z Drop + Vacuum</button>
+                  <button id="btnVacuumOff" class="jog-btn secondary">Vacuum Off</button>
+                </div>
+              </div>
+              <div class="jog-section">
+                <label>Homing</label>
+                <div class="jog-buttons">
+                  <button id="btnHomeX" class="jog-btn secondary">Home X</button>
+                  <button id="btnHomeY" class="jog-btn secondary">Home Y</button>
+                  <button id="btnHomeZ" class="jog-btn secondary">Home Z</button>
+                </div>
+              </div>
+              <div class="jog-section">
+                <label for="jogDistance">Distance (mm)</label>
+                <select id="jogDistance">
+                  <option value="0.1">0.1mm</option>
+                  <option value="1" selected>1mm</option>
+                  <option value="5">5mm</option>
+                  <option value="10">10mm</option>
+                  <option value="25">25mm</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -218,9 +257,9 @@
     </section>
 
     <!-- Step 3: Run View -->
-  <section id="panelRun" class="panel">
+    <section id="panelRun" class="panel">
       <h2>Run</h2>
-      <div class="grid-3">
+      <div class="grid-2">
         <div class="card">
           <h3>Status</h3>
           <div class="kvs">
@@ -234,20 +273,6 @@
           </div>
           <div class="row">
             <button id="btnOpenLogs" class="secondary">View Logs</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Live</h3>
-          <div class="camera large">
-            <img id="cameraLive" alt="Live stream" />
-          </div>
-          <div class="row">
-            <span class="muted">Current Card:</span>
-            <span id="currentCard" class="chip">—</span>
-          </div>
-          <div class="row">
-            <button id="btnManualDivert" class="secondary">Divert This Card</button>
           </div>
         </div>
 

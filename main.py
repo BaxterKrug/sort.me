@@ -6,9 +6,9 @@ import json
 import logging
 import os
 from datetime import datetime
-from io import BytesIO, StringIO
+from io import StringIO
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from urllib import error as urlerror, request as urlrequest
 
@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles  # type: ignore[import-not-found]
 
 from app.services import card_id
 from app.services import camera as camera_svc
+from app.services import motion
 from app.services import feeder_monitor
 from app.services import ocr_pipeline
 from app.services import sort_session
@@ -77,6 +78,52 @@ ERROR_LOG: List[Dict[str, Any]] = []
 CARD_METADATA_CACHE: Dict[str, Dict[str, Any]] = {}
 CARD_DETAILS_CACHE: Dict[str, Dict[str, Any]] = {}
 SET_CACHE: Dict[str, Dict[str, Any]] = {}
+
+
+async def _await_motion_completion(
+    ctrl: motion.MotionController,
+    target: Optional[Tuple[float, float, float]] = None,
+    *,
+    tolerance: float = 0.5,
+    timeout: float = 8.0,
+    poll_interval: float = 0.05,
+) -> Tuple[float, float, float]:
+    """Wait for in-flight motion to complete, returning the latest known position."""
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + timeout
+    last_pos = ctrl.current
+
+    # If the driver supports a blocking wait command (e.g. M400), attempt it first.
+    try:
+        if hasattr(ctrl.driver, "send_gcode"):
+            await ctrl.driver.send_gcode("M400")  # type: ignore[attr-defined]
+    except Exception as exc:  # pragma: no cover - hardware specific
+        LOG.debug("M400 wait failed: %s", exc)
+
+    if target is None:
+        target = ctrl.current
+
+    while True:
+        try:
+            pos = await ctrl.driver.query_position()
+            current = (float(pos[0]), float(pos[1]), float(pos[2]))
+            ctrl.current = current
+            last_pos = current
+            if all(abs(current[i] - target[i]) <= tolerance for i in range(3)):
+                return current
+        except Exception as exc:  # pragma: no cover - hardware specific
+            LOG.debug("query_position while waiting for completion failed: %s", exc)
+            break
+
+        if loop.time() >= deadline:
+            LOG.warning("Timed out waiting for motion completion (target=%s, last=%s)", target, last_pos)
+            return last_pos
+
+        await asyncio.sleep(poll_interval)
+
+    # Fallback: we could not poll position reliably. Give the machine a moment.
+    await asyncio.sleep(0.3)
+    return ctrl.current
 
 SCRYFALL_TIMEOUT = float(os.environ.get("SCRYFALL_TIMEOUT", "4.0"))
 SCRYFALL_ENABLED = os.environ.get("SCRYFALL_LOOKUPS", "1") != "0"
@@ -914,7 +961,7 @@ def camera_select(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 @app.get("/camera/status")
 def camera_status() -> Dict[str, Any]:
-    info = camera_svc.get_manager().info()
+    info = camera_svc.get_manager().info(ensure_capture=True)
     device = info.get("device")
     path = str(device) if device is not None else "unknown"
     if isinstance(device, int):
@@ -926,6 +973,113 @@ def camera_status() -> Dict[str, Any]:
         "resolution": info.get("resolution"),
         "fps": info.get("fps"),
         "last_frame_ts": info.get("last_frame_ts"),
+        "error": info.get("error"),
+    }
+
+
+@app.get("/camera/snapshot")
+async def camera_snapshot(
+    quality: int = 80,
+    max_age: float = 0.0,
+    offset_mm: float = 80.0,
+) -> Dict[str, Any]:
+    cam = camera_svc.get_manager()
+    ctrl = motion.get_controller()
+
+    async with ctrl.lock:
+        start_guess = (
+            float(ctrl.current[0]),
+            float(ctrl.current[1]),
+            float(ctrl.current[2]),
+        )
+        start_pos = await _await_motion_completion(ctrl, start_guess, tolerance=0.3, timeout=6.0)
+        ctrl.current = start_pos
+
+        half_span = max(offset_mm / 2.0, 0.0)
+        top_target = (start_pos[0], start_pos[1] - half_span, start_pos[2])
+        bottom_target = (start_pos[0], start_pos[1] + half_span, start_pos[2])
+        top_pos = start_pos
+        bottom_pos = bottom_target
+
+        try:
+            await ctrl.driver.set_speed(ctrl.default_speed)
+
+            if half_span > 0.0:
+                await ctrl.driver.move_absolute(*top_target, ctrl.default_speed)
+                top_pos = await _await_motion_completion(ctrl, top_target, tolerance=0.3, timeout=8.0)
+            else:
+                top_pos = start_pos
+            # First capture at top/extreme position
+            jpeg_top = await cam.grab_jpeg(quality=quality, max_age=max_age)
+
+            await asyncio.sleep(0.35)
+
+            # Move Y axis by offset (positive direction)
+            await ctrl.driver.move_absolute(*bottom_target, ctrl.default_speed)
+            bottom_pos = await _await_motion_completion(ctrl, bottom_target, tolerance=0.3, timeout=8.0)
+            await asyncio.sleep(0.15)
+
+            # Second capture at bottom/extreme position
+            jpeg_bottom = await cam.grab_jpeg(quality=quality, max_age=0.0)
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail=f"Camera snapshot failed: {exc}")
+        finally:
+            # Return to original position
+            try:
+                await ctrl.driver.move_absolute(*start_pos, ctrl.default_speed)
+                start_pos = await _await_motion_completion(ctrl, start_pos, tolerance=0.4, timeout=8.0)
+                await asyncio.sleep(0.1)
+                ctrl.current = start_pos
+            except Exception as exc:
+                LOG.warning("Failed to return motion system to original position: %s", exc)
+
+    now = datetime.utcnow()
+    timestamp_slug = now.strftime("%Y%m%d-%H%M%S-%f")
+    timestamp_iso = now.isoformat(timespec="milliseconds") + "Z"
+    snapshot_dir = Path("data") / "snapshots"
+    stored_path_top = ""
+    stored_path_bottom = ""
+    try:
+        snapshot_dir.mkdir(parents=True, exist_ok=True)
+        path_top = snapshot_dir / f"snapshot-{timestamp_slug}-top.jpg"
+        path_top.write_bytes(jpeg_top)
+        stored_path_top = str(path_top)
+        path_bottom = snapshot_dir / f"snapshot-{timestamp_slug}-bottom.jpg"
+        path_bottom.write_bytes(jpeg_bottom)
+        stored_path_bottom = str(path_bottom)
+    except Exception as exc:  # pragma: no cover
+        LOG.warning("Failed to persist snapshot pair: %s", exc)
+
+    frames: List[Dict[str, Any]] = [
+        {
+            "label": "top",
+            "mime": "image/jpeg",
+            "image": base64.b64encode(jpeg_top).decode("ascii"),
+            "path": stored_path_top,
+            "size": len(jpeg_top),
+        },
+        {
+            "label": "bottom",
+            "mime": "image/jpeg",
+            "image": base64.b64encode(jpeg_bottom).decode("ascii"),
+            "path": stored_path_bottom,
+            "size": len(jpeg_bottom),
+        },
+    ]
+
+    return {
+        "timestamp": timestamp_iso,
+        "offset_mm": offset_mm,
+        "frames": frames,
+        "motion": {
+            "start": {"x": start_pos[0], "y": start_pos[1], "z": start_pos[2]},
+            "top": {"x": top_pos[0], "y": top_pos[1], "z": top_pos[2]},
+            "bottom": {"x": bottom_pos[0], "y": bottom_pos[1], "z": bottom_pos[2]},
+        },
+        "saved": {
+            "top_path": stored_path_top,
+            "bottom_path": stored_path_bottom,
+        },
     }
 
 

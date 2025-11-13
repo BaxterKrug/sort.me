@@ -1165,11 +1165,12 @@ def get_controller() -> MotionController:
                 continue
 
     if driver is None:
-        driver = VirtualMotionDriver()
-        _driver_is_virtual = True
-        LOG.info("Using virtual motion driver")
-    else:
-        _driver_is_virtual = isinstance(driver, VirtualMotionDriver)
+        searched = ", ".join(candidate_ports) or "(none)"
+        raise RuntimeError(
+            f"Unable to initialise motion hardware; no reachable controller on ports: {searched}"
+        )
+
+    _driver_is_virtual = isinstance(driver, VirtualMotionDriver)
 
     _controller = MotionController(driver)
     return _controller
