@@ -37,13 +37,13 @@
             </div>
             <div id="snapshotPreviewWrap" class="snapshot-preview">
               <div class="snapshot-preview-images">
-                <div class="snapshot-image-block">
-                  <span class="muted">Top (Current)</span>
-                  <img id="snapshotPreviewTop" alt="Top snapshot" />
+                <div class="snapshot-image-block primary">
+                  <span class="muted">Composite (Aligned)</span>
+                  <img id="snapshotPreviewComposite" alt="Composite snapshot" />
                 </div>
                 <div class="snapshot-image-block">
-                  <span class="muted">Bottom (+40mm)</span>
-                  <img id="snapshotPreviewBottom" alt="Bottom snapshot" />
+                  <span class="muted">OCR Prep</span>
+                  <img id="snapshotPreviewOcr" alt="OCR ready snapshot" />
                 </div>
               </div>
               <div class="snapshot-meta">
@@ -406,6 +406,6 @@
   <div id="toasts" class="toasts"></div>
 
   <!-- Cache-busting query param to ensure clients pick up JS changes during development -->
-        <script src="/static/app.js?v=8"></script>
+  <script src="/static/app.js?v=10"></script>
 </body>
 </html>

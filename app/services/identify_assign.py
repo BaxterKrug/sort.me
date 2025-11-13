@@ -1,13 +1,18 @@
 import os
+from dataclasses import asdict
 from typing import Optional, List, Dict, Any
+
 from . import card_id, assign
 
-def identify_and_assign(ocr_map: Dict[str, str],
-                        db_path: Optional[str],
-                        cards_list: Optional[List[Dict[str,Any]]],
-                        cfg: assign.Config,
-                        state: assign.SystemState
-                        ) -> Dict[str, Any]:
+def identify_and_assign(
+    ocr_map: Dict[str, str],
+    db_path: Optional[str],
+    cards_list: Optional[List[Dict[str, Any]]],
+    cfg: assign.Config,
+    state: assign.SystemState,
+    *,
+    update_state: bool = True,
+) -> Dict[str, Any]:
     """
     Take OCR region->text, identify the card against a local DB (or list),
     then wrap that result into an assign.Card and call assign.assign_card.
@@ -46,9 +51,17 @@ def identify_and_assign(ocr_map: Dict[str, str],
 
     cell, reason = assign.assign_card(card, cfg, state)
 
+    if update_state and cell:
+        try:
+            state.counts_by_cell[cell] = state.counts_by_cell.get(cell, 0) + 1
+        except Exception:
+            pass
+
     return {
         'cell': cell,
         'reason': reason,
         'card': card,
+        'card_dict': asdict(card),
         'identify': id_res,
+        'ocr_fields': dict(ocr_map),
     }

@@ -46,11 +46,7 @@ function setCameraStatus(state){
   }
   chip.textContent = label;
   chip.classList.toggle('muted', !online);
-  if(online){
-    if(!cameraWasOnline){
-      captureSnapshot({silent:true});
-    }
-  }else{
+  if(!online){
     if(cameraImg){
       cameraImg.removeAttribute('src');
       delete cameraImg.dataset.snapshotTs;
@@ -88,8 +84,8 @@ const panelSetup = $('panelSetup');
 const panelRun = $('panelRun');
 const cameraImg = $('cameraLive');
 const snapshotWrap = $('snapshotPreviewWrap');
-const snapshotImgTop = $('snapshotPreviewTop');
-const snapshotImgBottom = $('snapshotPreviewBottom');
+const snapshotImgComposite = $('snapshotPreviewComposite');
+const snapshotImgOcr = $('snapshotPreviewOcr');
 const snapshotTimestamp = $('snapshotTimestamp');
 const snapshotDownloadBtn = $('btnDownloadSnapshot');
 const snapshotLocation = $('snapshotLocation');
@@ -97,31 +93,36 @@ let cameraObjUrl = null;
 let cameraWasOnline = false;
 let cameraSnapPending = false;
 let cameraBlob = null;
-let snapshotBottomUrl = null;
-let snapshotBottomBlob = null;
 let lastSnapshotMeta = null;
+let snapshotAssets = {};
 
 function releaseSnapshotUrls(){
+  const urls = new Set();
   if(cameraObjUrl){
-    URL.revokeObjectURL(cameraObjUrl);
-    cameraObjUrl = null;
+    urls.add(cameraObjUrl);
   }
-  if(snapshotBottomUrl){
-    URL.revokeObjectURL(snapshotBottomUrl);
-    snapshotBottomUrl = null;
-  }
+  Object.values(snapshotAssets || {}).forEach(asset=>{
+    if(asset && asset.url){
+      urls.add(asset.url);
+    }
+  });
+  urls.forEach(url=>{
+    try{ URL.revokeObjectURL(url); }
+    catch(err){ console.warn('Failed to revoke URL', err); }
+  });
+  cameraObjUrl = null;
+  cameraBlob = null;
+  snapshotAssets = {};
 }
 
 function clearSnapshotPreview(){
   releaseSnapshotUrls();
-  cameraBlob = null;
-  snapshotBottomBlob = null;
   lastSnapshotMeta = null;
-  if(snapshotImgTop){
-    snapshotImgTop.removeAttribute('src');
+  if(snapshotImgComposite){
+    snapshotImgComposite.removeAttribute('src');
   }
-  if(snapshotImgBottom){
-    snapshotImgBottom.removeAttribute('src');
+  if(snapshotImgOcr){
+    snapshotImgOcr.removeAttribute('src');
   }
   if(snapshotTimestamp){
     snapshotTimestamp.textContent = 'No snapshot yet';
@@ -139,85 +140,176 @@ async function captureSnapshot(opts = {}){
   const silent = !!opts.silent;
   const btn = $('btnCameraSnapshot');
   const originalText = btn ? btn.textContent : '';
+  const previousAssets = snapshotAssets;
+  const previousCameraUrl = cameraObjUrl;
   try{
     cameraSnapPending = true;
     if(btn && !silent){
       btn.disabled = true;
       btn.textContent = 'Capturing…';
     }
-    const res = await fetch(`${BASE}/camera/snapshot?ts=${Date.now()}`, {cache: 'no-store'});
+  const res = await fetch(`${BASE}/camera/snapshot?offset_mm=40&ts=${Date.now()}`, {cache: 'no-store'});
     if(!res.ok){
       throw new Error(`${res.status} ${res.statusText}`.trim());
     }
     const data = await res.json();
-    const frames = Array.isArray(data?.frames) ? data.frames : [];
-    if(frames.length === 0){
-      throw new Error('Snapshot response missing frames');
-    }
-    const topFrame = frames.find(f=> String(f.label||'').toLowerCase()==='top') || frames[0];
-    const bottomFrame = frames.find(f=> String(f.label||'').toLowerCase()==='bottom');
-    const topBlob = topFrame?.image ? base64ToBlob(topFrame.image, topFrame.mime || 'image/jpeg') : null;
-    if(!topBlob){
-      throw new Error('Unable to decode top snapshot');
-    }
-    const bottomBlob = bottomFrame?.image ? base64ToBlob(bottomFrame.image, bottomFrame.mime || 'image/jpeg') : null;
-    const previousTopUrl = cameraObjUrl;
-    const previousBottomUrl = snapshotBottomUrl;
+  const frames = Array.isArray(data?.frames) ? data.frames : [];
+  const imageMap = (data && typeof data.images === 'object') ? data.images : {};
+  const ocrPayload = (data && typeof data.ocr === 'object') ? data.ocr : (data?.processing && typeof data.processing.ocr_result === 'object' ? data.processing.ocr_result : null);
+  const ocrFields = (ocrPayload && typeof ocrPayload.fields === 'object') ? ocrPayload.fields : (data && typeof data.ocr_fields === 'object' ? data.ocr_fields : (data?.processing && typeof data.processing.ocr_result === 'object' && typeof data.processing.ocr_result.fields === 'object' ? data.processing.ocr_result.fields : null));
+    const findFrame = (label) => {
+      if(imageMap && imageMap[label]) return imageMap[label];
+      return frames.find(f=> String(f?.label||'').toLowerCase() === label);
+    };
 
-    cameraBlob = topBlob;
-    cameraObjUrl = URL.createObjectURL(topBlob);
+    const compositeFrame = findFrame('composite');
+    if(!compositeFrame || !compositeFrame.image){
+      throw new Error('Composite frame missing');
+    }
+
+    const compositeBlob = base64ToBlob(compositeFrame.image, compositeFrame.mime || 'image/jpeg');
+    if(!compositeBlob){
+      throw new Error('Unable to decode composite snapshot');
+    }
+
+    const newAssets = {};
+    const compositeUrl = URL.createObjectURL(compositeBlob);
+    newAssets.composite = {
+      blob: compositeBlob,
+      mime: compositeFrame.mime || 'image/jpeg',
+      url: compositeUrl,
+      path: compositeFrame.path || '',
+    };
+
+    cameraBlob = compositeBlob;
+    cameraObjUrl = compositeUrl;
+
     cameraImg.src = cameraObjUrl;
+    if(snapshotImgComposite){
+      snapshotImgComposite.src = cameraObjUrl;
+    }
+
     const ts = typeof data?.timestamp === 'string' ? data.timestamp : String(Date.now());
     cameraImg.dataset.snapshotTs = ts;
-    if(snapshotImgTop){
-      snapshotImgTop.src = cameraObjUrl;
+
+    const ocrFrame = findFrame('ocr_prepared');
+    if(ocrFrame && ocrFrame.image){
+      const ocrBlob = base64ToBlob(ocrFrame.image, ocrFrame.mime || 'image/png');
+      if(ocrBlob){
+        const ocrUrl = URL.createObjectURL(ocrBlob);
+        newAssets.ocr_prepared = {
+          blob: ocrBlob,
+          mime: ocrFrame.mime || 'image/png',
+          url: ocrUrl,
+          path: ocrFrame.path || '',
+        };
+        if(snapshotImgOcr){
+          snapshotImgOcr.src = ocrUrl;
+        }
+      }
+    }else if(snapshotImgOcr){
+      snapshotImgOcr.removeAttribute('src');
     }
 
-    if(bottomBlob){
-      snapshotBottomBlob = bottomBlob;
-      snapshotBottomUrl = URL.createObjectURL(bottomBlob);
-      if(snapshotImgBottom){
-        snapshotImgBottom.src = snapshotBottomUrl;
+    const topFrame = findFrame('top');
+    if(topFrame && topFrame.image){
+      const blob = base64ToBlob(topFrame.image, topFrame.mime || 'image/jpeg');
+      if(blob){
+        newAssets.top = {
+          blob,
+          mime: topFrame.mime || 'image/jpeg',
+          url: null,
+          path: topFrame.path || '',
+        };
       }
-    }else{
-      if(snapshotImgBottom){
-        snapshotImgBottom.removeAttribute('src');
-      }
-      if(snapshotBottomUrl){
-        URL.revokeObjectURL(snapshotBottomUrl);
-        snapshotBottomUrl = null;
-      }
-      snapshotBottomBlob = null;
     }
+
+    const bottomFrame = findFrame('bottom');
+    if(bottomFrame && bottomFrame.image){
+      const blob = base64ToBlob(bottomFrame.image, bottomFrame.mime || 'image/jpeg');
+      if(blob){
+        newAssets.bottom = {
+          blob,
+          mime: bottomFrame.mime || 'image/jpeg',
+          url: null,
+          path: bottomFrame.path || '',
+        };
+      }
+    }
+
+    snapshotAssets = newAssets;
+    newAssets.meta = {
+      ocr_fields: ocrFields,
+      ocr_payload: ocrPayload,
+    };
 
     lastSnapshotMeta = {
       timestamp: ts,
       offset: data?.offset_mm,
       frames,
+      images: imageMap,
+      processing: data?.processing,
+      ocr: ocrPayload,
     };
+    if(ocrFields){
+      lastSnapshotMeta.ocr_fields = ocrFields;
+    }
 
     if(snapshotTimestamp){
       let capturedAt = new Date(ts);
       if(Number.isNaN(capturedAt.getTime())){
         capturedAt = new Date();
       }
-      snapshotTimestamp.textContent = `Captured ${capturedAt.toLocaleString()} (offset ${data?.offset_mm ?? 0} mm)`;
+      const orientationTag = data?.processing?.analysis?.determination || data?.processing?.orientation?.determination;
+      const orientationText = orientationTag ? ` • ${orientationTag}` : '';
+      const nameFromOcr = (ocrFields && (ocrFields.name || ocrFields.title)) || '';
+      const nameText = nameFromOcr ? ` • OCR Name: ${nameFromOcr}` : '';
+      snapshotTimestamp.textContent = `Captured ${capturedAt.toLocaleString()} (offset ${data?.offset_mm ?? 0} mm)${orientationText}${nameText}`;
     }
     if(snapshotLocation){
-      const topPath = topFrame?.path || 'Not saved';
-      const bottomPath = bottomFrame?.path || 'Not saved';
-      snapshotLocation.textContent = `Top: ${topPath}\nBottom: ${bottomPath}`;
+      const lines = [];
+      const compositePath = snapshotAssets.composite?.path || compositeFrame.path || 'Not saved';
+      lines.push(`Composite: ${compositePath}`);
+      if(snapshotAssets.ocr_prepared || (ocrFrame && ocrFrame.path)){
+        const ocrPath = snapshotAssets.ocr_prepared?.path || ocrFrame?.path || 'Not saved';
+        lines.push(`OCR: ${ocrPath}`);
+      }
+      if(topFrame){
+        lines.push(`Top: ${topFrame.path || 'Not saved'}`);
+      }
+      if(bottomFrame){
+        lines.push(`Bottom: ${bottomFrame.path || 'Not saved'}`);
+      }
+      if(ocrFields){
+        if(ocrFields.name || ocrFields.title){
+          lines.push(`Name: ${ocrFields.name || ocrFields.title}`);
+        }
+        if(ocrFields.type_line){
+          lines.push(`Type: ${ocrFields.type_line}`);
+        }
+        if(ocrFields.oracle){
+          lines.push(`Rules: ${ocrFields.oracle}`);
+        }
+        if(ocrFields.collector){
+          lines.push(`Collector: ${ocrFields.collector}`);
+        }
+      }
+      snapshotLocation.textContent = lines.join('\n');
     }
     if(snapshotDownloadBtn){
       snapshotDownloadBtn.disabled = false;
     }
 
-    if(previousTopUrl){
-      URL.revokeObjectURL(previousTopUrl);
+    if(previousCameraUrl){
+      try{ URL.revokeObjectURL(previousCameraUrl); }
+      catch(err){ console.warn('Failed to revoke previous camera URL', err); }
     }
-    if(previousBottomUrl){
-      URL.revokeObjectURL(previousBottomUrl);
-    }
+    Object.values(previousAssets || {}).forEach(asset=>{
+      if(asset && asset.url){
+        try{ URL.revokeObjectURL(asset.url); }
+        catch(err){ console.warn('Failed to revoke previous asset URL', err); }
+      }
+    });
   }catch(err){
     if(!silent){
       toast(`Snapshot failed: ${err.message}`);
@@ -504,7 +596,12 @@ on($('btnEndRun'), 'click', async ()=>{
 on($('btnManualDivert'),'click', ()=> api('/run/divert_current',{method:'POST'}).then(()=>toast('Current card diverted to K3')).catch(e=>toast(e.message)));
 on($('btnCameraSnapshot'),'click', ()=> captureSnapshot());
 on(snapshotDownloadBtn, 'click', ()=>{
-  if(!cameraBlob){
+  const orderedLabels = ['composite','ocr_prepared','top','bottom'];
+  const downloadTargets = orderedLabels
+    .map(label => [label, snapshotAssets[label]])
+    .filter(([, asset]) => asset && asset.blob);
+
+  if(downloadTargets.length === 0){
     toast('No snapshot captured yet');
     return;
   }
@@ -520,44 +617,29 @@ on(snapshotDownloadBtn, 'click', ()=>{
     isoName = new Date(ts).toISOString().replace(/[:.]/g,'-');
   }
 
-  const frames = Array.isArray(meta.frames) ? meta.frames : [];
-  const topFrame = frames.find(f=> String(f.label||'').toLowerCase()==='top') || frames[0] || {};
-  const bottomFrame = frames.find(f=> String(f.label||'').toLowerCase()==='bottom') || {};
-
-  const downloads = [];
-  downloads.push({
-    label: String(topFrame.label || 'top').toLowerCase(),
-    mime: topFrame.mime || 'image/jpeg',
-    blob: cameraBlob,
-    url: cameraObjUrl,
-  });
-  if(snapshotBottomBlob && snapshotBottomUrl){
-    downloads.push({
-      label: String(bottomFrame.label || 'bottom').toLowerCase(),
-      mime: bottomFrame.mime || 'image/jpeg',
-      blob: snapshotBottomBlob,
-      url: snapshotBottomUrl,
-    });
-  }
-
-  downloads.forEach(item=>{
-    if(!item.blob) return;
-    const ext = item.mime.includes('png') ? 'png' : (item.mime.includes('jpeg') || item.mime.includes('jpg') ? 'jpg' : 'bin');
-    const filename = `snapshot-${isoName}-${item.label}.${ext}`;
+  downloadTargets.forEach(([label, asset])=>{
+    const mime = asset.mime || 'application/octet-stream';
+    const ext = mime.includes('png') ? 'png' : (mime.includes('jpeg') || mime.includes('jpg') ? 'jpg' : 'bin');
+    const filename = `snapshot-${isoName}-${label}.${ext}`;
     const anchor = document.createElement('a');
-    const downloadUrl = item.url || URL.createObjectURL(item.blob);
+    let downloadUrl = asset.url;
+    let needsCleanup = false;
+    if(!downloadUrl){
+      downloadUrl = URL.createObjectURL(asset.blob);
+      needsCleanup = true;
+    }
     anchor.href = downloadUrl;
     anchor.download = filename;
     anchor.rel = 'noopener';
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
-    if(!item.url){
+    if(needsCleanup && downloadUrl){
       setTimeout(()=> URL.revokeObjectURL(downloadUrl), 5000);
     }
   });
 
-  toast(downloads.length > 1 ? 'Downloaded top & bottom snapshots' : 'Downloaded snapshot');
+  toast(downloadTargets.length > 1 ? 'Downloaded snapshot bundle' : 'Downloaded snapshot');
 });
 
 on($('btnMoveToCell'), 'click', async ()=>{
@@ -595,6 +677,21 @@ async function jogAxis(axis, distance) {
     toast(`Jog ${axis} failed: ${e.message}`);
   }
 }
+
+function getJogDistance() {
+  const sel = $('jogDistance');
+  const value = sel ? parseFloat(sel.value) : NaN;
+  return Number.isFinite(value) && value > 0 ? value : 1;
+}
+
+on($('btnJogXMinus'), 'click', ()=> jogAxis('X', -getJogDistance()));
+on($('btnJogXPlus'), 'click', ()=> jogAxis('X',  getJogDistance()));
+on($('btnJogYMinus'), 'click', ()=> jogAxis('Y', -getJogDistance()));
+on($('btnJogYPlus'), 'click', ()=> jogAxis('Y',  getJogDistance()));
+on($('btnJogZMinus'), 'click', ()=> jogAxis('Z', -getJogDistance()));
+on($('btnJogZPlus'), 'click', ()=> jogAxis('Z',  getJogDistance()));
+on($('btnJogUp'), 'click', ()=> jogAxis('Z',  getJogDistance()));
+on($('btnJogDown'), 'click', ()=> jogAxis('Z', -getJogDistance()));
 
 on($('btnVacOnRun'),'click', ()=> api('/vacuum/on',{method:'POST'}).then(()=>toast('Vacuum on')).catch(e=>toast(e.message)));
 on($('btnVacOffRun'),'click',()=> api('/vacuum/off',{method:'POST'}).then(()=>toast('Vacuum off')).catch(e=>toast(e.message)));

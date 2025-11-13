@@ -8,10 +8,11 @@ import os
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from urllib import error as urlerror, request as urlrequest
 
+import numpy as np  # type: ignore[import-not-found]
 import yaml  # type: ignore[import-not-found]
 from fastapi import FastAPI, File, HTTPException, UploadFile  # type: ignore[import-not-found]
 from fastapi.responses import FileResponse, Response  # type: ignore[import-not-found]
@@ -88,42 +89,83 @@ async def _await_motion_completion(
     timeout: float = 8.0,
     poll_interval: float = 0.05,
 ) -> Tuple[float, float, float]:
-    """Wait for in-flight motion to complete, returning the latest known position."""
+    """Wait for the motion controller to report a stable position near ``target``."""
     loop = asyncio.get_running_loop()
     deadline = loop.time() + timeout
-    last_pos = ctrl.current
+    last_pos: Optional[Tuple[float, float, float]] = None
+    last_error: Optional[Exception] = None
 
-    # If the driver supports a blocking wait command (e.g. M400), attempt it first.
     try:
         if hasattr(ctrl.driver, "send_gcode"):
             await ctrl.driver.send_gcode("M400")  # type: ignore[attr-defined]
     except Exception as exc:  # pragma: no cover - hardware specific
         LOG.debug("M400 wait failed: %s", exc)
 
-    if target is None:
-        target = ctrl.current
-
-    while True:
+    while loop.time() <= deadline:
         try:
             pos = await ctrl.driver.query_position()
             current = (float(pos[0]), float(pos[1]), float(pos[2]))
             ctrl.current = current
             last_pos = current
+            if target is None:
+                return current
             if all(abs(current[i] - target[i]) <= tolerance for i in range(3)):
                 return current
         except Exception as exc:  # pragma: no cover - hardware specific
+            last_error = exc
             LOG.debug("query_position while waiting for completion failed: %s", exc)
-            break
-
-        if loop.time() >= deadline:
-            LOG.warning("Timed out waiting for motion completion (target=%s, last=%s)", target, last_pos)
-            return last_pos
 
         await asyncio.sleep(poll_interval)
 
-    # Fallback: we could not poll position reliably. Give the machine a moment.
-    await asyncio.sleep(0.3)
-    return ctrl.current
+    if last_pos is not None:
+        LOG.warning(
+            "Timed out waiting for motion completion (target=%s, last=%s)",
+            target,
+            last_pos,
+        )
+        return last_pos
+
+    raise RuntimeError(
+        "Motion controller did not report position; controller may still be booting"
+        + (f": {last_error}" if last_error else "")
+    )
+
+
+async def _move_axis_relative(
+    ctrl: motion.MotionController,
+    axis: str,
+    delta: float,
+    speed: float,
+    *,
+    timeout: float = 12.0,
+) -> None:
+    """Move a single axis by ``delta`` millimeters without touching other axes."""
+    if abs(delta) <= 1e-6:
+        return
+
+    driver = ctrl.driver
+    axis = axis.upper()
+    feed = int(speed)
+
+    if hasattr(driver, "send_gcode"):
+        # Use relative positioning to avoid relying on possibly stale absolute Z values.
+        try:
+            await driver.send_gcode("G91", timeout=1.5)  # relative mode
+            await driver.send_gcode(f"G1 {axis}{delta:.3f} F{feed}", timeout=timeout)
+        finally:
+            try:
+                await driver.send_gcode("G90", timeout=1.5)
+            except Exception:
+                LOG.warning("Failed to restore absolute positioning after relative move", exc_info=True)
+    else:
+        x, y, z = ctrl.current
+        if axis == "X":
+            x += delta
+        elif axis == "Y":
+            y += delta
+        elif axis == "Z":
+            z += delta
+        await driver.move_absolute(x, y, z, speed)
 
 SCRYFALL_TIMEOUT = float(os.environ.get("SCRYFALL_TIMEOUT", "4.0"))
 SCRYFALL_ENABLED = os.environ.get("SCRYFALL_LOOKUPS", "1") != "0"
@@ -981,105 +1023,204 @@ def camera_status() -> Dict[str, Any]:
 async def camera_snapshot(
     quality: int = 80,
     max_age: float = 0.0,
-    offset_mm: float = 80.0,
+    offset_mm: float = 40.0,
 ) -> Dict[str, Any]:
     cam = camera_svc.get_manager()
     ctrl = motion.get_controller()
+    loop = asyncio.get_running_loop()
+
+    frame_top: Optional[np.ndarray] = None
+    frame_bottom: Optional[np.ndarray] = None
+
+    def _frame_difference(first: np.ndarray, second: np.ndarray) -> float:
+        min_height = min(first.shape[0], second.shape[0])
+        min_width = min(first.shape[1], second.shape[1])
+        if min_height <= 0 or min_width <= 0:
+            return 0.0
+        a = first[:min_height, :min_width].astype(np.float32, copy=False)
+        b = second[:min_height, :min_width].astype(np.float32, copy=False)
+        return float(np.mean(np.abs(a - b)))
+
+    async def _capture_fresh_frame(
+        *,
+        max_age_override: float,
+        discard: int = 2,
+        settle: float = 0.05,
+    ) -> np.ndarray:
+        for _ in range(max(0, discard)):
+            await loop.run_in_executor(None, cam.grab_frame_sync, 0.0)
+            if settle > 0:
+                await asyncio.sleep(settle)
+        frame = cast(np.ndarray, await loop.run_in_executor(None, cam.grab_frame_sync, max_age_override))
+        return frame
 
     async with ctrl.lock:
-        start_guess = (
+        commanded_start: Tuple[float, float, float] = (
             float(ctrl.current[0]),
             float(ctrl.current[1]),
             float(ctrl.current[2]),
         )
-        start_pos = await _await_motion_completion(ctrl, start_guess, tolerance=0.3, timeout=6.0)
-        ctrl.current = start_pos
 
-        half_span = max(offset_mm / 2.0, 0.0)
-        top_target = (start_pos[0], start_pos[1] - half_span, start_pos[2])
-        bottom_target = (start_pos[0], start_pos[1] + half_span, start_pos[2])
-        top_pos = start_pos
-        bottom_pos = bottom_target
+        try:
+            measured_start = await _await_motion_completion(ctrl, None, tolerance=0.3, timeout=6.0)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+
+        start_pos = measured_start
+        top_pos = measured_start
+        bottom_pos = measured_start
+        ctrl.current = measured_start
+
+        travel = max(offset_mm, 0.0)
+        expected_bottom = (
+            top_pos[0],
+            top_pos[1] + travel,
+            top_pos[2],
+        )
 
         try:
             await ctrl.driver.set_speed(ctrl.default_speed)
+            await asyncio.sleep(0.3)
+            frame_top = await _capture_fresh_frame(max_age_override=max_age, discard=3, settle=0.05)
 
-            if half_span > 0.0:
-                await ctrl.driver.move_absolute(*top_target, ctrl.default_speed)
-                top_pos = await _await_motion_completion(ctrl, top_target, tolerance=0.3, timeout=8.0)
+            await asyncio.sleep(0.25)
+
+            # Move Y axis by offset (positive direction) without changing other axes
+            if travel > 0.0:
+                await ctrl.driver.move_absolute(
+                    expected_bottom[0],
+                    expected_bottom[1],
+                    expected_bottom[2],
+                    ctrl.default_speed,
+                )
+                try:
+                    bottom_pos = await _await_motion_completion(
+                        ctrl,
+                        expected_bottom,
+                        tolerance=0.4,
+                        timeout=10.0,
+                    )
+                except RuntimeError as exc:
+                    raise HTTPException(status_code=503, detail=str(exc))
             else:
-                top_pos = start_pos
-            # First capture at top/extreme position
-            jpeg_top = await cam.grab_jpeg(quality=quality, max_age=max_age)
+                bottom_pos = top_pos
 
-            await asyncio.sleep(0.35)
-
-            # Move Y axis by offset (positive direction)
-            await ctrl.driver.move_absolute(*bottom_target, ctrl.default_speed)
-            bottom_pos = await _await_motion_completion(ctrl, bottom_target, tolerance=0.3, timeout=8.0)
-            await asyncio.sleep(0.15)
-
-            # Second capture at bottom/extreme position
-            jpeg_bottom = await cam.grab_jpeg(quality=quality, max_age=0.0)
+            await asyncio.sleep(0.18)
+            frame_bottom = await _capture_fresh_frame(max_age_override=0.0, discard=3, settle=0.06)
+            if frame_top is not None:
+                diff_score = _frame_difference(frame_top, frame_bottom)
+                attempts = 0
+                while diff_score < 2.0 and attempts < 3:
+                    LOG.debug("Bottom frame matched top (diff=%.3f); retrying capture", diff_score)
+                    await asyncio.sleep(0.2)
+                    frame_bottom = await _capture_fresh_frame(max_age_override=0.0, discard=3, settle=0.06)
+                    diff_score = _frame_difference(frame_top, frame_bottom)
+                    attempts += 1
+                if diff_score < 2.0:
+                    LOG.warning("Bottom frame still similar to top after retries (diff=%.3f)", diff_score)
         except Exception as exc:
             raise HTTPException(status_code=503, detail=f"Camera snapshot failed: {exc}")
         finally:
-            # Return to original position
+            # Return to original position while keeping X/Z fixed
             try:
-                await ctrl.driver.move_absolute(*start_pos, ctrl.default_speed)
-                start_pos = await _await_motion_completion(ctrl, start_pos, tolerance=0.4, timeout=8.0)
-                await asyncio.sleep(0.1)
+                if travel > 0.0:
+                    await ctrl.driver.move_absolute(
+                        top_pos[0],
+                        top_pos[1],
+                        top_pos[2],
+                        ctrl.default_speed,
+                    )
+                    try:
+                        start_pos = await _await_motion_completion(
+                            ctrl,
+                            top_pos,
+                            tolerance=0.5,
+                            timeout=10.0,
+                        )
+                    except RuntimeError as exc:
+                        LOG.warning("Motion controller did not confirm return-to-start: %s", exc)
+                    await asyncio.sleep(0.1)
                 ctrl.current = start_pos
             except Exception as exc:
                 LOG.warning("Failed to return motion system to original position: %s", exc)
+                ctrl.current = commanded_start
+                start_pos = commanded_start
 
-    now = datetime.utcnow()
-    timestamp_slug = now.strftime("%Y%m%d-%H%M%S-%f")
-    timestamp_iso = now.isoformat(timespec="milliseconds") + "Z"
+    if frame_top is None or frame_bottom is None:
+        raise HTTPException(status_code=503, detail="Snapshot frames unavailable")
+
+    timestamp_dt = datetime.utcnow()
+    timestamp_slug = timestamp_dt.strftime("%Y%m%d-%H%M%S-%f")
+    timestamp_iso = timestamp_dt.isoformat(timespec="milliseconds") + "Z"
     snapshot_dir = Path("data") / "snapshots"
-    stored_path_top = ""
-    stored_path_bottom = ""
-    try:
-        snapshot_dir.mkdir(parents=True, exist_ok=True)
-        path_top = snapshot_dir / f"snapshot-{timestamp_slug}-top.jpg"
-        path_top.write_bytes(jpeg_top)
-        stored_path_top = str(path_top)
-        path_bottom = snapshot_dir / f"snapshot-{timestamp_slug}-bottom.jpg"
-        path_bottom.write_bytes(jpeg_bottom)
-        stored_path_bottom = str(path_bottom)
-    except Exception as exc:  # pragma: no cover
-        LOG.warning("Failed to persist snapshot pair: %s", exc)
 
-    frames: List[Dict[str, Any]] = [
-        {
-            "label": "top",
-            "mime": "image/jpeg",
-            "image": base64.b64encode(jpeg_top).decode("ascii"),
-            "path": stored_path_top,
-            "size": len(jpeg_top),
-        },
-        {
-            "label": "bottom",
-            "mime": "image/jpeg",
-            "image": base64.b64encode(jpeg_bottom).decode("ascii"),
-            "path": stored_path_bottom,
-            "size": len(jpeg_bottom),
-        },
-    ]
+    artifacts = ocr_pipeline.prepare_snapshot_artifacts(
+        frame_top,
+        frame_bottom,
+        timestamp_slug=timestamp_slug,
+        save_dir=snapshot_dir,
+        jpeg_quality=quality,
+        persist=True,
+        include_bytes=True,
+    )
+
+    orientation_metrics = ocr_pipeline.analyze_orientation(frame_top, frame_bottom)
+    ocr_payload = artifacts.get("ocr_result", {})
+
+    labels = ["composite", "ocr_prepared", "top", "bottom"]
+    frames: List[Dict[str, Any]] = []
+    for label in labels:
+        asset = artifacts.get(label)
+        if not asset or "bytes" not in asset:
+            continue
+        encoded_image = base64.b64encode(asset["bytes"]).decode("ascii")
+        frame_info: Dict[str, Any] = {
+            "label": label,
+            "mime": asset.get("mime", "image/jpeg"),
+            "image": encoded_image,
+            "path": asset.get("path", ""),
+            "size": len(asset["bytes"]),
+            "shape": asset.get("shape"),
+        }
+        if "meta" in asset:
+            frame_info["meta"] = asset["meta"]
+        if label in {"ocr_prepared", "composite"} and isinstance(ocr_payload, dict):
+            frame_info["ocr_fields"] = ocr_payload.get("fields")
+        frames.append(frame_info)
+
+    frame_map = {entry["label"]: entry for entry in frames}
+
+    for label in labels:
+        if label in artifacts:
+            artifacts[label].pop("bytes", None)
+
+    saved_paths = {
+        "top_path": artifacts.get("top", {}).get("path", ""),
+        "bottom_path": artifacts.get("bottom", {}).get("path", ""),
+        "composite_path": artifacts.get("composite", {}).get("path", ""),
+        "ocr_path": artifacts.get("ocr_prepared", {}).get("path", ""),
+    }
+
+    processing_meta = {**artifacts.get("meta", {}), "analysis": orientation_metrics}
+    if isinstance(ocr_payload, dict):
+        processing_meta["ocr_result"] = ocr_payload
+        if "fields" in ocr_payload:
+            processing_meta["ocr_fields"] = ocr_payload.get("fields")
 
     return {
         "timestamp": timestamp_iso,
         "offset_mm": offset_mm,
         "frames": frames,
+        "images": frame_map,
         "motion": {
             "start": {"x": start_pos[0], "y": start_pos[1], "z": start_pos[2]},
             "top": {"x": top_pos[0], "y": top_pos[1], "z": top_pos[2]},
             "bottom": {"x": bottom_pos[0], "y": bottom_pos[1], "z": bottom_pos[2]},
         },
-        "saved": {
-            "top_path": stored_path_top,
-            "bottom_path": stored_path_bottom,
-        },
+        "saved": saved_paths,
+        "processing": processing_meta,
+        "ocr": ocr_payload,
+        "ocr_fields": ocr_payload.get("fields") if isinstance(ocr_payload, dict) else None,
     }
 
 
