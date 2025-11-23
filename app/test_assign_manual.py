@@ -1,48 +1,54 @@
+"""Manual harness for verifying assign pipeline; excluded from automated tests."""
 
-import yaml, json
-from services.assign import load_config, Config, SystemState, Card, assign_card
+from __future__ import annotations
 
-with open("config.yaml","r") as f:
-    CFG: Config = load_config(yaml.safe_load(f))
+import json
+from pathlib import Path
+from typing import Tuple
 
-# Initialize empty counts
-state = SystemState(counts_by_cell={cid: 0 for cid in CFG.cells})
-state.active_sort_operation = CFG.default_sort_operation
-state.active_sort_mode = CFG.default_sort_mode
+import yaml
 
-def place(name, conf=1.0):
+from app.services.assign import load_config, Config, SystemState, Card, assign_card
+
+
+def _load_cfg() -> Config:
+    with Path("config.yaml").open("r", encoding="utf8") as handle:
+        return load_config(yaml.safe_load(handle))
+
+
+def _build_state(cfg: Config) -> SystemState:
+    state = SystemState(counts_by_cell={cid: 0 for cid in cfg.cells})
+    state.active_sort_operation = cfg.default_sort_operation
+    state.active_sort_mode = cfg.default_sort_mode
+    return state
+
+
+def place(name: str, cfg: Config, state: SystemState, conf: float = 1.0) -> Tuple[str, str]:
     card = Card(game="mtg", name=name, confidence=conf)
-    cell, reason = assign_card(card, CFG, state)
+    cell, reason = assign_card(card, cfg, state)
     state.counts_by_cell[cell] = state.counts_by_cell.get(cell, 0) + 1
     return cell, reason
 
-results = []
 
-# 1) Basic A→B1
-results.append(("A basic", place("Ancestral Recall")))
+def run_demo() -> None:
+    cfg = _load_cfg()
+    state = _build_state(cfg)
+    results = []
 
-# 2) Non A–Z defaults to A→B1
-results.append(("# default A", place("★Foil Card")))
+    results.append(("A basic", place("Ancestral Recall", cfg, state)))
+    results.append(("# default A", place("★Foil Card", cfg, state)))
+    results.append(("Low conf", place("Birds of Paradise", cfg, state, conf=0.5)))
+    results.append(("Overflow A", place("Alpha Authority", cfg, state)))
+    results.append(("C mapping", place("Counterspell", cfg, state)))
+    results.append(("Z mapping", place("Zurzoth, Chaos Rider", cfg, state)))
+    results.append(("Feeder bypass check", place("Island", cfg, state)))
 
-# 3) Low confidence goes to ERR1
-results.append(("Low conf", place("Birds of Paradise", conf=0.5)))
+    counts_snapshot = {k: v for k, v in state.counts_by_cell.items() if v}
+    results.append(("Counts", json.dumps(counts_snapshot, indent=2)))
 
-# 4) Fill B1 capacity=2 then overflow to ERR1
-# B1 has 1 from test (A basic) and 1 from # default A; now a third 'A' should overflow
-results.append(("Overflow A", place("Alpha Authority")))
+    for label, data in results:
+        print(f"{label}: {data}")
 
-# 5) C → B3
-results.append(("C mapping", place("Counterspell")))
 
-# 6) Z → J2
-results.append(("Z mapping", place("Zurzoth, Chaos Rider")))
-
-# 7) Ensure no feeder targets (assert in code). Try naming that would never hit A-row explicitly.
-results.append(("Feeder bypass check", place("Island")))  # I -> D3
-
-# 8) Capacity accounting sanity: verify counts on used cells
-counts_snapshot = {k:v for k,v in state.counts_by_cell.items() if v}
-results.append(("Counts", counts_snapshot))
-
-for label, data in results:
-    print(f"{label}: {data}")
+if __name__ == "__main__":
+    run_demo()

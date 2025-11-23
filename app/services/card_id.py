@@ -23,8 +23,15 @@ import os
 import sqlite3
 import unicodedata
 import re
+import logging
+from pathlib import Path
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
+
+LOG = logging.getLogger("sort.card_id")
+
+_DEFAULT_EMBED_MODEL = "all-MiniLM-L6-v2"
+_EMBED_CACHES: Dict[str, Dict[str, Any]] = {}
 
 # try to use rapidfuzz for better fuzzy matching, otherwise fallback
 try:
@@ -162,6 +169,191 @@ def _oracle_overlap_score(ocr_oracle: str, card_oracle: str) -> float:
     score = len(inter) / max(1, len(toks_a))
     return float(score)
 
+
+def _compose_embedding_query(ocr_map: Dict[str, str]) -> str:
+    parts: List[str] = []
+    for key in ("name", "oracle", "rules", "collector", "full", "full_text"):
+        value = ocr_map.get(key)
+        if isinstance(value, str):
+            cleaned = value.strip()
+            if cleaned:
+                parts.append(cleaned)
+    # deduplicate while preserving order
+    seen = set()
+    unique_parts: List[str] = []
+    for part in parts:
+        if part in seen:
+            continue
+        seen.add(part)
+        unique_parts.append(part)
+    return "\n".join(unique_parts).strip()
+
+
+def _resolve_embeddings_dir(directory: str) -> Path:
+    path = Path(directory).expanduser()
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    return path
+
+
+def _get_embedding_cache(directory: Optional[str]) -> Optional[Dict[str, Any]]:
+    if not directory:
+        return None
+    resolved = str(_resolve_embeddings_dir(directory))
+    cache = _EMBED_CACHES.get(resolved)
+    if cache and cache.get("ready"):
+        return cache
+    emb_path = Path(resolved) / "embeddings.npy"
+    meta_path = Path(resolved) / "cards_metadata.json"
+    if not emb_path.exists() or not meta_path.exists():
+        LOG.debug("Embedding assets missing in %s", resolved)
+        _EMBED_CACHES[resolved] = {"ready": False, "error": "files_missing"}
+        return None
+    try:
+        embeddings = np.load(str(emb_path))
+        with meta_path.open("r", encoding="utf8") as fh:
+            metadata = json.load(fh)
+    except Exception as exc:  # pragma: no cover - IO safeguards
+        LOG.warning("Failed to load embeddings from %s: %s", resolved, exc)
+        _EMBED_CACHES[resolved] = {"ready": False, "error": "load_failed"}
+        return None
+    if not isinstance(metadata, list):
+        LOG.warning("cards_metadata.json is not a list at %s", meta_path)
+        metadata = []
+    rows = embeddings.shape[0]
+    if rows != len(metadata):
+        LOG.warning(
+            "Embedding rows (%s) do not match metadata count (%s) in %s", rows, len(metadata), resolved
+        )
+        limit = min(rows, len(metadata))
+        embeddings = embeddings[:limit]
+        metadata = metadata[:limit]
+    if embeddings.size == 0 or not metadata:
+        LOG.warning("Embeddings or metadata empty in %s", resolved)
+        _EMBED_CACHES[resolved] = {"ready": False, "error": "empty_embeddings"}
+        return None
+    nn = NearestNeighbors(algorithm="auto")
+    nn.fit(embeddings)
+    cache = {
+        "ready": True,
+        "embeddings": embeddings,
+        "meta": metadata,
+        "nn": nn,
+        "dir": resolved,
+        "encoder": None,
+        "encoder_failed": False,
+        "encoder_error": None,
+        "model_name": _DEFAULT_EMBED_MODEL,
+    }
+    _EMBED_CACHES[resolved] = cache
+    return cache
+
+
+def _ensure_sentence_encoder(cache: Dict[str, Any]):
+    if cache.get("encoder") is not None:
+        return cache["encoder"]
+    if cache.get("encoder_failed"):
+        return None
+    try:
+        from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
+    except Exception as exc:  # pragma: no cover - optional dependency
+        cache["encoder_failed"] = True
+        cache["encoder_error"] = f"sentence_transformers_import_failed: {exc}"
+        LOG.debug("SentenceTransformer unavailable: %s", exc)
+        return None
+    model_name = cache.get("model_name") or _DEFAULT_EMBED_MODEL
+    try:
+        encoder = SentenceTransformer(model_name)
+    except Exception as exc:  # pragma: no cover - runtime/env dependent
+        cache["encoder_failed"] = True
+        cache["encoder_error"] = f"encoder_load_failed: {exc}"
+        LOG.warning("Failed to load SentenceTransformer %s: %s", model_name, exc)
+        return None
+    cache["encoder"] = encoder
+    return encoder
+
+
+def _run_embedding_search(
+    query_text: str,
+    cache: Dict[str, Any],
+    encoder: Any,
+    max_results: int,
+) -> List[Dict[str, Any]]:
+    if not query_text:
+        return []
+    try:
+        query_emb = encoder.encode(
+            [query_text],
+            convert_to_numpy=True,
+        )[0]
+    except Exception as exc:  # pragma: no cover - runtime dependent
+        cache["encoder_failed"] = True
+        cache["encoder_error"] = f"encode_failed: {exc}"
+        LOG.warning("Embedding encode failed: %s", exc)
+        return []
+    embeddings = cache.get("embeddings")
+    nn = cache.get("nn")
+    if embeddings is None or not isinstance(nn, NearestNeighbors):
+        return []
+    neighbor_count = min(max_results, embeddings.shape[0])
+    if neighbor_count <= 0:
+        return []
+    dists, idxs = nn.kneighbors(query_emb.reshape(1, -1), n_neighbors=neighbor_count)
+    matches: List[Dict[str, Any]] = []
+    for dist, idx in zip(dists[0], idxs[0]):
+        meta = cache["meta"][int(idx)] if cache.get("meta") else {}
+        matches.append(
+            {
+                "card": meta,
+                "distance": float(dist),
+                "score": float(max(0.0, 100.0 - (float(dist) * 100.0))),
+                "index": int(idx),
+            }
+        )
+    return matches
+
+
+def embedding_matches_from_ocr(
+    ocr_map: Dict[str, str],
+    embeddings_dir: Optional[str],
+    *,
+    max_results: int = 5,
+) -> Dict[str, Any]:
+    """Return embedding-based nearest matches for an OCR map."""
+    info: Dict[str, Any] = {
+        "query": "",
+        "matches": [],
+        "best": None,
+        "engine": None,
+        "error": None,
+        "available": False,
+    }
+    if not embeddings_dir:
+        info["error"] = "embeddings_dir_missing"
+        return info
+    query_text = _compose_embedding_query(ocr_map)
+    info["query"] = query_text
+    if not query_text:
+        info["error"] = "empty_query"
+        return info
+    cache = _get_embedding_cache(embeddings_dir)
+    if not cache:
+        info["error"] = "embedding_index_unavailable"
+        return info
+    encoder = _ensure_sentence_encoder(cache)
+    if encoder is None:
+        info["error"] = cache.get("encoder_error") or "encoder_unavailable"
+        return info
+    matches = _run_embedding_search(query_text, cache, encoder, max_results)
+    info["matches"] = matches
+    info["engine"] = cache.get("model_name") or _DEFAULT_EMBED_MODEL
+    if matches:
+        info["best"] = matches[0]
+        info["available"] = True
+    elif cache.get("encoder_error"):
+        info["error"] = cache["encoder_error"]
+    return info
+
 # ------ public API ------
 
 def identify_card_from_ocr(ocr_map: Dict[str,str],
@@ -212,72 +404,34 @@ def identify_card_from_ocr(ocr_map: Dict[str,str],
     }
 
     # --- optional embedding-based matching (if precomputed embeddings exist) ---
-    # embeddings_dir should contain 'embeddings.npy' and 'cards_metadata.json'
-    def try_embedding_match(query_text: str):
-        if not embeddings_dir:
-            return None
-        try:
-            emb_path = os.path.join(embeddings_dir, 'embeddings.npy')
-            meta_path = os.path.join(embeddings_dir, 'cards_metadata.json')
-            if not os.path.exists(emb_path) or not os.path.exists(meta_path):
-                return None
-            # cache loader on module attribute to avoid repeated loads
-            if not hasattr(identify_card_from_ocr, '_emb_cache'):
-                identify_card_from_ocr._emb_cache = {}
-            cache = identify_card_from_ocr._emb_cache
-            if 'embeddings' not in cache:
-                cache['embeddings'] = np.load(emb_path)
-                with open(meta_path, 'r', encoding='utf8') as fh:
-                    cache['meta'] = json.load(fh)
-                cache['nn'] = NearestNeighbors(n_neighbors=min(16, len(cache['embeddings'])), algorithm='auto')
-                cache['nn'].fit(cache['embeddings'])
-            # load encoder model lazily
-            if 'encoder' not in cache:
-                try:
-                    from sentence_transformers import SentenceTransformer
-                    cache['encoder'] = SentenceTransformer('all-MiniLM-L6-v2')
-                except Exception:
-                    cache['encoder'] = None
-            encoder = cache.get('encoder')
-            if encoder is None:
-                return None
-            q_emb = encoder.encode([query_text], convert_to_numpy=True)[0]
-            dists, idxs = cache['nn'].kneighbors(q_emb.reshape(1, -1), n_neighbors=min(8, cache['embeddings'].shape[0]))
-            # build candidate list from metadata
-            out = []
-            for dist, idx in zip(dists[0], idxs[0]):
-                m = cache['meta'][idx]
-                # convert distance to a 0..100-like score (cosine or L2 depending on model); use simple transform
-                score = float(max(0.0, 100.0 - (dist * 100.0)))
-                out.append((m, score, float(dist)))
-            return out
-        except Exception:
-            return None
-
-    # If embeddings_dir provided try embedding match first (prefer higher-level semantics)
-    # Build an aggregated query from available OCR regions so empty 'name' doesn't block embedding lookup
-    # prefer name + oracle + collector, but include full card text as a fallback or extra context
-    query_parts = [p for p in [o_name, o_oracle, o_collector, o_full] if p]
-    query_text = "\n".join(query_parts).strip() if query_parts else ""
+    query_text = _compose_embedding_query(ocr_map)
     results['debug']['ocr_query'] = query_text
-    if embeddings_dir and query_text:
-        emb_matches = try_embedding_match(query_text)
-        if emb_matches:
-            # translate embedding matches into results structure
+    if embeddings_dir:
+        embed_info = embedding_matches_from_ocr(ocr_map, embeddings_dir, max_results=max(8, top_n))
+        results['debug']['embedding'] = embed_info
+        matches = embed_info.get('matches') or []
+        if matches:
             cand_list = []
-            for m, score, dist in emb_matches:
-                cand_list.append({
-                    'card': m,
-                    'name_score': float(score),
+            for match in matches:
+                card = match.get('card') or {}
+                score_val = float(match.get('score') or 0.0)
+                candidate = {
+                    'card': card,
+                    'name_score': score_val,
                     'oracle_score': 0.0,
                     'collector_score': 0.0,
-                    'total_score': float(score)
-                })
-            results['candidates'] = cand_list
-            results['best'] = cand_list[0]['card'] if cand_list else None
-            results['score'] = cand_list[0]['total_score'] if cand_list else 0.0
-            results['debug']['embed_match'] = True
-            return results
+                    'total_score': score_val
+                }
+                if 'distance' in match:
+                    candidate['distance'] = float(match.get('distance') or 0.0)
+                candidate['source'] = 'embedding'
+                cand_list.append(candidate)
+            if cand_list:
+                results['candidates'] = cand_list
+                results['best'] = cand_list[0]['card']
+                results['score'] = cand_list[0]['total_score']
+                results['debug']['embed_match'] = True
+                return results
 
     # 1) try exact normalized name match
     if norm_o_name:

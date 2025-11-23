@@ -5,7 +5,7 @@ Test script to check and fix position synchronization issues.
 import asyncio
 from app.services.motion import get_controller
 
-async def test_position_sync():
+async def run_position_sync_check():
     print("Testing position synchronization...")
     ctrl = get_controller()
     
@@ -37,4 +37,4 @@ async def test_position_sync():
         print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
-    asyncio.run(test_position_sync())
+    asyncio.run(run_position_sync_check())

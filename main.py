@@ -185,6 +185,22 @@ def _card_metadata_path() -> Optional[Path]:
     return default_path
 
 
+def _embeddings_dir_path() -> Path:
+    sorting_cfg = raw_cfg.get("sorting") if isinstance(raw_cfg, dict) else {}
+    directory = None
+    if isinstance(sorting_cfg, dict):
+        directory = sorting_cfg.get("embeddings_dir")
+    if isinstance(directory, str) and directory:
+        path = Path(directory)
+        if not path.is_absolute():
+            path = Path.cwd() / path
+        return path
+    return Path("data/embeddings")
+
+
+EMBEDDINGS_DIR = _embeddings_dir_path()
+
+
 def _load_cards_metadata() -> Dict[str, Dict[str, Any]]:
     global CARD_METADATA_CACHE
     if CARD_METADATA_CACHE:
@@ -1162,30 +1178,37 @@ async def camera_snapshot(
         jpeg_quality=quality,
         persist=True,
         include_bytes=True,
+        embeddings_dir=EMBEDDINGS_DIR,
     )
 
-    orientation_metrics = ocr_pipeline.analyze_orientation(frame_top, frame_bottom)
-    ocr_payload = artifacts.get("ocr_result", {})
-
-    labels = ["composite", "ocr_prepared", "top", "bottom"]
+    labels = [
+        "composite_rotated",
+        "composite",
+        "composite_aligned",
+        "ocr_prepared",
+        "ocr_text",
+        "top",
+        "bottom",
+    ]
     frames: List[Dict[str, Any]] = []
     for label in labels:
         asset = artifacts.get(label)
-        if not asset or "bytes" not in asset:
+        if not asset:
             continue
-        encoded_image = base64.b64encode(asset["bytes"]).decode("ascii")
         frame_info: Dict[str, Any] = {
             "label": label,
             "mime": asset.get("mime", "image/jpeg"),
-            "image": encoded_image,
             "path": asset.get("path", ""),
-            "size": len(asset["bytes"]),
             "shape": asset.get("shape"),
         }
+        if "bytes" in asset:
+            encoded_image = base64.b64encode(asset["bytes"]).decode("ascii")
+            frame_info["image"] = encoded_image
+            frame_info["size"] = len(asset["bytes"])
+        if "text" in asset:
+            frame_info["text"] = asset.get("text")
         if "meta" in asset:
             frame_info["meta"] = asset["meta"]
-        if label in {"ocr_prepared", "composite"} and isinstance(ocr_payload, dict):
-            frame_info["ocr_fields"] = ocr_payload.get("fields")
         frames.append(frame_info)
 
     frame_map = {entry["label"]: entry for entry in frames}
@@ -1199,13 +1222,35 @@ async def camera_snapshot(
         "bottom_path": artifacts.get("bottom", {}).get("path", ""),
         "composite_path": artifacts.get("composite", {}).get("path", ""),
         "ocr_path": artifacts.get("ocr_prepared", {}).get("path", ""),
+        "meta_path": artifacts.get("meta", {}).get("path", ""),
     }
 
-    processing_meta = {**artifacts.get("meta", {}), "analysis": orientation_metrics}
-    if isinstance(ocr_payload, dict):
-        processing_meta["ocr_result"] = ocr_payload
-        if "fields" in ocr_payload:
-            processing_meta["ocr_fields"] = ocr_payload.get("fields")
+    meta_block = dict(artifacts.get("meta", {}))
+    orientation_metrics = meta_block.get("pair_orientation")
+    if orientation_metrics is None:
+        orientation_metrics = ocr_pipeline.analyze_orientation(frame_top, frame_bottom)
+    meta_block["analysis"] = orientation_metrics
+
+    processing_meta = meta_block
+
+    ocr_summary = None
+    ocr_frame = frame_map.get("ocr_text") if isinstance(frame_map, dict) else None
+    if isinstance(ocr_frame, dict):
+        ocr_payload = ocr_frame.get("text")
+        if isinstance(ocr_payload, dict):
+            for key in ("full_text", "full", "oracle", "name"):
+                text_val = ocr_payload.get(key)
+                if isinstance(text_val, str) and text_val.strip():
+                    ocr_summary = text_val.strip()
+                    break
+    if ocr_summary and len(ocr_summary) > 160:
+        ocr_summary = ocr_summary[:157] + "…"
+
+    meta_path = saved_paths.get("meta_path")
+    if meta_path:
+        LOG.info("Snapshot %s OCR saved to %s%s", timestamp_iso, meta_path, f" — {ocr_summary}" if ocr_summary else "")
+    elif ocr_summary:
+        LOG.info("Snapshot %s OCR: %s", timestamp_iso, ocr_summary)
 
     return {
         "timestamp": timestamp_iso,
@@ -1219,8 +1264,6 @@ async def camera_snapshot(
         },
         "saved": saved_paths,
         "processing": processing_meta,
-        "ocr": ocr_payload,
-        "ocr_fields": ocr_payload.get("fields") if isinstance(ocr_payload, dict) else None,
     }
 
 
@@ -1449,6 +1492,29 @@ def assign_known_card(payload: Dict[str, Any]) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Upload endpoints (OCR experiments)
 # ---------------------------------------------------------------------------
+
+
+@app.post("/ocr/run")
+async def ocr_run(file: UploadFile = File(...)) -> Dict[str, Any]:
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty upload")
+    try:
+        result = ocr_pipeline.run_ocr_from_bytes(data)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    ocr_map = result.get("ocr_map") or {}
+    embedding_info = card_id.embedding_matches_from_ocr(ocr_map, str(EMBEDDINGS_DIR))
+    meta_block = dict(result.get("ocr_meta") or {})
+    meta_block["embedding"] = embedding_info
+    result["ocr_meta"] = meta_block
+    return {
+        "ok": True,
+        **result,
+        "embedding": embedding_info,
+    }
 
 
 @app.post("/ocr/upload")

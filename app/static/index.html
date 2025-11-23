@@ -36,13 +36,9 @@
               <button id="btnCameraSnapshot" class="secondary">Capture Snapshot</button>
             </div>
             <div id="snapshotPreviewWrap" class="snapshot-preview">
-              <div class="snapshot-preview-images">
+              <div class="snapshot-preview-images single">
                 <div class="snapshot-image-block primary">
-                  <span class="muted">Composite (Aligned)</span>
-                  <img id="snapshotPreviewComposite" alt="Composite snapshot" />
-                </div>
-                <div class="snapshot-image-block">
-                  <span class="muted">OCR Prep</span>
+                  <span class="muted">OCR Prep Composite</span>
                   <img id="snapshotPreviewOcr" alt="OCR ready snapshot" />
                 </div>
               </div>
@@ -52,6 +48,45 @@
               </div>
               <div class="row end">
                 <button id="btnDownloadSnapshot" class="secondary" disabled>Download Snapshot</button>
+              </div>
+            </div>
+            <div class="snapshot-ocr-panel">
+              <div class="row between align-center">
+                <span class="muted">OCR Output</span>
+                <button id="btnCopyOcrText" class="ghost" type="button" disabled>Copy Full Text</button>
+              </div>
+              <pre id="snapshotOcrFull" class="ocr-output muted">No OCR text yet</pre>
+              <div class="ocr-field-grid">
+                <div class="ocr-field">
+                  <span class="label muted">Name Band</span>
+                  <pre id="snapshotOcrName">—</pre>
+                </div>
+                <div class="ocr-field">
+                  <span class="label muted">Rules / Oracle</span>
+                  <pre id="snapshotOcrOracle">—</pre>
+                </div>
+                <div class="ocr-field">
+                  <span class="label muted">Collector</span>
+                  <pre id="snapshotOcrCollector">—</pre>
+                </div>
+              </div>
+              <div id="snapshotOcrMeta" class="muted tiny">Engine: —</div>
+              <div id="snapshotNeighborCard" class="nearest-card muted">
+                <div class="row between align-center">
+                  <span class="muted">Nearest Card (Embeddings)</span>
+                  <span id="snapshotNeighborScore" class="tiny score-chip">—</span>
+                </div>
+                <div class="neighbor-main">
+                  <div>
+                    <strong id="snapshotNeighborName">Waiting for OCR…</strong>
+                    <div id="snapshotNeighborSet" class="muted tiny">—</div>
+                  </div>
+                </div>
+                <div class="neighbor-id">
+                  <span class="label muted">Scryfall ID</span>
+                  <code id="snapshotNeighborId">—</code>
+                </div>
+                <div id="snapshotNeighborStatus" class="tiny muted">Embedding match unavailable.</div>
               </div>
             </div>
             <div class="row">
@@ -406,6 +441,6 @@
   <div id="toasts" class="toasts"></div>
 
   <!-- Cache-busting query param to ensure clients pick up JS changes during development -->
-  <script src="/static/app.js?v=10"></script>
+  <script src="/static/app.js?v=11"></script>
 </body>
 </html>

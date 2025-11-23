@@ -36,7 +36,7 @@ class MockDriver(MotionDriver):
     async def move_until_limit(self, axis: str, direction: int, speed: float) -> float:
         return 0.0
 
-async def test_jog_safety():
+async def run_jog_safety_demo():
     print("Testing jog safety improvements...")
     
     # Create controller with mock driver
@@ -80,4 +80,4 @@ async def test_jog_safety():
         traceback.print_exc()
 
 if __name__ == "__main__":
-    asyncio.run(test_jog_safety())
+    asyncio.run(run_jog_safety_demo())

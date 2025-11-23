@@ -36,9 +36,6 @@ def _build_result_payload(artifacts: Dict[str, Any], timestamp_slug: str) -> Dic
         },
         "meta": artifacts.get("meta", {}),
     }
-    ocr_payload = artifacts.get("ocr_result", {})
-    result["ocr"] = ocr_payload
-    result["ocr_fields"] = ocr_payload.get("fields") if isinstance(ocr_payload, dict) else None
     return result
 
 
@@ -94,13 +91,11 @@ def main() -> None:
         orientation = result["meta"].get("orientation", {})
         if orientation:
             print("Orientation:", json.dumps(orientation, indent=2))
+        pair_orientation = result["meta"].get("pair_orientation", {})
+        if pair_orientation:
+            print("Pair orientation hint:", json.dumps(pair_orientation, indent=2))
         ocr_meta = result["meta"].get("ocr", {})
         if ocr_meta:
             print("OCR prep:", json.dumps(ocr_meta, indent=2))
-        ocr_fields = result.get("ocr_fields") or {}
-        if ocr_fields:
-            print("OCR fields:")
-            for k, v in ocr_fields.items():
-                print(f"  {k}: {v}")
 if __name__ == "__main__":
     main()

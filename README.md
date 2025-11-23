@@ -52,3 +52,14 @@ using the provided `requirements.txt`:
 
 If you're running in a headless server environment prefer
 `opencv-python-headless` (already used in `requirements.txt`).
+
+### OCR fallbacks
+
+If Tesseract is not available, the snapshot pipeline will automatically
+fallback to [EasyOCR](https://github.com/JaidedAI/EasyOCR) (installed via
+`requirements.txt`). The fallback does not require additional system
+packages, but it does rely on PyTorch; both CPU-only wheels are pinned in the
+requirements list. When neither engine is present the API log will emit a
+clear error (`No OCR engines available; install tesseract or easyocr...`).
+Install at least one of the engines to see live OCR output in the UI and
+metadata files.

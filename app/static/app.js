@@ -84,17 +84,30 @@ const panelSetup = $('panelSetup');
 const panelRun = $('panelRun');
 const cameraImg = $('cameraLive');
 const snapshotWrap = $('snapshotPreviewWrap');
-const snapshotImgComposite = $('snapshotPreviewComposite');
 const snapshotImgOcr = $('snapshotPreviewOcr');
 const snapshotTimestamp = $('snapshotTimestamp');
 const snapshotDownloadBtn = $('btnDownloadSnapshot');
 const snapshotLocation = $('snapshotLocation');
+const snapshotOcrFull = $('snapshotOcrFull');
+const snapshotOcrName = $('snapshotOcrName');
+const snapshotOcrOracle = $('snapshotOcrOracle');
+const snapshotOcrCollector = $('snapshotOcrCollector');
+const snapshotOcrMeta = $('snapshotOcrMeta');
+const btnCopyOcrText = $('btnCopyOcrText');
+const snapshotNeighborCard = $('snapshotNeighborCard');
+const snapshotNeighborName = $('snapshotNeighborName');
+const snapshotNeighborSet = $('snapshotNeighborSet');
+const snapshotNeighborScore = $('snapshotNeighborScore');
+const snapshotNeighborStatus = $('snapshotNeighborStatus');
+const snapshotNeighborId = $('snapshotNeighborId');
 let cameraObjUrl = null;
 let cameraWasOnline = false;
 let cameraSnapPending = false;
 let cameraBlob = null;
 let lastSnapshotMeta = null;
 let snapshotAssets = {};
+let lastSnapshotOcr = null;
+let lastEmbeddingMatch = null;
 
 function releaseSnapshotUrls(){
   const urls = new Set();
@@ -118,9 +131,6 @@ function releaseSnapshotUrls(){
 function clearSnapshotPreview(){
   releaseSnapshotUrls();
   lastSnapshotMeta = null;
-  if(snapshotImgComposite){
-    snapshotImgComposite.removeAttribute('src');
-  }
   if(snapshotImgOcr){
     snapshotImgOcr.removeAttribute('src');
   }
@@ -133,6 +143,165 @@ function clearSnapshotPreview(){
   if(snapshotDownloadBtn){
     snapshotDownloadBtn.disabled = true;
   }
+  clearSnapshotOcr();
+}
+
+function clearSnapshotOcr(){
+  lastSnapshotOcr = null;
+  if(snapshotOcrFull){
+    snapshotOcrFull.textContent = 'No OCR text yet';
+    snapshotOcrFull.classList.add('muted');
+  }
+  if(snapshotOcrName){
+    snapshotOcrName.textContent = '—';
+  }
+  if(snapshotOcrOracle){
+    snapshotOcrOracle.textContent = '—';
+  }
+  if(snapshotOcrCollector){
+    snapshotOcrCollector.textContent = '—';
+  }
+  if(snapshotOcrMeta){
+    snapshotOcrMeta.textContent = 'Engine: —';
+  }
+  if(btnCopyOcrText){
+    btnCopyOcrText.disabled = true;
+  }
+  renderEmbeddingMatch(null);
+}
+
+function formatOcr(value){
+  if(!value) return '';
+  return String(value).trim();
+}
+
+function renderEmbeddingMatch(info){
+  lastEmbeddingMatch = info || null;
+  if(!snapshotNeighborCard){
+    return;
+  }
+  const best = info && info.best;
+  const card = best && best.card ? best.card : null;
+  if(!best || !card){
+    snapshotNeighborCard.classList.add('muted');
+    if(snapshotNeighborName){
+      snapshotNeighborName.textContent = info && info.error ? 'No match' : 'Nearest card pending…';
+    }
+    if(snapshotNeighborSet){
+      snapshotNeighborSet.textContent = info && info.error ? info.error : '—';
+    }
+    if(snapshotNeighborScore){
+      snapshotNeighborScore.textContent = '—';
+    }
+    if(snapshotNeighborId){
+      snapshotNeighborId.textContent = '—';
+    }
+    if(snapshotNeighborStatus){
+      if(info && info.error){
+        snapshotNeighborStatus.textContent = info.error;
+      }else{
+        snapshotNeighborStatus.textContent = 'Embedding match unavailable.';
+      }
+    }
+    return;
+  }
+  snapshotNeighborCard.classList.remove('muted');
+  if(snapshotNeighborName){
+    snapshotNeighborName.textContent = card.name || 'Unknown card';
+  }
+  if(snapshotNeighborSet){
+    const parts = [];
+    if(card.set) parts.push(String(card.set).toUpperCase());
+    if(card.collector_number) parts.push(`#${card.collector_number}`);
+    snapshotNeighborSet.textContent = parts.length ? parts.join(' • ') : '—';
+  }
+  if(snapshotNeighborId){
+    const scryfallId = card.id || card.scryfall_id || card.scryfallId || card.scryfallID;
+    snapshotNeighborId.textContent = scryfallId || '—';
+  }
+  if(snapshotNeighborScore){
+    const scoreVal = typeof best.score === 'number' ? Number(best.score).toFixed(1) : '—';
+    snapshotNeighborScore.textContent = scoreVal;
+  }
+  if(snapshotNeighborStatus){
+    const bits = [];
+    if(info && info.engine){
+      bits.push(`Model: ${info.engine}`);
+    }
+    if(typeof best.distance === 'number'){
+      bits.push(`dist ${Number(best.distance).toFixed(3)}`);
+    }
+    snapshotNeighborStatus.textContent = bits.length ? bits.join(' • ') : '';
+  }
+}
+
+function updateSnapshotOcr(ocrMap, ocrMeta, embeddingInfo){
+  const map = ocrMap && typeof ocrMap === 'object' ? ocrMap : {};
+  const meta = ocrMeta && typeof ocrMeta === 'object' ? ocrMeta : {};
+  lastSnapshotOcr = map;
+  const fullText = formatOcr(map.full_text || map.full || map.oracle);
+  if(snapshotOcrFull){
+    if(fullText){
+      snapshotOcrFull.textContent = fullText;
+      snapshotOcrFull.classList.remove('muted');
+    }else{
+      snapshotOcrFull.textContent = 'No OCR text yet';
+      snapshotOcrFull.classList.add('muted');
+    }
+  }
+  if(snapshotOcrName){
+    snapshotOcrName.textContent = formatOcr(map.name) || '—';
+  }
+  if(snapshotOcrOracle){
+    snapshotOcrOracle.textContent = formatOcr(map.oracle) || '—';
+  }
+  if(snapshotOcrCollector){
+    snapshotOcrCollector.textContent = formatOcr(map.collector) || '—';
+  }
+  if(snapshotOcrMeta){
+    const parts = [];
+    if(meta.engine) parts.push(`Engine: ${meta.engine}`);
+    if(typeof meta.duration_ms === 'number') parts.push(`Duration: ${meta.duration_ms} ms`);
+    if(meta.error) parts.push(`Error: ${meta.error}`);
+    snapshotOcrMeta.textContent = parts.length ? parts.join(' • ') : 'Engine: —';
+  }
+  if(btnCopyOcrText){
+    btnCopyOcrText.disabled = !fullText;
+  }
+  const embedding = embeddingInfo || meta.embedding;
+  renderEmbeddingMatch(embedding);
+}
+
+function setSnapshotOcrPending(){
+  if(snapshotOcrFull){
+    snapshotOcrFull.textContent = 'Running OCR…';
+    snapshotOcrFull.classList.remove('muted');
+  }
+  if(snapshotOcrMeta){
+    snapshotOcrMeta.textContent = 'Running OCR…';
+  }
+  if(btnCopyOcrText){
+    btnCopyOcrText.disabled = true;
+  }
+  renderEmbeddingMatch(null);
+}
+
+async function runOcrForAsset(asset){
+  if(!asset || !asset.blob){
+    throw new Error('Missing OCR-ready asset');
+  }
+  const form = new FormData();
+  const filename = asset.path ? asset.path.split('/').pop() : 'snapshot-ocr.png';
+  form.append('file', asset.blob, filename);
+  const response = await fetch(`${BASE}/ocr/run`, {
+    method: 'POST',
+    body: form,
+  });
+  if(!response.ok){
+    const text = await response.text().catch(()=> '');
+    throw new Error(text || `${response.status} ${response.statusText}`);
+  }
+  return response.json();
 }
 
 async function captureSnapshot(opts = {}){
@@ -153,58 +322,92 @@ async function captureSnapshot(opts = {}){
       throw new Error(`${res.status} ${res.statusText}`.trim());
     }
     const data = await res.json();
-  const frames = Array.isArray(data?.frames) ? data.frames : [];
-  const imageMap = (data && typeof data.images === 'object') ? data.images : {};
-  const ocrPayload = (data && typeof data.ocr === 'object') ? data.ocr : (data?.processing && typeof data.processing.ocr_result === 'object' ? data.processing.ocr_result : null);
-  const ocrFields = (ocrPayload && typeof ocrPayload.fields === 'object') ? ocrPayload.fields : (data && typeof data.ocr_fields === 'object' ? data.ocr_fields : (data?.processing && typeof data.processing.ocr_result === 'object' && typeof data.processing.ocr_result.fields === 'object' ? data.processing.ocr_result.fields : null));
+    const frames = Array.isArray(data?.frames) ? data.frames : [];
+    const imageMap = (data && typeof data.images === 'object') ? data.images : {};
     const findFrame = (label) => {
-      if(imageMap && imageMap[label]) return imageMap[label];
+      if(!label) return null;
+      const direct = imageMap && imageMap[label];
+      if(direct) return direct;
       return frames.find(f=> String(f?.label||'').toLowerCase() === label);
     };
+    const frameToAsset = (frame, opts = {}) => {
+      if(!frame || !frame.image) return null;
+      const blob = base64ToBlob(frame.image, frame.mime || 'image/jpeg');
+      if(!blob) return null;
+      const asset = {
+        blob,
+        mime: frame.mime || 'image/jpeg',
+        url: null,
+        path: frame.path || '',
+      };
+      if(opts.makeUrl){
+        asset.url = URL.createObjectURL(blob);
+      }
+      return asset;
+    };
 
-    const compositeFrame = findFrame('composite');
+    const compositePreference = ['composite_rotated','composite','composite_aligned'];
+    let compositeFrame = null;
+    for(const label of compositePreference){
+      const candidate = findFrame(label);
+      if(candidate && candidate.image){
+        compositeFrame = candidate;
+        break;
+      }
+    }
     if(!compositeFrame || !compositeFrame.image){
       throw new Error('Composite frame missing');
     }
 
-    const compositeBlob = base64ToBlob(compositeFrame.image, compositeFrame.mime || 'image/jpeg');
-    if(!compositeBlob){
+    const compositeAsset = frameToAsset(compositeFrame, {makeUrl: true});
+    if(!compositeAsset){
       throw new Error('Unable to decode composite snapshot');
     }
 
-    const newAssets = {};
-    const compositeUrl = URL.createObjectURL(compositeBlob);
-    newAssets.composite = {
-      blob: compositeBlob,
-      mime: compositeFrame.mime || 'image/jpeg',
-      url: compositeUrl,
-      path: compositeFrame.path || '',
-    };
+  const newAssets = {};
+  let ocrAssetForRun = null;
+    newAssets.composite = compositeAsset;
+    const compositeLabelUsed = String(compositeFrame.label || 'composite');
+    newAssets[compositeLabelUsed] = compositeAsset;
 
-    cameraBlob = compositeBlob;
-    cameraObjUrl = compositeUrl;
+    cameraBlob = compositeAsset.blob;
+    cameraObjUrl = compositeAsset.url;
 
     cameraImg.src = cameraObjUrl;
-    if(snapshotImgComposite){
-      snapshotImgComposite.src = cameraObjUrl;
-    }
 
     const ts = typeof data?.timestamp === 'string' ? data.timestamp : String(Date.now());
     cameraImg.dataset.snapshotTs = ts;
 
-    const ocrFrame = findFrame('ocr_prepared');
-    if(ocrFrame && ocrFrame.image){
-      const ocrBlob = base64ToBlob(ocrFrame.image, ocrFrame.mime || 'image/png');
-      if(ocrBlob){
-        const ocrUrl = URL.createObjectURL(ocrBlob);
-        newAssets.ocr_prepared = {
-          blob: ocrBlob,
-          mime: ocrFrame.mime || 'image/png',
-          url: ocrUrl,
-          path: ocrFrame.path || '',
-        };
+    const rotatedFrame = compositeLabelUsed === 'composite_rotated' ? compositeFrame : findFrame('composite_rotated');
+    if(rotatedFrame && !newAssets.composite_rotated){
+      const asset = compositeLabelUsed === 'composite_rotated' ? compositeAsset : frameToAsset(rotatedFrame, {makeUrl: false});
+      if(asset){
+        newAssets.composite_rotated = asset;
+      }
+    }
+    const alignedFrame = compositeLabelUsed === 'composite_aligned' ? compositeFrame : findFrame('composite_aligned');
+    if(alignedFrame && !newAssets.composite_aligned){
+      const alignedAsset = compositeLabelUsed === 'composite_aligned'
+        ? compositeAsset
+        : frameToAsset(alignedFrame, {makeUrl: true});
+      if(alignedAsset){
+        if(!alignedAsset.url){
+          alignedAsset.url = URL.createObjectURL(alignedAsset.blob);
+        }
+        newAssets.composite_aligned = alignedAsset;
+      }
+    }
+
+    const ocrPreparedFrame = findFrame('ocr_prepared');
+    if(ocrPreparedFrame && ocrPreparedFrame.image){
+      const ocrAsset = frameToAsset(ocrPreparedFrame, {makeUrl: true});
+      if(ocrAsset){
+        newAssets.ocr_prepared = ocrAsset;
+        if(!ocrAssetForRun){
+          ocrAssetForRun = ocrAsset;
+        }
         if(snapshotImgOcr){
-          snapshotImgOcr.src = ocrUrl;
+          snapshotImgOcr.src = ocrAsset.url;
         }
       }
     }else if(snapshotImgOcr){
@@ -235,13 +438,9 @@ async function captureSnapshot(opts = {}){
           path: bottomFrame.path || '',
         };
       }
-    }
 
     snapshotAssets = newAssets;
-    newAssets.meta = {
-      ocr_fields: ocrFields,
-      ocr_payload: ocrPayload,
-    };
+    }
 
     lastSnapshotMeta = {
       timestamp: ts,
@@ -249,10 +448,38 @@ async function captureSnapshot(opts = {}){
       frames,
       images: imageMap,
       processing: data?.processing,
-      ocr: ocrPayload,
     };
-    if(ocrFields){
-      lastSnapshotMeta.ocr_fields = ocrFields;
+
+    if(!ocrAssetForRun){
+      ocrAssetForRun = newAssets.ocr_prepared || newAssets.composite_rotated || newAssets.composite;
+    }
+
+    const processing = data?.processing || {};
+    const ocrFrame = findFrame('ocr_text');
+    const hasImmediateOcr = Boolean(processing?.ocr_map || processing?.ocr_result || (ocrFrame && ocrFrame.text));
+    if(processing?.ocr_map || processing?.ocr_result){
+      updateSnapshotOcr(processing.ocr_map, processing.ocr_result, processing.embedding || processing.ocr_result?.embedding);
+    }else if(ocrFrame && ocrFrame.text){
+      updateSnapshotOcr(ocrFrame.text, ocrFrame.meta, ocrFrame.meta?.embedding);
+    }else{
+      clearSnapshotOcr();
+    }
+
+    if(ocrAssetForRun){
+      try{
+        if(!hasImmediateOcr){
+          setSnapshotOcrPending();
+        }
+        const ocrResponse = await runOcrForAsset(ocrAssetForRun);
+        if(ocrResponse?.ocr_map){
+          updateSnapshotOcr(ocrResponse.ocr_map, ocrResponse.ocr_meta, ocrResponse.embedding || ocrResponse.ocr_meta?.embedding);
+        }
+      }catch(err){
+        console.warn('OCR run failed', err);
+        if(!hasImmediateOcr){
+          toast(`OCR failed: ${err.message}`);
+        }
+      }
     }
 
     if(snapshotTimestamp){
@@ -261,18 +488,16 @@ async function captureSnapshot(opts = {}){
         capturedAt = new Date();
       }
       const orientationTag = data?.processing?.analysis?.determination || data?.processing?.orientation?.determination;
+      const rotationDir = data?.processing?.orientation?.rotated?.direction;
       const orientationText = orientationTag ? ` • ${orientationTag}` : '';
-      const nameFromOcr = (ocrFields && (ocrFields.name || ocrFields.title)) || '';
-      const nameText = nameFromOcr ? ` • OCR Name: ${nameFromOcr}` : '';
-      snapshotTimestamp.textContent = `Captured ${capturedAt.toLocaleString()} (offset ${data?.offset_mm ?? 0} mm)${orientationText}${nameText}`;
+      const rotationText = rotationDir ? ` • rotated ${rotationDir}` : '';
+      snapshotTimestamp.textContent = `Captured ${capturedAt.toLocaleString()} (offset ${data?.offset_mm ?? 0} mm)${orientationText}${rotationText}`;
     }
     if(snapshotLocation){
       const lines = [];
-      const compositePath = snapshotAssets.composite?.path || compositeFrame.path || 'Not saved';
-      lines.push(`Composite: ${compositePath}`);
-      if(snapshotAssets.ocr_prepared || (ocrFrame && ocrFrame.path)){
-        const ocrPath = snapshotAssets.ocr_prepared?.path || ocrFrame?.path || 'Not saved';
-        lines.push(`OCR: ${ocrPath}`);
+      if(snapshotAssets.ocr_prepared || (ocrPreparedFrame && ocrPreparedFrame.path)){
+        const ocrPath = snapshotAssets.ocr_prepared?.path || ocrPreparedFrame?.path || 'Not saved';
+        lines.push(`OCR Prep: ${ocrPath}`);
       }
       if(topFrame){
         lines.push(`Top: ${topFrame.path || 'Not saved'}`);
@@ -280,21 +505,7 @@ async function captureSnapshot(opts = {}){
       if(bottomFrame){
         lines.push(`Bottom: ${bottomFrame.path || 'Not saved'}`);
       }
-      if(ocrFields){
-        if(ocrFields.name || ocrFields.title){
-          lines.push(`Name: ${ocrFields.name || ocrFields.title}`);
-        }
-        if(ocrFields.type_line){
-          lines.push(`Type: ${ocrFields.type_line}`);
-        }
-        if(ocrFields.oracle){
-          lines.push(`Rules: ${ocrFields.oracle}`);
-        }
-        if(ocrFields.collector){
-          lines.push(`Collector: ${ocrFields.collector}`);
-        }
-      }
-      snapshotLocation.textContent = lines.join('\n');
+      snapshotLocation.textContent = lines.length ? lines.join('\n') : 'Not saved yet';
     }
     if(snapshotDownloadBtn){
       snapshotDownloadBtn.disabled = false;
@@ -326,6 +537,24 @@ async function captureSnapshot(opts = {}){
 window.addEventListener('beforeunload', ()=>{
   clearSnapshotPreview();
 });
+
+if(btnCopyOcrText){
+  on(btnCopyOcrText, 'click', async ()=>{
+    if(!lastSnapshotOcr) return;
+    const fullText = formatOcr(lastSnapshotOcr.full_text || lastSnapshotOcr.full || lastSnapshotOcr.oracle);
+    if(!fullText){
+      toast('No OCR text to copy');
+      return;
+    }
+    try{
+      await navigator.clipboard.writeText(fullText);
+      toast('OCR text copied');
+    }catch(err){
+      console.warn('Failed to copy OCR text', err);
+      toast('Failed to copy OCR text');
+    }
+  });
+}
 
 on($('btnToSetup'), 'click', ()=>{
   panelSetup.scrollIntoView({behavior:'smooth', block:'start'});
@@ -596,10 +825,16 @@ on($('btnEndRun'), 'click', async ()=>{
 on($('btnManualDivert'),'click', ()=> api('/run/divert_current',{method:'POST'}).then(()=>toast('Current card diverted to K3')).catch(e=>toast(e.message)));
 on($('btnCameraSnapshot'),'click', ()=> captureSnapshot());
 on(snapshotDownloadBtn, 'click', ()=>{
-  const orderedLabels = ['composite','ocr_prepared','top','bottom'];
-  const downloadTargets = orderedLabels
-    .map(label => [label, snapshotAssets[label]])
-    .filter(([, asset]) => asset && asset.blob);
+  const orderedLabels = ['composite_rotated','composite','composite_aligned','ocr_prepared','top','bottom'];
+  const seenAssets = new Set();
+  const downloadTargets = [];
+  orderedLabels.forEach(label => {
+    const asset = snapshotAssets[label];
+    if(asset && asset.blob && !seenAssets.has(asset)){
+      downloadTargets.push([label, asset]);
+      seenAssets.add(asset);
+    }
+  });
 
   if(downloadTargets.length === 0){
     toast('No snapshot captured yet');
