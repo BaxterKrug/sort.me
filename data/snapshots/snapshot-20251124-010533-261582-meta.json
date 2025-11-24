@@ -1,0 +1,840 @@
+{
+  "composite_meta": {
+    "aligned": {
+      "border": {
+        "area": 813479.5,
+        "box": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            857.67578125,
+            0.0
+          ],
+          [
+            881.740478515625,
+            1123.0
+          ],
+          [
+            0.0,
+            1123.0
+          ]
+        ],
+        "dest_height": 1123,
+        "dest_width": 858,
+        "found": true,
+        "margin_px": 20
+      },
+      "bottom_rows_used": 720,
+      "height": 1123,
+      "overlap_px": 316,
+      "top_rows_used": 720,
+      "width": 858
+    },
+    "raw": {
+      "bottom_rows_used": 720,
+      "height": 1124,
+      "overlap_px": 316,
+      "top_rows_used": 720,
+      "width": 1280
+    },
+    "rotated": {
+      "border": {
+        "area": 813479.5,
+        "box": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            857.67578125,
+            0.0
+          ],
+          [
+            881.740478515625,
+            1123.0
+          ],
+          [
+            0.0,
+            1123.0
+          ]
+        ],
+        "dest_height": 1123,
+        "dest_width": 858,
+        "found": true,
+        "margin_px": 20
+      },
+      "bottom_rows_used": 720,
+      "height": 858,
+      "orientation": {
+        "density_lower_final": 3.410036386884116,
+        "density_lower_initial": 4.9360022583531045,
+        "density_upper_final": 4.9360022583531045,
+        "density_upper_initial": 3.410036386884116,
+        "header_activity_final": {
+          "band_height": 188,
+          "bottom_brightness": 109.52005767822266,
+          "bottom_contrast": 90.93899536132812,
+          "bottom_energy": 29.5096492767334,
+          "bottom_score": 43.82382030487061,
+          "top_brightness": 118.16639709472656,
+          "top_contrast": 83.84591674804688,
+          "top_energy": 39.69683074951172,
+          "top_score": 61.06694374084472
+        },
+        "header_activity_initial": {
+          "band_height": 188,
+          "bottom_brightness": 118.16639709472656,
+          "bottom_contrast": 83.84591674804688,
+          "bottom_energy": 39.69683074951172,
+          "bottom_score": 49.18157768249512,
+          "top_brightness": 109.52005767822266,
+          "top_contrast": 90.93899536132812,
+          "top_energy": 29.5096492767334,
+          "top_score": 55.70918636322021
+        },
+        "hint_determination": "bottom_leading",
+        "mask_stats": {
+          "bonus": 0.0,
+          "bottom_mean": 0.4932693839073181,
+          "score": 0.0,
+          "top_mean": 0.4932693839073181
+        },
+        "orientation_candidates": [
+          {
+            "bias": -0.02,
+            "density_lower": 4.9360022583531045,
+            "density_upper": 3.410036386884116,
+            "direction": "clockwise",
+            "energy_ratio": 0.7433819107885733,
+            "header": {
+              "band_height": 188,
+              "bottom_brightness": 118.16639709472656,
+              "bottom_contrast": 83.84591674804688,
+              "bottom_energy": 39.69683074951172,
+              "bottom_score": 49.18157768249512,
+              "top_brightness": 109.52005767822266,
+              "top_contrast": 90.93899536132812,
+              "top_energy": 29.5096492767334,
+              "top_score": 55.70918636322021
+            },
+            "mask_bonus": 6.556510925292969e-08,
+            "mask_bottom_mean": 0.4932693541049957,
+            "mask_score": 2.9802322387695312e-08,
+            "mask_top_mean": 0.4932693839073181,
+            "ratio_density": 0.6909124623374138,
+            "ratio_header": 1.1327219716474595,
+            "score": 0.9833355882340594,
+            "score_raw": 0.9833355882340594,
+            "text_bonus": 0.45,
+            "text_features": {
+              "gap_ok": true,
+              "name_band": {
+                "center_norm": 0.14527421236872812,
+                "end": 125,
+                "end_norm": 0.14585764294049008,
+                "length": 2,
+                "start": 124,
+                "start_norm": 0.14469078179696615
+              },
+              "rules_band": {
+                "center_norm": 0.8162193698949824,
+                "end": 772,
+                "end_norm": 0.9008168028004667,
+                "length": 146,
+                "start": 627,
+                "start_norm": 0.7316219369894983
+              },
+              "score": 0.45,
+              "segments": [
+                {
+                  "center_norm": 0.14527421236872812,
+                  "end": 125,
+                  "end_norm": 0.14585764294049008,
+                  "length": 2,
+                  "start": 124,
+                  "start_norm": 0.14469078179696615
+                },
+                {
+                  "center_norm": 0.1516919486581097,
+                  "end": 133,
+                  "end_norm": 0.15519253208868145,
+                  "length": 7,
+                  "start": 127,
+                  "start_norm": 0.14819136522753792
+                },
+                {
+                  "center_norm": 0.19778296382730456,
+                  "end": 171,
+                  "end_norm": 0.19953325554259044,
+                  "length": 4,
+                  "start": 168,
+                  "start_norm": 0.19603267211201866
+                },
+                {
+                  "center_norm": 0.4807467911318553,
+                  "end": 414,
+                  "end_norm": 0.4830805134189031,
+                  "length": 5,
+                  "start": 410,
+                  "start_norm": 0.47841306884480744
+                },
+                {
+                  "center_norm": 0.4959159859976663,
+                  "end": 428,
+                  "end_norm": 0.49941656942823803,
+                  "length": 7,
+                  "start": 422,
+                  "start_norm": 0.49241540256709454
+                },
+                {
+                  "center_norm": 0.5087514585764294,
+                  "end": 438,
+                  "end_norm": 0.5110851808634772,
+                  "length": 5,
+                  "start": 434,
+                  "start_norm": 0.5064177362893816
+                },
+                {
+                  "center_norm": 0.5297549591598599,
+                  "end": 467,
+                  "end_norm": 0.544924154025671,
+                  "length": 27,
+                  "start": 441,
+                  "start_norm": 0.514585764294049
+                },
+                {
+                  "center_norm": 0.5513418903150525,
+                  "end": 475,
+                  "end_norm": 0.5542590431738623,
+                  "length": 6,
+                  "start": 470,
+                  "start_norm": 0.5484247374562428
+                },
+                {
+                  "center_norm": 0.6126021003500584,
+                  "end": 531,
+                  "end_norm": 0.6196032672112018,
+                  "length": 13,
+                  "start": 519,
+                  "start_norm": 0.6056009334889149
+                },
+                {
+                  "center_norm": 0.6347724620770129,
+                  "end": 553,
+                  "end_norm": 0.6452742123687282,
+                  "length": 19,
+                  "start": 535,
+                  "start_norm": 0.6242707117852976
+                },
+                {
+                  "center_norm": 0.6621936989498249,
+                  "end": 577,
+                  "end_norm": 0.6732788798133023,
+                  "length": 20,
+                  "start": 558,
+                  "start_norm": 0.6511085180863477
+                },
+                {
+                  "center_norm": 0.6831971995332555,
+                  "end": 590,
+                  "end_norm": 0.6884480746791132,
+                  "length": 10,
+                  "start": 581,
+                  "start_norm": 0.6779463243873979
+                },
+                {
+                  "center_norm": 0.7082847141190198,
+                  "end": 621,
+                  "end_norm": 0.7246207701283547,
+                  "length": 29,
+                  "start": 593,
+                  "start_norm": 0.691948658109685
+                },
+                {
+                  "center_norm": 0.8162193698949824,
+                  "end": 772,
+                  "end_norm": 0.9008168028004667,
+                  "length": 146,
+                  "start": 627,
+                  "start_norm": 0.7316219369894983
+                }
+              ]
+            }
+          },
+          {
+            "bias": -0.02,
+            "density_lower": 3.410036386884116,
+            "density_upper": 4.9360022583531045,
+            "direction": "counterclockwise",
+            "energy_ratio": 1.345203569641893,
+            "header": {
+              "band_height": 188,
+              "bottom_brightness": 109.52005767822266,
+              "bottom_contrast": 90.93899536132812,
+              "bottom_energy": 29.5096492767334,
+              "bottom_score": 43.82382030487061,
+              "top_brightness": 118.16639709472656,
+              "top_contrast": 83.84591674804688,
+              "top_energy": 39.69683074951172,
+              "top_score": 61.06694374084472
+            },
+            "mask_bonus": 0.0,
+            "mask_bottom_mean": 0.4932693839073181,
+            "mask_score": 0.0,
+            "mask_top_mean": 0.4932693839073181,
+            "ratio_density": 1.4473613583650202,
+            "ratio_header": 1.393455656315783,
+            "score": 1.4021068731607034,
+            "score_raw": 1.4021068731607034,
+            "text_bonus": 0.4,
+            "text_features": {
+              "gap_ok": true,
+              "name_band": {
+                "center_norm": 0.1837806301050175,
+                "end": 230,
+                "end_norm": 0.26837806301050177,
+                "length": 146,
+                "start": 85,
+                "start_norm": 0.09918319719953325
+              },
+              "rules_band": {
+                "center_norm": 0.8547257876312718,
+                "end": 733,
+                "end_norm": 0.8553092182030338,
+                "length": 2,
+                "start": 732,
+                "start_norm": 0.8541423570595099
+              },
+              "score": 0.4,
+              "segments": [
+                {
+                  "center_norm": 0.1837806301050175,
+                  "end": 230,
+                  "end_norm": 0.26837806301050177,
+                  "length": 146,
+                  "start": 85,
+                  "start_norm": 0.09918319719953325
+                },
+                {
+                  "center_norm": 0.29171528588098017,
+                  "end": 264,
+                  "end_norm": 0.3080513418903151,
+                  "length": 29,
+                  "start": 236,
+                  "start_norm": 0.27537922987164526
+                },
+                {
+                  "center_norm": 0.31680280046674447,
+                  "end": 276,
+                  "end_norm": 0.3220536756126021,
+                  "length": 10,
+                  "start": 267,
+                  "start_norm": 0.3115519253208868
+                },
+                {
+                  "center_norm": 0.337806301050175,
+                  "end": 299,
+                  "end_norm": 0.34889148191365227,
+                  "length": 20,
+                  "start": 280,
+                  "start_norm": 0.3267211201866978
+                },
+                {
+                  "center_norm": 0.3652275379229872,
+                  "end": 322,
+                  "end_norm": 0.3757292882147025,
+                  "length": 19,
+                  "start": 304,
+                  "start_norm": 0.3547257876312719
+                },
+                {
+                  "center_norm": 0.38739789964994165,
+                  "end": 338,
+                  "end_norm": 0.3943990665110852,
+                  "length": 13,
+                  "start": 326,
+                  "start_norm": 0.38039673278879815
+                },
+                {
+                  "center_norm": 0.4486581096849475,
+                  "end": 387,
+                  "end_norm": 0.4515752625437573,
+                  "length": 6,
+                  "start": 382,
+                  "start_norm": 0.4457409568261377
+                },
+                {
+                  "center_norm": 0.47024504084014,
+                  "end": 416,
+                  "end_norm": 0.485414235705951,
+                  "length": 27,
+                  "start": 390,
+                  "start_norm": 0.45507584597432904
+                },
+                {
+                  "center_norm": 0.4912485414235706,
+                  "end": 423,
+                  "end_norm": 0.4935822637106184,
+                  "length": 5,
+                  "start": 419,
+                  "start_norm": 0.48891481913652274
+                },
+                {
+                  "center_norm": 0.5040840140023337,
+                  "end": 435,
+                  "end_norm": 0.5075845974329055,
+                  "length": 7,
+                  "start": 429,
+                  "start_norm": 0.5005834305717619
+                },
+                {
+                  "center_norm": 0.5192532088681447,
+                  "end": 447,
+                  "end_norm": 0.5215869311551925,
+                  "length": 5,
+                  "start": 443,
+                  "start_norm": 0.5169194865810969
+                },
+                {
+                  "center_norm": 0.8022170361726955,
+                  "end": 689,
+                  "end_norm": 0.8039673278879813,
+                  "length": 4,
+                  "start": 686,
+                  "start_norm": 0.8004667444574096
+                },
+                {
+                  "center_norm": 0.8483080513418904,
+                  "end": 730,
+                  "end_norm": 0.851808634772462,
+                  "length": 7,
+                  "start": 724,
+                  "start_norm": 0.8448074679113186
+                },
+                {
+                  "center_norm": 0.8547257876312718,
+                  "end": 733,
+                  "end_norm": 0.8553092182030338,
+                  "length": 2,
+                  "start": 732,
+                  "start_norm": 0.8541423570595099
+                }
+              ]
+            }
+          }
+        ],
+        "rotated": {
+          "direction": "counterclockwise",
+          "scores": {
+            "clockwise": 0.9833355882340594,
+            "counterclockwise": 1.4021068731607034
+          },
+          "selected_score": 1.4021068731607034
+        },
+        "rotated_180": false,
+        "rotated_90": true,
+        "rotation_direction": "counterclockwise",
+        "text_band": {
+          "gap_ok": true,
+          "name_band": {
+            "center_norm": 0.1837806301050175,
+            "end": 230,
+            "end_norm": 0.26837806301050177,
+            "length": 146,
+            "start": 85,
+            "start_norm": 0.09918319719953325
+          },
+          "rules_band": {
+            "center_norm": 0.8547257876312718,
+            "end": 733,
+            "end_norm": 0.8553092182030338,
+            "length": 2,
+            "start": 732,
+            "start_norm": 0.8541423570595099
+          },
+          "score": 0.4,
+          "segments": [
+            {
+              "center_norm": 0.1837806301050175,
+              "end": 230,
+              "end_norm": 0.26837806301050177,
+              "length": 146,
+              "start": 85,
+              "start_norm": 0.09918319719953325
+            },
+            {
+              "center_norm": 0.29171528588098017,
+              "end": 264,
+              "end_norm": 0.3080513418903151,
+              "length": 29,
+              "start": 236,
+              "start_norm": 0.27537922987164526
+            },
+            {
+              "center_norm": 0.31680280046674447,
+              "end": 276,
+              "end_norm": 0.3220536756126021,
+              "length": 10,
+              "start": 267,
+              "start_norm": 0.3115519253208868
+            },
+            {
+              "center_norm": 0.337806301050175,
+              "end": 299,
+              "end_norm": 0.34889148191365227,
+              "length": 20,
+              "start": 280,
+              "start_norm": 0.3267211201866978
+            },
+            {
+              "center_norm": 0.3652275379229872,
+              "end": 322,
+              "end_norm": 0.3757292882147025,
+              "length": 19,
+              "start": 304,
+              "start_norm": 0.3547257876312719
+            },
+            {
+              "center_norm": 0.38739789964994165,
+              "end": 338,
+              "end_norm": 0.3943990665110852,
+              "length": 13,
+              "start": 326,
+              "start_norm": 0.38039673278879815
+            },
+            {
+              "center_norm": 0.4486581096849475,
+              "end": 387,
+              "end_norm": 0.4515752625437573,
+              "length": 6,
+              "start": 382,
+              "start_norm": 0.4457409568261377
+            },
+            {
+              "center_norm": 0.47024504084014,
+              "end": 416,
+              "end_norm": 0.485414235705951,
+              "length": 27,
+              "start": 390,
+              "start_norm": 0.45507584597432904
+            },
+            {
+              "center_norm": 0.4912485414235706,
+              "end": 423,
+              "end_norm": 0.4935822637106184,
+              "length": 5,
+              "start": 419,
+              "start_norm": 0.48891481913652274
+            },
+            {
+              "center_norm": 0.5040840140023337,
+              "end": 435,
+              "end_norm": 0.5075845974329055,
+              "length": 7,
+              "start": 429,
+              "start_norm": 0.5005834305717619
+            },
+            {
+              "center_norm": 0.5192532088681447,
+              "end": 447,
+              "end_norm": 0.5215869311551925,
+              "length": 5,
+              "start": 443,
+              "start_norm": 0.5169194865810969
+            },
+            {
+              "center_norm": 0.8022170361726955,
+              "end": 689,
+              "end_norm": 0.8039673278879813,
+              "length": 4,
+              "start": 686,
+              "start_norm": 0.8004667444574096
+            },
+            {
+              "center_norm": 0.8483080513418904,
+              "end": 730,
+              "end_norm": 0.851808634772462,
+              "length": 7,
+              "start": 724,
+              "start_norm": 0.8448074679113186
+            },
+            {
+              "center_norm": 0.8547257876312718,
+              "end": 733,
+              "end_norm": 0.8553092182030338,
+              "length": 2,
+              "start": 732,
+              "start_norm": 0.8541423570595099
+            }
+          ]
+        }
+      },
+      "overlap_px": 316,
+      "top_rows_used": 720,
+      "width": 1123
+    }
+  },
+  "embedding": {
+    "available": true,
+    "best": {
+      "card": {
+        "collector_number": "56",
+        "id": "6808b1a2-034e-4b2e-8f22-77d38bfc33a4",
+        "name": "Creature Bond",
+        "scryfall_id": "6808b1a2-034e-4b2e-8f22-77d38bfc33a4",
+        "set": "ced"
+      },
+      "distance": 0.708769158397049,
+      "index": 44862,
+      "score": 29.1230841602951
+    },
+    "engine": "tfidf-char-ngram",
+    "error": null,
+    "matches": [
+      {
+        "card": {
+          "collector_number": "56",
+          "id": "6808b1a2-034e-4b2e-8f22-77d38bfc33a4",
+          "name": "Creature Bond",
+          "scryfall_id": "6808b1a2-034e-4b2e-8f22-77d38bfc33a4",
+          "set": "ced"
+        },
+        "distance": 0.708769158397049,
+        "index": 44862,
+        "score": 29.1230841602951
+      },
+      {
+        "card": {
+          "collector_number": "55",
+          "id": "5d89669b-f08a-400c-8673-7ffd91c05f5d",
+          "name": "Creature Bond",
+          "scryfall_id": "5d89669b-f08a-400c-8673-7ffd91c05f5d",
+          "set": "30a"
+        },
+        "distance": 0.7097715143234322,
+        "index": 40353,
+        "score": 29.02284856765678
+      },
+      {
+        "card": {
+          "collector_number": "66",
+          "id": "717c5ee5-a033-4a58-bdcb-ef54e6c8b7a9",
+          "name": "Creature Bond",
+          "scryfall_id": "717c5ee5-a033-4a58-bdcb-ef54e6c8b7a9",
+          "set": "4ed"
+        },
+        "distance": 0.7099288665214416,
+        "index": 48913,
+        "score": 29.00711334785584
+      },
+      {
+        "card": {
+          "collector_number": "55",
+          "id": "131b80ad-1ffe-449d-a595-74c65f6605cd",
+          "name": "Creature Bond",
+          "scryfall_id": "131b80ad-1ffe-449d-a595-74c65f6605cd",
+          "set": "3ed"
+        },
+        "distance": 0.7107193732048132,
+        "index": 8402,
+        "score": 28.928062679518685
+      },
+      {
+        "card": {
+          "collector_number": "55",
+          "id": "678e1ddd-caf8-4565-b9c0-cea2891a531e",
+          "name": "Creature Bond",
+          "scryfall_id": "678e1ddd-caf8-4565-b9c0-cea2891a531e",
+          "set": "sum"
+        },
+        "distance": 0.7107883853752628,
+        "index": 44675,
+        "score": 28.92116146247372
+      }
+    ],
+    "query": "i Cyne aS Se ae ten eae I a 2\nel EE ANeT Hae meee mini\n('Creature -fijant\nHexprnof (This erpatiie Fan's pe the\n46/51201947200\n(Benthic Giant ie\na aay wee Ae Ath ated lame ye I So\n1, A oo NOSE aay Hee oe fake\n('Creature -fiant"
+  },
+  "ocr_map": {
+    "collector": "46/51201947200",
+    "full": "(Benthic Giant ie\na aay wee Ae Ath ated lame ye I So\n1, A oo NOSE aay Hee oe fake\n('Creature -fiant\nHexpraof (This FrpatIrE Fan't pe she\nrarget of ar abjlities your opponents",
+    "full_text": "(Benthic Giant ie\na aay wee Ae Ath ated lame ye I So\n1, A oo NOSE aay Hee oe fake\n('Creature -fiant\nHexpraof (This FrpatIrE Fan't pe she\nrarget of ar abjlities your opponents",
+    "name": "",
+    "oracle": "i Cyne aS Se ae ten eae I a 2\nel EE ANeT Hae meee mini\n('Creature -fijant\nHexprnof (This erpatiie Fan's pe the\ntarget of ar abilities your opponents\ncontrol.)",
+    "rules": "i Cyne aS Se ae ten eae I a 2\nel EE ANeT Hae meee mini\n('Creature -fijant\nHexprnof (This erpatiie Fan's pe the\ntarget of ar abilities your opponents\ncontrol.)"
+  },
+  "ocr_meta": {
+    "block_size": 31,
+    "clip_limit": 2.0,
+    "constant": 7,
+    "input_shape": [
+      858,
+      1123,
+      3
+    ],
+    "median_kernel": 3,
+    "method": "adaptive_gaussian",
+    "output_height": 1400,
+    "output_width": 1069,
+    "portrait_rotated": true,
+    "portrait_rotation": "rotate_90_ccw",
+    "portrait_shape": [
+      1123,
+      858,
+      3
+    ],
+    "rotation_direction": "counterclockwise",
+    "scale": 1.247,
+    "source": "composite_rotated",
+    "source_shape": [
+      858,
+      1123,
+      3
+    ]
+  },
+  "ocr_result": {
+    "duration_ms": 794,
+    "embedding": {
+      "available": true,
+      "best": {
+        "card": {
+          "collector_number": "56",
+          "id": "6808b1a2-034e-4b2e-8f22-77d38bfc33a4",
+          "name": "Creature Bond",
+          "scryfall_id": "6808b1a2-034e-4b2e-8f22-77d38bfc33a4",
+          "set": "ced"
+        },
+        "distance": 0.708769158397049,
+        "index": 44862,
+        "score": 29.1230841602951
+      },
+      "engine": "tfidf-char-ngram",
+      "error": null,
+      "matches": [
+        {
+          "card": {
+            "collector_number": "56",
+            "id": "6808b1a2-034e-4b2e-8f22-77d38bfc33a4",
+            "name": "Creature Bond",
+            "scryfall_id": "6808b1a2-034e-4b2e-8f22-77d38bfc33a4",
+            "set": "ced"
+          },
+          "distance": 0.708769158397049,
+          "index": 44862,
+          "score": 29.1230841602951
+        },
+        {
+          "card": {
+            "collector_number": "55",
+            "id": "5d89669b-f08a-400c-8673-7ffd91c05f5d",
+            "name": "Creature Bond",
+            "scryfall_id": "5d89669b-f08a-400c-8673-7ffd91c05f5d",
+            "set": "30a"
+          },
+          "distance": 0.7097715143234322,
+          "index": 40353,
+          "score": 29.02284856765678
+        },
+        {
+          "card": {
+            "collector_number": "66",
+            "id": "717c5ee5-a033-4a58-bdcb-ef54e6c8b7a9",
+            "name": "Creature Bond",
+            "scryfall_id": "717c5ee5-a033-4a58-bdcb-ef54e6c8b7a9",
+            "set": "4ed"
+          },
+          "distance": 0.7099288665214416,
+          "index": 48913,
+          "score": 29.00711334785584
+        },
+        {
+          "card": {
+            "collector_number": "55",
+            "id": "131b80ad-1ffe-449d-a595-74c65f6605cd",
+            "name": "Creature Bond",
+            "scryfall_id": "131b80ad-1ffe-449d-a595-74c65f6605cd",
+            "set": "3ed"
+          },
+          "distance": 0.7107193732048132,
+          "index": 8402,
+          "score": 28.928062679518685
+        },
+        {
+          "card": {
+            "collector_number": "55",
+            "id": "678e1ddd-caf8-4565-b9c0-cea2891a531e",
+            "name": "Creature Bond",
+            "scryfall_id": "678e1ddd-caf8-4565-b9c0-cea2891a531e",
+            "set": "sum"
+          },
+          "distance": 0.7107883853752628,
+          "index": 44675,
+          "score": 28.92116146247372
+        }
+      ],
+      "query": "i Cyne aS Se ae ten eae I a 2\nel EE ANeT Hae meee mini\n('Creature -fijant\nHexprnof (This erpatiie Fan's pe the\n46/51201947200\n(Benthic Giant ie\na aay wee Ae Ath ated lame ye I So\n1, A oo NOSE aay Hee oe fake\n('Creature -fiant"
+    },
+    "engine": "tesseract",
+    "engine_attempts": [
+      {
+        "duration_ms": 794,
+        "engine": "tesseract",
+        "psm": 6
+      }
+    ],
+    "error": null,
+    "psm": 6,
+    "regions": {
+      "collector": [
+        1087,
+        1400
+      ],
+      "full": [
+        0,
+        1400
+      ],
+      "name": [
+        0,
+        280
+      ],
+      "oracle": [
+        275,
+        1092
+      ]
+    }
+  },
+  "pair_orientation": {
+    "bottom_full_density": 3.372964409722222,
+    "bottom_lower_density": 3.499474826388889,
+    "bottom_upper_density": 3.2461371527777776,
+    "determination": "bottom_leading",
+    "method": "gradient-density",
+    "segments": {
+      "bottom_lower": {
+        "density": 3.499474826388889
+      },
+      "bottom_upper": {
+        "density": 3.2461371527777776
+      },
+      "top_lower": {
+        "density": 2.424275173611111
+      },
+      "top_upper": {
+        "density": 3.771603732638889
+      }
+    },
+    "top_full_density": 3.0980186631944444,
+    "top_lower_density": 2.424275173611111,
+    "top_upper_density": 3.771603732638889
+  },
+  "paths": {
+    "bottom": "data/snapshots/snapshot-20251124-010533-261582-bottom.jpg",
+    "composite": "data/snapshots/snapshot-20251124-010533-261582-composite.jpg",
+    "composite_aligned": "data/snapshots/snapshot-20251124-010533-261582-composite-aligned.jpg",
+    "composite_raw": "data/snapshots/snapshot-20251124-010533-261582-composite-raw.jpg",
+    "ocr_prepared": "data/snapshots/snapshot-20251124-010533-261582-ocr.png",
+    "top": "data/snapshots/snapshot-20251124-010533-261582-top.jpg"
+  },
+  "timestamp": "20251124-010533-261582"
+}

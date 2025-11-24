@@ -17,13 +17,6 @@ from datetime import datetime, timezone
 
 import numpy as np
 
-try:
-    from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
-except Exception as exc:  # pragma: no cover - dependency error surfaced to user
-    raise SystemExit(
-        "sentence-transformers required; install with `pip install sentence-transformers`."
-    ) from exc
-
 from app.services import card_id
 
 
@@ -78,6 +71,36 @@ def _build_text(card: Dict[str, object]) -> str:
     return card_id._build_card_text(card).strip()  # type: ignore[attr-defined]
 
 
+def _infer_model_name(metadata_path: Path, override: str | None) -> str:
+    if override:
+        return override
+    meta_info_path = metadata_path.parent / "embeddings.meta.json"
+    if meta_info_path.exists():
+        try:
+            with meta_info_path.open("r", encoding="utf8") as fh:
+                info = json.load(fh)
+        except Exception:
+            info = None
+        if isinstance(info, dict):
+            model = info.get("model_name")
+            if isinstance(model, str) and model.strip():
+                return model.strip()
+    return card_id._DEFAULT_EMBED_MODEL  # type: ignore[attr-defined]
+
+
+def _load_sentence_transformer(model_name: str):
+    try:
+        from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
+    except Exception as exc:  # pragma: no cover - dependency error surfaced to user
+        raise SystemExit(
+            "sentence-transformers required; install with `pip install sentence-transformers`."
+        ) from exc
+    try:
+        return SentenceTransformer(model_name)
+    except Exception as exc:  # pragma: no cover - runtime/env failure
+        raise SystemExit(f"Failed to load SentenceTransformer model {model_name!r}: {exc}") from exc
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -106,8 +129,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--model",
-        default=card_id._DEFAULT_EMBED_MODEL,  # type: ignore[attr-defined]
-        help="SentenceTransformer model to use (default: all-MiniLM-L6-v2)",
+        default=None,
+        help="SentenceTransformer model override (default: inferred from embeddings.meta.json)",
     )
     parser.add_argument(
         "--batch-size",
@@ -131,8 +154,10 @@ def main() -> None:
     if not subset:
         raise SystemExit("No cards matched the provided filters.")
 
+    model_name = _infer_model_name(metadata_path, args.model)
     texts = [_build_text(card) or card.get("name") or "unknown-card" for card in subset]
-    model = SentenceTransformer(args.model)
+    print(f"Using sentence-transformers model: {model_name}")
+    model = _load_sentence_transformer(model_name)
     embeddings = model.encode(
         texts,
         batch_size=max(8, args.batch_size),
@@ -154,7 +179,7 @@ def main() -> None:
         json.dump(subset, fh, ensure_ascii=False, indent=2)
 
     meta_info = {
-        "model_name": args.model,
+        "model_name": model_name,
         "distance_metric": "cosine",
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }

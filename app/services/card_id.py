@@ -18,6 +18,7 @@ Matching strategy:
 """
 
 from typing import Dict, Any, List, Optional, Tuple
+from . import text_clean
 import json
 import os
 import sqlite3
@@ -200,10 +201,9 @@ def _compose_embedding_query(ocr_map: Dict[str, str]) -> str:
     parts: List[str] = []
     for key in ("name", "oracle", "rules", "collector", "full", "full_text"):
         value = ocr_map.get(key)
-        if isinstance(value, str):
-            cleaned = value.strip()
-            if cleaned:
-                parts.append(cleaned)
+        cleaned = text_clean.normalize_ocr_text(value, region=key, max_lines=4, max_chars=320)
+        if cleaned:
+            parts.append(cleaned)
     # deduplicate while preserving order
     seen = set()
     unique_parts: List[str] = []

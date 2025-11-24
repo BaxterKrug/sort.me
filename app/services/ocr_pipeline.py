@@ -33,6 +33,7 @@ except Exception:  # pragma: no cover - optional dependency
 from . import camera as camera_svc
 from . import motion
 from . import card_id
+from . import text_clean
 
 LOG = logging.getLogger("sort.ocr_pipeline")
 CARD_BORDER_MARGIN_PX = 20
@@ -586,6 +587,21 @@ def _map_has_text(ocr_map: Dict[str, str]) -> bool:
     return False
 
 
+def _finalize_ocr_map(raw_map: Dict[str, str | None] | Dict[str, str]) -> Dict[str, str]:
+    cleaned = text_clean.normalize_ocr_map(raw_map)
+    if not cleaned.get("rules"):
+        cleaned["rules"] = cleaned.get("oracle", "")
+    if not cleaned.get("full_text"):
+        cleaned["full_text"] = (
+            cleaned.get("full")
+            or cleaned.get("oracle")
+            or cleaned.get("name")
+            or cleaned.get("rules")
+            or ""
+        )
+    return cleaned
+
+
 def _perform_easyocr(ocr_image: np.ndarray, regions: Dict[str, Tuple[int, int]]) -> Tuple[Dict[str, str], Dict[str, Any]]:
     reader = _easyocr_reader()
     ocr_map = {key: "" for key in ("full", "name", "oracle", "collector")}
@@ -700,14 +716,12 @@ def _perform_ocr(ocr_image: np.ndarray) -> Tuple[Dict[str, str], Dict[str, Any]]
         attempts.append(fallback_meta)
         LOG.error("No OCR engines available; install tesseract or easyocr to enable text extraction")
 
-    ocr_map["rules"] = ocr_map["oracle"]
-    ocr_map["full_text"] = ocr_map["full"] or ocr_map["oracle"]
-
     if attempts:
         meta["engine_attempts"] = attempts
     if fallback_meta:
         meta["fallback_engine"] = fallback_meta.get("engine")
-    return ocr_map, meta
+    finalized_map = _finalize_ocr_map(ocr_map)
+    return finalized_map, meta
 
 
 def _encode_image(image: np.ndarray, ext: str, params: Optional[list] = None) -> bytes:

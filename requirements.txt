@@ -16,3 +16,4 @@ pytest
 notebook
 faiss-cpu
 sentence-transformers
+wordfreq>=3.0.0

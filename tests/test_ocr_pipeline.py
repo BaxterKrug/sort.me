@@ -73,6 +73,24 @@ def test_perform_ocr_falls_back_to_easyocr(monkeypatch):
     assert meta.get("fallback_engine") == "easyocr"
 
 
+def test_perform_ocr_applies_text_cleaning(monkeypatch):
+    class DummyTesseract:
+        @staticmethod
+        def image_to_string(img, config=None, lang=None):  # pragma: no cover - arguments unused
+            return "  “Rakshasa -- Debaser”  012 / 345  "
+
+    monkeypatch.setattr(ocr_pipeline, "HAVE_TESSERACT", True, raising=False)
+    monkeypatch.setattr(ocr_pipeline, "pytesseract", DummyTesseract, raising=False)
+    monkeypatch.setattr(ocr_pipeline, "HAVE_EASYOCR", False, raising=False)
+
+    ocr_map, _ = ocr_pipeline._perform_ocr(_dummy_frame())
+
+    assert ocr_map["name"] == "Rakshasa Debaser"
+    assert ocr_map["collector"] == "012/345"
+    assert "\n" not in ocr_map["full_text"]
+    assert ocr_map["rules"] == ocr_map["oracle"]
+
+
 def test_run_ocr_from_bytes_uses_helpers(monkeypatch):
     class Marker:
         shape = (4, 4)

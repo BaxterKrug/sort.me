@@ -122,3 +122,19 @@ def test_get_embedding_cache_prefers_inline_embeddings(tmp_path):
     assert cache["distance_metric"] == "cosine"
     assert cache["embeddings"].shape == (2, 2)
     assert cache["meta"][0]["scryfall_id"] == "alpha-1"
+
+
+def test_compose_embedding_query_cleans_and_deduplicates():
+    raw_map = {
+        "name": "  “Rakshasa -- Debaser”  ",
+        "oracle": "### Deals 3 damage!!! ###",
+        "full": "Rakshasa -- Debaser",
+        "collector": " 012 / 345 ",
+    }
+
+    query = card_id._compose_embedding_query(raw_map)
+
+    assert "Rakshasa Debaser" in query
+    assert "###" not in query
+    assert "012/345" in query
+    assert query.count("Rakshasa Debaser") == 1

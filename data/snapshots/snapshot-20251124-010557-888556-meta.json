@@ -1,0 +1,768 @@
+{
+  "composite_meta": {
+    "aligned": {
+      "border": {
+        "area": 829860.0,
+        "box": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            871.5304565429688,
+            0.0
+          ],
+          [
+            878.8663940429688,
+            1119.0
+          ],
+          [
+            0.0,
+            1119.0
+          ]
+        ],
+        "dest_height": 1119,
+        "dest_width": 872,
+        "found": true,
+        "margin_px": 20
+      },
+      "bottom_rows_used": 720,
+      "height": 1119,
+      "overlap_px": 320,
+      "top_rows_used": 720,
+      "width": 872
+    },
+    "raw": {
+      "bottom_rows_used": 720,
+      "height": 1120,
+      "overlap_px": 320,
+      "top_rows_used": 720,
+      "width": 1280
+    },
+    "rotated": {
+      "border": {
+        "area": 829860.0,
+        "box": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            871.5304565429688,
+            0.0
+          ],
+          [
+            878.8663940429688,
+            1119.0
+          ],
+          [
+            0.0,
+            1119.0
+          ]
+        ],
+        "dest_height": 1119,
+        "dest_width": 872,
+        "found": true,
+        "margin_px": 20
+      },
+      "bottom_rows_used": 720,
+      "height": 872,
+      "orientation": {
+        "density_lower_final": 3.6790589566372334,
+        "density_lower_initial": 5.3043653819350505,
+        "density_upper_final": 5.3043653819350505,
+        "density_upper_initial": 3.6790589566372334,
+        "header_activity_final": {
+          "band_height": 191,
+          "bottom_brightness": 111.04344940185547,
+          "bottom_contrast": 91.37897491455078,
+          "bottom_energy": 29.84741973876953,
+          "bottom_score": 43.88907203674316,
+          "top_brightness": 114.0661392211914,
+          "top_contrast": 84.74044036865234,
+          "top_energy": 39.74293899536133,
+          "top_score": 61.60403289794922
+        },
+        "header_activity_initial": {
+          "band_height": 191,
+          "bottom_brightness": 114.06612396240234,
+          "bottom_contrast": 84.74043273925781,
+          "bottom_energy": 39.74293899536133,
+          "bottom_score": 49.15629959106445,
+          "top_brightness": 111.04344177246094,
+          "top_contrast": 91.37897491455078,
+          "top_energy": 29.84741973876953,
+          "top_score": 56.33680343627929
+        },
+        "hint_determination": "balanced",
+        "mask_stats": {
+          "bonus": 0.0,
+          "bottom_mean": 0.49796178936958313,
+          "score": 0.0,
+          "top_mean": 0.49796178936958313
+        },
+        "orientation_candidates": [
+          {
+            "bias": 0.0,
+            "density_lower": 5.3043653819350505,
+            "density_upper": 3.6790589566372334,
+            "direction": "clockwise",
+            "energy_ratio": 0.7510181550513466,
+            "header": {
+              "band_height": 191,
+              "bottom_brightness": 114.06612396240234,
+              "bottom_contrast": 84.74043273925781,
+              "bottom_energy": 39.74293899536133,
+              "bottom_score": 49.15629959106445,
+              "top_brightness": 111.04344177246094,
+              "top_contrast": 91.37897491455078,
+              "top_energy": 29.84741973876953,
+              "top_score": 56.33680343627929
+            },
+            "mask_bonus": 0.0,
+            "mask_bottom_mean": 0.49796175956726074,
+            "mask_score": 0.0,
+            "mask_top_mean": 0.49796175956726074,
+            "ratio_density": 0.6936485409973757,
+            "ratio_header": 1.1460719751684665,
+            "score": 0.9934607346139819,
+            "score_raw": 0.9934607346139819,
+            "text_bonus": 0.45,
+            "text_features": {
+              "gap_ok": true,
+              "name_band": {
+                "center_norm": 0.14351320321469574,
+                "end": 125,
+                "end_norm": 0.14351320321469574,
+                "length": 1,
+                "start": 125,
+                "start_norm": 0.14351320321469574
+              },
+              "rules_band": {
+                "center_norm": 0.8065442020665902,
+                "end": 771,
+                "end_norm": 0.8851894374282434,
+                "length": 138,
+                "start": 634,
+                "start_norm": 0.7278989667049368
+              },
+              "score": 0.45,
+              "segments": [
+                {
+                  "center_norm": 0.14351320321469574,
+                  "end": 125,
+                  "end_norm": 0.14351320321469574,
+                  "length": 1,
+                  "start": 125,
+                  "start_norm": 0.14351320321469574
+                },
+                {
+                  "center_norm": 0.15040183696900114,
+                  "end": 134,
+                  "end_norm": 0.15384615384615385,
+                  "length": 7,
+                  "start": 128,
+                  "start_norm": 0.14695752009184845
+                },
+                {
+                  "center_norm": 0.195752009184845,
+                  "end": 172,
+                  "end_norm": 0.19747416762342135,
+                  "length": 4,
+                  "start": 169,
+                  "start_norm": 0.19402985074626866
+                },
+                {
+                  "center_norm": 0.4764638346727899,
+                  "end": 416,
+                  "end_norm": 0.47761194029850745,
+                  "length": 3,
+                  "start": 414,
+                  "start_norm": 0.4753157290470723
+                },
+                {
+                  "center_norm": 0.4890929965556831,
+                  "end": 428,
+                  "end_norm": 0.49138920780711826,
+                  "length": 5,
+                  "start": 424,
+                  "start_norm": 0.48679678530424797
+                },
+                {
+                  "center_norm": 0.5063145809414467,
+                  "end": 449,
+                  "end_norm": 0.5154994259471871,
+                  "length": 17,
+                  "start": 433,
+                  "start_norm": 0.4971297359357061
+                },
+                {
+                  "center_norm": 0.5361653272101033,
+                  "end": 481,
+                  "end_norm": 0.5522388059701493,
+                  "length": 29,
+                  "start": 453,
+                  "start_norm": 0.5200918484500574
+                },
+                {
+                  "center_norm": 0.6153846153846154,
+                  "end": 544,
+                  "end_norm": 0.6245694603903559,
+                  "length": 17,
+                  "start": 528,
+                  "start_norm": 0.6061997703788748
+                },
+                {
+                  "center_norm": 0.6320321469575201,
+                  "end": 555,
+                  "end_norm": 0.6371986222732492,
+                  "length": 10,
+                  "start": 546,
+                  "start_norm": 0.6268656716417911
+                },
+                {
+                  "center_norm": 0.682548794489093,
+                  "end": 631,
+                  "end_norm": 0.7244546498277842,
+                  "length": 74,
+                  "start": 558,
+                  "start_norm": 0.6406429391504018
+                },
+                {
+                  "center_norm": 0.8065442020665902,
+                  "end": 771,
+                  "end_norm": 0.8851894374282434,
+                  "length": 138,
+                  "start": 634,
+                  "start_norm": 0.7278989667049368
+                }
+              ]
+            }
+          },
+          {
+            "bias": 0.0,
+            "density_lower": 3.6790589566372334,
+            "density_upper": 5.3043653819350505,
+            "direction": "counterclockwise",
+            "energy_ratio": 1.3315257337975148,
+            "header": {
+              "band_height": 191,
+              "bottom_brightness": 111.04344940185547,
+              "bottom_contrast": 91.37897491455078,
+              "bottom_energy": 29.84741973876953,
+              "bottom_score": 43.88907203674316,
+              "top_brightness": 114.0661392211914,
+              "top_contrast": 84.74044036865234,
+              "top_energy": 39.74293899536133,
+              "top_score": 61.60403289794922
+            },
+            "mask_bonus": 0.0,
+            "mask_bottom_mean": 0.49796178936958313,
+            "mask_score": 0.0,
+            "mask_top_mean": 0.49796178936958313,
+            "ratio_density": 1.441652279066472,
+            "ratio_header": 1.403621138884797,
+            "score": 1.4059193834214876,
+            "score_raw": 1.4059193834214876,
+            "text_bonus": 0.4,
+            "text_features": {
+              "gap_ok": true,
+              "name_band": {
+                "center_norm": 0.19345579793340986,
+                "end": 237,
+                "end_norm": 0.27210103329506313,
+                "length": 138,
+                "start": 100,
+                "start_norm": 0.1148105625717566
+              },
+              "rules_band": {
+                "center_norm": 0.8564867967853043,
+                "end": 746,
+                "end_norm": 0.8564867967853043,
+                "length": 1,
+                "start": 746,
+                "start_norm": 0.8564867967853043
+              },
+              "score": 0.4,
+              "segments": [
+                {
+                  "center_norm": 0.19345579793340986,
+                  "end": 237,
+                  "end_norm": 0.27210103329506313,
+                  "length": 138,
+                  "start": 100,
+                  "start_norm": 0.1148105625717566
+                },
+                {
+                  "center_norm": 0.317451205510907,
+                  "end": 313,
+                  "end_norm": 0.3593570608495982,
+                  "length": 74,
+                  "start": 240,
+                  "start_norm": 0.2755453501722158
+                },
+                {
+                  "center_norm": 0.3679678530424799,
+                  "end": 325,
+                  "end_norm": 0.373134328358209,
+                  "length": 10,
+                  "start": 316,
+                  "start_norm": 0.36280137772675086
+                },
+                {
+                  "center_norm": 0.38461538461538464,
+                  "end": 343,
+                  "end_norm": 0.39380022962112515,
+                  "length": 17,
+                  "start": 327,
+                  "start_norm": 0.37543053960964407
+                },
+                {
+                  "center_norm": 0.46383467278989665,
+                  "end": 418,
+                  "end_norm": 0.4799081515499426,
+                  "length": 29,
+                  "start": 390,
+                  "start_norm": 0.44776119402985076
+                },
+                {
+                  "center_norm": 0.4936854190585534,
+                  "end": 438,
+                  "end_norm": 0.5028702640642939,
+                  "length": 17,
+                  "start": 422,
+                  "start_norm": 0.4845005740528129
+                },
+                {
+                  "center_norm": 0.5109070034443168,
+                  "end": 447,
+                  "end_norm": 0.513203214695752,
+                  "length": 5,
+                  "start": 443,
+                  "start_norm": 0.5086107921928817
+                },
+                {
+                  "center_norm": 0.5235361653272101,
+                  "end": 457,
+                  "end_norm": 0.5246842709529277,
+                  "length": 3,
+                  "start": 455,
+                  "start_norm": 0.5223880597014925
+                },
+                {
+                  "center_norm": 0.804247990815155,
+                  "end": 702,
+                  "end_norm": 0.8059701492537313,
+                  "length": 4,
+                  "start": 699,
+                  "start_norm": 0.8025258323765786
+                },
+                {
+                  "center_norm": 0.8495981630309989,
+                  "end": 743,
+                  "end_norm": 0.8530424799081515,
+                  "length": 7,
+                  "start": 737,
+                  "start_norm": 0.8461538461538461
+                },
+                {
+                  "center_norm": 0.8564867967853043,
+                  "end": 746,
+                  "end_norm": 0.8564867967853043,
+                  "length": 1,
+                  "start": 746,
+                  "start_norm": 0.8564867967853043
+                }
+              ]
+            }
+          }
+        ],
+        "rotated": {
+          "direction": "counterclockwise",
+          "scores": {
+            "clockwise": 0.9934607346139819,
+            "counterclockwise": 1.4059193834214876
+          },
+          "selected_score": 1.4059193834214876
+        },
+        "rotated_180": false,
+        "rotated_90": true,
+        "rotation_direction": "counterclockwise",
+        "text_band": {
+          "gap_ok": true,
+          "name_band": {
+            "center_norm": 0.19345579793340986,
+            "end": 237,
+            "end_norm": 0.27210103329506313,
+            "length": 138,
+            "start": 100,
+            "start_norm": 0.1148105625717566
+          },
+          "rules_band": {
+            "center_norm": 0.8564867967853043,
+            "end": 746,
+            "end_norm": 0.8564867967853043,
+            "length": 1,
+            "start": 746,
+            "start_norm": 0.8564867967853043
+          },
+          "score": 0.4,
+          "segments": [
+            {
+              "center_norm": 0.19345579793340986,
+              "end": 237,
+              "end_norm": 0.27210103329506313,
+              "length": 138,
+              "start": 100,
+              "start_norm": 0.1148105625717566
+            },
+            {
+              "center_norm": 0.317451205510907,
+              "end": 313,
+              "end_norm": 0.3593570608495982,
+              "length": 74,
+              "start": 240,
+              "start_norm": 0.2755453501722158
+            },
+            {
+              "center_norm": 0.3679678530424799,
+              "end": 325,
+              "end_norm": 0.373134328358209,
+              "length": 10,
+              "start": 316,
+              "start_norm": 0.36280137772675086
+            },
+            {
+              "center_norm": 0.38461538461538464,
+              "end": 343,
+              "end_norm": 0.39380022962112515,
+              "length": 17,
+              "start": 327,
+              "start_norm": 0.37543053960964407
+            },
+            {
+              "center_norm": 0.46383467278989665,
+              "end": 418,
+              "end_norm": 0.4799081515499426,
+              "length": 29,
+              "start": 390,
+              "start_norm": 0.44776119402985076
+            },
+            {
+              "center_norm": 0.4936854190585534,
+              "end": 438,
+              "end_norm": 0.5028702640642939,
+              "length": 17,
+              "start": 422,
+              "start_norm": 0.4845005740528129
+            },
+            {
+              "center_norm": 0.5109070034443168,
+              "end": 447,
+              "end_norm": 0.513203214695752,
+              "length": 5,
+              "start": 443,
+              "start_norm": 0.5086107921928817
+            },
+            {
+              "center_norm": 0.5235361653272101,
+              "end": 457,
+              "end_norm": 0.5246842709529277,
+              "length": 3,
+              "start": 455,
+              "start_norm": 0.5223880597014925
+            },
+            {
+              "center_norm": 0.804247990815155,
+              "end": 702,
+              "end_norm": 0.8059701492537313,
+              "length": 4,
+              "start": 699,
+              "start_norm": 0.8025258323765786
+            },
+            {
+              "center_norm": 0.8495981630309989,
+              "end": 743,
+              "end_norm": 0.8530424799081515,
+              "length": 7,
+              "start": 737,
+              "start_norm": 0.8461538461538461
+            },
+            {
+              "center_norm": 0.8564867967853043,
+              "end": 746,
+              "end_norm": 0.8564867967853043,
+              "length": 1,
+              "start": 746,
+              "start_norm": 0.8564867967853043
+            }
+          ]
+        }
+      },
+      "overlap_px": 320,
+      "top_rows_used": 720,
+      "width": 1119
+    }
+  },
+  "embedding": {
+    "available": true,
+    "best": {
+      "card": {
+        "collector_number": "41",
+        "id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+        "name": "Benthic Giant",
+        "scryfall_id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+        "set": "ths"
+      },
+      "distance": 0.7044261113888151,
+      "index": 17945,
+      "score": 29.557388861118493
+    },
+    "engine": "tfidf-char-ngram",
+    "error": null,
+    "matches": [
+      {
+        "card": {
+          "collector_number": "41",
+          "id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+          "name": "Benthic Giant",
+          "scryfall_id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+          "set": "ths"
+        },
+        "distance": 0.7044261113888151,
+        "index": 17945,
+        "score": 29.557388861118493
+      },
+      {
+        "card": {
+          "collector_number": "113",
+          "id": "1ff8671d-4da4-4dc2-a8c4-d695ff1aca0f",
+          "name": "Benthic Giant",
+          "scryfall_id": "1ff8671d-4da4-4dc2-a8c4-d695ff1aca0f",
+          "set": "bbd"
+        },
+        "distance": 0.7178213317443812,
+        "index": 13832,
+        "score": 28.217866825561877
+      },
+      {
+        "card": {
+          "collector_number": "BBD-113",
+          "id": "63e8b531-e794-4fd1-971f-19d12c2958a6",
+          "name": "Benthic Giant",
+          "scryfall_id": "63e8b531-e794-4fd1-971f-19d12c2958a6",
+          "set": "plst"
+        },
+        "distance": 0.7667809772714366,
+        "index": 43095,
+        "score": 23.32190227285634
+      },
+      {
+        "card": {
+          "collector_number": "257",
+          "id": "95b03586-8d04-4114-a7ce-b8c8ab5ff857",
+          "name": "Benthic Djinn",
+          "scryfall_id": "95b03586-8d04-4114-a7ce-b8c8ab5ff857",
+          "set": "mir"
+        },
+        "distance": 0.807632922281584,
+        "index": 64379,
+        "score": 19.236707771841598
+      },
+      {
+        "card": {
+          "collector_number": "63",
+          "id": "19577bda-2728-40c8-a262-26051e6c226b",
+          "name": "Benthic Behemoth",
+          "scryfall_id": "19577bda-2728-40c8-a262-26051e6c226b",
+          "set": "7ed"
+        },
+        "distance": 0.8129296793928009,
+        "index": 11062,
+        "score": 18.707032060719907
+      }
+    ],
+    "query": "I a vee I\nRe Oe SO ty ens 7, ae re\nco8 Vi\nCo mca fe oe el, i\nae worornppgapmele ae eee\n24/54201841249\nae an\nBenthic Giant De\nay asa te ATA Re te ey\nyes re Ka rans I aoe a"
+  },
+  "ocr_map": {
+    "collector": "24/54201841249",
+    "full": "ae an\nBenthic Giant De\nay asa te ATA Re te ey\nyes re Ka rans I aoe a\nco ho ae eee\n'Creature Giant",
+    "full_text": "ae an\nBenthic Giant De\nay asa te ATA Re te ey\nyes re Ka rans I aoe a\nco ho ae eee\n'Creature Giant",
+    "name": "I a vee I",
+    "oracle": "Re Oe SO ty ens 7, ae re\nco8 Vi\nCo mca fe oe el, i\nae worornppgapmele ae eee\n'Creature Giant\nHexproof (This creature can't be the",
+    "rules": "Re Oe SO ty ens 7, ae re\nco8 Vi\nCo mca fe oe el, i\nae worornppgapmele ae eee\n'Creature Giant\nHexproof (This creature can't be the"
+  },
+  "ocr_meta": {
+    "block_size": 31,
+    "clip_limit": 2.0,
+    "constant": 7,
+    "input_shape": [
+      872,
+      1119,
+      3
+    ],
+    "median_kernel": 3,
+    "method": "adaptive_gaussian",
+    "output_height": 1400,
+    "output_width": 1090,
+    "portrait_rotated": true,
+    "portrait_rotation": "rotate_90_ccw",
+    "portrait_shape": [
+      1119,
+      872,
+      3
+    ],
+    "rotation_direction": "counterclockwise",
+    "scale": 1.251,
+    "source": "composite_rotated",
+    "source_shape": [
+      872,
+      1119,
+      3
+    ]
+  },
+  "ocr_result": {
+    "duration_ms": 874,
+    "embedding": {
+      "available": true,
+      "best": {
+        "card": {
+          "collector_number": "41",
+          "id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+          "name": "Benthic Giant",
+          "scryfall_id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+          "set": "ths"
+        },
+        "distance": 0.7044261113888151,
+        "index": 17945,
+        "score": 29.557388861118493
+      },
+      "engine": "tfidf-char-ngram",
+      "error": null,
+      "matches": [
+        {
+          "card": {
+            "collector_number": "41",
+            "id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+            "name": "Benthic Giant",
+            "scryfall_id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+            "set": "ths"
+          },
+          "distance": 0.7044261113888151,
+          "index": 17945,
+          "score": 29.557388861118493
+        },
+        {
+          "card": {
+            "collector_number": "113",
+            "id": "1ff8671d-4da4-4dc2-a8c4-d695ff1aca0f",
+            "name": "Benthic Giant",
+            "scryfall_id": "1ff8671d-4da4-4dc2-a8c4-d695ff1aca0f",
+            "set": "bbd"
+          },
+          "distance": 0.7178213317443812,
+          "index": 13832,
+          "score": 28.217866825561877
+        },
+        {
+          "card": {
+            "collector_number": "BBD-113",
+            "id": "63e8b531-e794-4fd1-971f-19d12c2958a6",
+            "name": "Benthic Giant",
+            "scryfall_id": "63e8b531-e794-4fd1-971f-19d12c2958a6",
+            "set": "plst"
+          },
+          "distance": 0.7667809772714366,
+          "index": 43095,
+          "score": 23.32190227285634
+        },
+        {
+          "card": {
+            "collector_number": "257",
+            "id": "95b03586-8d04-4114-a7ce-b8c8ab5ff857",
+            "name": "Benthic Djinn",
+            "scryfall_id": "95b03586-8d04-4114-a7ce-b8c8ab5ff857",
+            "set": "mir"
+          },
+          "distance": 0.807632922281584,
+          "index": 64379,
+          "score": 19.236707771841598
+        },
+        {
+          "card": {
+            "collector_number": "63",
+            "id": "19577bda-2728-40c8-a262-26051e6c226b",
+            "name": "Benthic Behemoth",
+            "scryfall_id": "19577bda-2728-40c8-a262-26051e6c226b",
+            "set": "7ed"
+          },
+          "distance": 0.8129296793928009,
+          "index": 11062,
+          "score": 18.707032060719907
+        }
+      ],
+      "query": "I a vee I\nRe Oe SO ty ens 7, ae re\nco8 Vi\nCo mca fe oe el, i\nae worornppgapmele ae eee\n24/54201841249\nae an\nBenthic Giant De\nay asa te ATA Re te ey\nyes re Ka rans I aoe a"
+    },
+    "engine": "tesseract",
+    "engine_attempts": [
+      {
+        "duration_ms": 874,
+        "engine": "tesseract",
+        "psm": 6
+      }
+    ],
+    "error": null,
+    "psm": 6,
+    "regions": {
+      "collector": [
+        1087,
+        1400
+      ],
+      "full": [
+        0,
+        1400
+      ],
+      "name": [
+        0,
+        280
+      ],
+      "oracle": [
+        275,
+        1092
+      ]
+    }
+  },
+  "pair_orientation": {
+    "bottom_full_density": 3.382781032986111,
+    "bottom_lower_density": 3.4839388020833333,
+    "bottom_upper_density": 3.281330295138889,
+    "determination": "balanced",
+    "method": "gradient-density",
+    "segments": {
+      "bottom_lower": {
+        "density": 3.4839388020833333
+      },
+      "bottom_upper": {
+        "density": 3.281330295138889
+      },
+      "top_lower": {
+        "density": 2.808003472222222
+      },
+      "top_upper": {
+        "density": 4.32548828125
+      }
+    },
+    "top_full_density": 3.5666417100694443,
+    "top_lower_density": 2.808003472222222,
+    "top_upper_density": 4.32548828125
+  },
+  "paths": {
+    "bottom": "data/snapshots/snapshot-20251124-010557-888556-bottom.jpg",
+    "composite": "data/snapshots/snapshot-20251124-010557-888556-composite.jpg",
+    "composite_aligned": "data/snapshots/snapshot-20251124-010557-888556-composite-aligned.jpg",
+    "composite_raw": "data/snapshots/snapshot-20251124-010557-888556-composite-raw.jpg",
+    "ocr_prepared": "data/snapshots/snapshot-20251124-010557-888556-ocr.png",
+    "top": "data/snapshots/snapshot-20251124-010557-888556-top.jpg"
+  },
+  "timestamp": "20251124-010557-888556"
+}

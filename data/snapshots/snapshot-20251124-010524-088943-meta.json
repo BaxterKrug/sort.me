@@ -1,0 +1,857 @@
+{
+  "composite_meta": {
+    "aligned": {
+      "border": {
+        "area": 784396.0,
+        "box": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            873.0,
+            0.0
+          ],
+          [
+            873.0,
+            1007.0
+          ],
+          [
+            0.0,
+            1007.0
+          ]
+        ],
+        "dest_height": 1007,
+        "dest_width": 873,
+        "found": true,
+        "margin_px": 20
+      },
+      "bottom_rows_used": 720,
+      "height": 1007,
+      "overlap_px": 432,
+      "top_rows_used": 720,
+      "width": 873
+    },
+    "raw": {
+      "bottom_rows_used": 720,
+      "height": 1008,
+      "overlap_px": 432,
+      "top_rows_used": 720,
+      "width": 1280
+    },
+    "rotated": {
+      "border": {
+        "area": 784396.0,
+        "box": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            873.0,
+            0.0
+          ],
+          [
+            873.0,
+            1007.0
+          ],
+          [
+            0.0,
+            1007.0
+          ]
+        ],
+        "dest_height": 1007,
+        "dest_width": 873,
+        "found": true,
+        "margin_px": 20
+      },
+      "bottom_rows_used": 720,
+      "height": 873,
+      "orientation": {
+        "density_lower_final": 3.304511440511386,
+        "density_lower_initial": 4.521943648465319,
+        "density_upper_final": 4.521883512659093,
+        "density_upper_initial": 3.3011442835928317,
+        "header_activity_final": {
+          "band_height": 192,
+          "bottom_brightness": 80.50990295410156,
+          "bottom_contrast": 71.01692962646484,
+          "bottom_energy": 26.09926414489746,
+          "bottom_score": 36.634351539611814,
+          "top_brightness": 92.72258758544922,
+          "top_contrast": 65.8291244506836,
+          "top_energy": 34.913448333740234,
+          "top_score": 53.03606071472168
+        },
+        "header_activity_initial": {
+          "band_height": 192,
+          "bottom_brightness": 92.72261047363281,
+          "bottom_contrast": 65.8291244506836,
+          "bottom_energy": 34.913448333740234,
+          "bottom_score": 41.507330322265624,
+          "top_brightness": 80.50990295410156,
+          "top_contrast": 71.01692962646484,
+          "top_energy": 26.09926414489746,
+          "top_score": 48.16308193206787
+        },
+        "hint_determination": "balanced",
+        "mask_stats": {
+          "bonus": 0.0,
+          "bottom_mean": 0.5,
+          "score": 0.0,
+          "top_mean": 0.5
+        },
+        "orientation_candidates": [
+          {
+            "bias": 0.0,
+            "density_lower": 4.521943648465319,
+            "density_upper": 3.3011442835928317,
+            "direction": "clockwise",
+            "energy_ratio": 0.747549091866217,
+            "header": {
+              "band_height": 192,
+              "bottom_brightness": 92.72261047363281,
+              "bottom_contrast": 65.8291244506836,
+              "bottom_energy": 34.913448333740234,
+              "bottom_score": 41.507330322265624,
+              "top_brightness": 80.50990295410156,
+              "top_contrast": 71.01692962646484,
+              "top_energy": 26.09926414489746,
+              "top_score": 48.16308193206787
+            },
+            "mask_bonus": 0.0,
+            "mask_bottom_mean": 0.5,
+            "mask_score": 0.0,
+            "mask_top_mean": 0.5,
+            "ratio_density": 0.7300874254122717,
+            "ratio_header": 1.1603473702297298,
+            "score": 1.011502556189014,
+            "score_raw": 1.011502556189014,
+            "text_bonus": -0.1,
+            "text_features": {
+              "gap_ok": false,
+              "name_band": null,
+              "rules_band": {
+                "center_norm": 0.900802752293578,
+                "end": 792,
+                "end_norm": 0.908256880733945,
+                "length": 14,
+                "start": 779,
+                "start_norm": 0.893348623853211
+              },
+              "score": -0.1,
+              "segments": [
+                {
+                  "center_norm": 0.3451834862385321,
+                  "end": 310,
+                  "end_norm": 0.3555045871559633,
+                  "length": 19,
+                  "start": 292,
+                  "start_norm": 0.3348623853211009
+                },
+                {
+                  "center_norm": 0.36926605504587157,
+                  "end": 324,
+                  "end_norm": 0.37155963302752293,
+                  "length": 5,
+                  "start": 320,
+                  "start_norm": 0.3669724770642202
+                },
+                {
+                  "center_norm": 0.481651376146789,
+                  "end": 423,
+                  "end_norm": 0.48509174311926606,
+                  "length": 7,
+                  "start": 417,
+                  "start_norm": 0.4782110091743119
+                },
+                {
+                  "center_norm": 0.5212155963302753,
+                  "end": 484,
+                  "end_norm": 0.555045871559633,
+                  "length": 60,
+                  "start": 425,
+                  "start_norm": 0.4873853211009174
+                },
+                {
+                  "center_norm": 0.5854357798165137,
+                  "end": 512,
+                  "end_norm": 0.5871559633027523,
+                  "length": 4,
+                  "start": 509,
+                  "start_norm": 0.5837155963302753
+                },
+                {
+                  "center_norm": 0.6158256880733946,
+                  "end": 542,
+                  "end_norm": 0.6215596330275229,
+                  "length": 11,
+                  "start": 532,
+                  "start_norm": 0.6100917431192661
+                },
+                {
+                  "center_norm": 0.6336009174311926,
+                  "end": 558,
+                  "end_norm": 0.6399082568807339,
+                  "length": 12,
+                  "start": 547,
+                  "start_norm": 0.6272935779816514
+                },
+                {
+                  "center_norm": 0.6496559633027523,
+                  "end": 569,
+                  "end_norm": 0.6525229357798165,
+                  "length": 6,
+                  "start": 564,
+                  "start_norm": 0.6467889908256881
+                },
+                {
+                  "center_norm": 0.6777522935779816,
+                  "end": 607,
+                  "end_norm": 0.6961009174311926,
+                  "length": 33,
+                  "start": 575,
+                  "start_norm": 0.6594036697247706
+                },
+                {
+                  "center_norm": 0.7104357798165137,
+                  "end": 628,
+                  "end_norm": 0.7201834862385321,
+                  "length": 18,
+                  "start": 611,
+                  "start_norm": 0.7006880733944955
+                },
+                {
+                  "center_norm": 0.7620412844036697,
+                  "end": 681,
+                  "end_norm": 0.7809633027522935,
+                  "length": 34,
+                  "start": 648,
+                  "start_norm": 0.7431192660550459
+                },
+                {
+                  "center_norm": 0.8256880733944955,
+                  "end": 752,
+                  "end_norm": 0.8623853211009175,
+                  "length": 65,
+                  "start": 688,
+                  "start_norm": 0.7889908256880734
+                },
+                {
+                  "center_norm": 0.8744266055045872,
+                  "end": 769,
+                  "end_norm": 0.8818807339449541,
+                  "length": 14,
+                  "start": 756,
+                  "start_norm": 0.8669724770642202
+                },
+                {
+                  "center_norm": 0.8870412844036697,
+                  "end": 775,
+                  "end_norm": 0.8887614678899083,
+                  "length": 4,
+                  "start": 772,
+                  "start_norm": 0.8853211009174312
+                },
+                {
+                  "center_norm": 0.900802752293578,
+                  "end": 792,
+                  "end_norm": 0.908256880733945,
+                  "length": 14,
+                  "start": 779,
+                  "start_norm": 0.893348623853211
+                }
+              ]
+            }
+          },
+          {
+            "bias": 0.0,
+            "density_lower": 3.304511440511386,
+            "density_upper": 4.521883512659093,
+            "direction": "counterclockwise",
+            "energy_ratio": 1.3377047887297309,
+            "header": {
+              "band_height": 192,
+              "bottom_brightness": 80.50990295410156,
+              "bottom_contrast": 71.01692962646484,
+              "bottom_energy": 26.09926414489746,
+              "bottom_score": 36.634351539611814,
+              "top_brightness": 92.72258758544922,
+              "top_contrast": 65.8291244506836,
+              "top_energy": 34.913448333740234,
+              "top_score": 53.03606071472168
+            },
+            "mask_bonus": 0.0,
+            "mask_bottom_mean": 0.5,
+            "mask_score": 0.0,
+            "mask_top_mean": 0.5,
+            "ratio_density": 1.368285541906753,
+            "ratio_header": 1.447701700292833,
+            "score": 1.4168479695400027,
+            "score_raw": 1.4168479695400027,
+            "text_bonus": 0.45,
+            "text_features": {
+              "gap_ok": true,
+              "name_band": {
+                "center_norm": 0.09919724770642202,
+                "end": 93,
+                "end_norm": 0.10665137614678899,
+                "length": 14,
+                "start": 80,
+                "start_norm": 0.09174311926605505
+              },
+              "rules_band": {
+                "center_norm": 0.6548165137614679,
+                "end": 580,
+                "end_norm": 0.6651376146788991,
+                "length": 19,
+                "start": 562,
+                "start_norm": 0.6444954128440367
+              },
+              "score": 0.45,
+              "segments": [
+                {
+                  "center_norm": 0.09919724770642202,
+                  "end": 93,
+                  "end_norm": 0.10665137614678899,
+                  "length": 14,
+                  "start": 80,
+                  "start_norm": 0.09174311926605505
+                },
+                {
+                  "center_norm": 0.11295871559633028,
+                  "end": 100,
+                  "end_norm": 0.11467889908256881,
+                  "length": 4,
+                  "start": 97,
+                  "start_norm": 0.11123853211009174
+                },
+                {
+                  "center_norm": 0.12557339449541285,
+                  "end": 116,
+                  "end_norm": 0.13302752293577982,
+                  "length": 14,
+                  "start": 103,
+                  "start_norm": 0.11811926605504587
+                },
+                {
+                  "center_norm": 0.1743119266055046,
+                  "end": 184,
+                  "end_norm": 0.21100917431192662,
+                  "length": 65,
+                  "start": 120,
+                  "start_norm": 0.13761467889908258
+                },
+                {
+                  "center_norm": 0.23795871559633028,
+                  "end": 224,
+                  "end_norm": 0.25688073394495414,
+                  "length": 34,
+                  "start": 191,
+                  "start_norm": 0.2190366972477064
+                },
+                {
+                  "center_norm": 0.28956422018348627,
+                  "end": 261,
+                  "end_norm": 0.2993119266055046,
+                  "length": 18,
+                  "start": 244,
+                  "start_norm": 0.2798165137614679
+                },
+                {
+                  "center_norm": 0.32224770642201833,
+                  "end": 297,
+                  "end_norm": 0.34059633027522934,
+                  "length": 33,
+                  "start": 265,
+                  "start_norm": 0.3038990825688073
+                },
+                {
+                  "center_norm": 0.35034403669724773,
+                  "end": 308,
+                  "end_norm": 0.3532110091743119,
+                  "length": 6,
+                  "start": 303,
+                  "start_norm": 0.3474770642201835
+                },
+                {
+                  "center_norm": 0.3663990825688073,
+                  "end": 325,
+                  "end_norm": 0.37270642201834864,
+                  "length": 12,
+                  "start": 314,
+                  "start_norm": 0.36009174311926606
+                },
+                {
+                  "center_norm": 0.3841743119266055,
+                  "end": 340,
+                  "end_norm": 0.38990825688073394,
+                  "length": 11,
+                  "start": 330,
+                  "start_norm": 0.37844036697247707
+                },
+                {
+                  "center_norm": 0.41456422018348627,
+                  "end": 363,
+                  "end_norm": 0.41628440366972475,
+                  "length": 4,
+                  "start": 360,
+                  "start_norm": 0.41284403669724773
+                },
+                {
+                  "center_norm": 0.47878440366972475,
+                  "end": 447,
+                  "end_norm": 0.5126146788990825,
+                  "length": 60,
+                  "start": 388,
+                  "start_norm": 0.44495412844036697
+                },
+                {
+                  "center_norm": 0.518348623853211,
+                  "end": 455,
+                  "end_norm": 0.5217889908256881,
+                  "length": 7,
+                  "start": 449,
+                  "start_norm": 0.5149082568807339
+                },
+                {
+                  "center_norm": 0.6307339449541285,
+                  "end": 552,
+                  "end_norm": 0.6330275229357798,
+                  "length": 5,
+                  "start": 548,
+                  "start_norm": 0.6284403669724771
+                },
+                {
+                  "center_norm": 0.6548165137614679,
+                  "end": 580,
+                  "end_norm": 0.6651376146788991,
+                  "length": 19,
+                  "start": 562,
+                  "start_norm": 0.6444954128440367
+                }
+              ]
+            }
+          }
+        ],
+        "rotated": {
+          "direction": "counterclockwise",
+          "scores": {
+            "clockwise": 1.011502556189014,
+            "counterclockwise": 1.4168479695400027
+          },
+          "selected_score": 1.4168479695400027
+        },
+        "rotated_180": false,
+        "rotated_90": true,
+        "rotation_direction": "counterclockwise",
+        "text_band": {
+          "gap_ok": true,
+          "name_band": {
+            "center_norm": 0.09919724770642202,
+            "end": 93,
+            "end_norm": 0.10665137614678899,
+            "length": 14,
+            "start": 80,
+            "start_norm": 0.09174311926605505
+          },
+          "rules_band": {
+            "center_norm": 0.6548165137614679,
+            "end": 580,
+            "end_norm": 0.6651376146788991,
+            "length": 19,
+            "start": 562,
+            "start_norm": 0.6444954128440367
+          },
+          "score": 0.45,
+          "segments": [
+            {
+              "center_norm": 0.09919724770642202,
+              "end": 93,
+              "end_norm": 0.10665137614678899,
+              "length": 14,
+              "start": 80,
+              "start_norm": 0.09174311926605505
+            },
+            {
+              "center_norm": 0.11295871559633028,
+              "end": 100,
+              "end_norm": 0.11467889908256881,
+              "length": 4,
+              "start": 97,
+              "start_norm": 0.11123853211009174
+            },
+            {
+              "center_norm": 0.12557339449541285,
+              "end": 116,
+              "end_norm": 0.13302752293577982,
+              "length": 14,
+              "start": 103,
+              "start_norm": 0.11811926605504587
+            },
+            {
+              "center_norm": 0.1743119266055046,
+              "end": 184,
+              "end_norm": 0.21100917431192662,
+              "length": 65,
+              "start": 120,
+              "start_norm": 0.13761467889908258
+            },
+            {
+              "center_norm": 0.23795871559633028,
+              "end": 224,
+              "end_norm": 0.25688073394495414,
+              "length": 34,
+              "start": 191,
+              "start_norm": 0.2190366972477064
+            },
+            {
+              "center_norm": 0.28956422018348627,
+              "end": 261,
+              "end_norm": 0.2993119266055046,
+              "length": 18,
+              "start": 244,
+              "start_norm": 0.2798165137614679
+            },
+            {
+              "center_norm": 0.32224770642201833,
+              "end": 297,
+              "end_norm": 0.34059633027522934,
+              "length": 33,
+              "start": 265,
+              "start_norm": 0.3038990825688073
+            },
+            {
+              "center_norm": 0.35034403669724773,
+              "end": 308,
+              "end_norm": 0.3532110091743119,
+              "length": 6,
+              "start": 303,
+              "start_norm": 0.3474770642201835
+            },
+            {
+              "center_norm": 0.3663990825688073,
+              "end": 325,
+              "end_norm": 0.37270642201834864,
+              "length": 12,
+              "start": 314,
+              "start_norm": 0.36009174311926606
+            },
+            {
+              "center_norm": 0.3841743119266055,
+              "end": 340,
+              "end_norm": 0.38990825688073394,
+              "length": 11,
+              "start": 330,
+              "start_norm": 0.37844036697247707
+            },
+            {
+              "center_norm": 0.41456422018348627,
+              "end": 363,
+              "end_norm": 0.41628440366972475,
+              "length": 4,
+              "start": 360,
+              "start_norm": 0.41284403669724773
+            },
+            {
+              "center_norm": 0.47878440366972475,
+              "end": 447,
+              "end_norm": 0.5126146788990825,
+              "length": 60,
+              "start": 388,
+              "start_norm": 0.44495412844036697
+            },
+            {
+              "center_norm": 0.518348623853211,
+              "end": 455,
+              "end_norm": 0.5217889908256881,
+              "length": 7,
+              "start": 449,
+              "start_norm": 0.5149082568807339
+            },
+            {
+              "center_norm": 0.6307339449541285,
+              "end": 552,
+              "end_norm": 0.6330275229357798,
+              "length": 5,
+              "start": 548,
+              "start_norm": 0.6284403669724771
+            },
+            {
+              "center_norm": 0.6548165137614679,
+              "end": 580,
+              "end_norm": 0.6651376146788991,
+              "length": 19,
+              "start": 562,
+              "start_norm": 0.6444954128440367
+            }
+          ]
+        }
+      },
+      "overlap_px": 432,
+      "top_rows_used": 720,
+      "width": 1007
+    }
+  },
+  "embedding": {
+    "available": true,
+    "best": {
+      "card": {
+        "collector_number": "41",
+        "id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+        "name": "Benthic Giant",
+        "scryfall_id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+        "set": "ths"
+      },
+      "distance": 0.5677839708748127,
+      "index": 17945,
+      "score": 43.22160291251873
+    },
+    "engine": "tfidf-char-ngram",
+    "error": null,
+    "matches": [
+      {
+        "card": {
+          "collector_number": "41",
+          "id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+          "name": "Benthic Giant",
+          "scryfall_id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+          "set": "ths"
+        },
+        "distance": 0.5677839708748127,
+        "index": 17945,
+        "score": 43.22160291251873
+      },
+      {
+        "card": {
+          "collector_number": "113",
+          "id": "1ff8671d-4da4-4dc2-a8c4-d695ff1aca0f",
+          "name": "Benthic Giant",
+          "scryfall_id": "1ff8671d-4da4-4dc2-a8c4-d695ff1aca0f",
+          "set": "bbd"
+        },
+        "distance": 0.587371725999406,
+        "index": 13832,
+        "score": 41.2628274000594
+      },
+      {
+        "card": {
+          "collector_number": "BBD-113",
+          "id": "63e8b531-e794-4fd1-971f-19d12c2958a6",
+          "name": "Benthic Giant",
+          "scryfall_id": "63e8b531-e794-4fd1-971f-19d12c2958a6",
+          "set": "plst"
+        },
+        "distance": 0.6589651393300306,
+        "index": 43095,
+        "score": 34.103486066996936
+      },
+      {
+        "card": {
+          "collector_number": "257",
+          "id": "95b03586-8d04-4114-a7ce-b8c8ab5ff857",
+          "name": "Benthic Djinn",
+          "scryfall_id": "95b03586-8d04-4114-a7ce-b8c8ab5ff857",
+          "set": "mir"
+        },
+        "distance": 0.6946174114915631,
+        "index": 64379,
+        "score": 30.53825885084369
+      },
+      {
+        "card": {
+          "collector_number": "63",
+          "id": "19577bda-2728-40c8-a262-26051e6c226b",
+          "name": "Benthic Behemoth",
+          "scryfall_id": "19577bda-2728-40c8-a262-26051e6c226b",
+          "set": "7ed"
+        },
+        "distance": 0.7055011701664222,
+        "index": 11062,
+        "score": 29.449882983357778
+      }
+    ],
+    "query": "seni oA 1 sy)\nSec 7 OE (Os SI\n7 one Sars ny 2 a i\nIIBenthie' Gi artes\ntreet eee\n755\nCO ot. oe\nBenthic Giant CU a\nwie han Bo OR ety US te\ntot wean Se: ok eS fe ny i mo 122"
+  },
+  "ocr_map": {
+    "collector": "755",
+    "full": "CO ot. oe\nBenthic Giant CU a\nwie han Bo OR ety US te\ntot wean Se: ok eS fe ny i mo 122\nBenthi 'Gi. CE She\nte Bey ost Yots an Sa Perret, Ic",
+    "full_text": "CO ot. oe\nBenthic Giant CU a\nwie han Bo OR ety US te\ntot wean Se: ok eS fe ny i mo 122\nBenthi 'Gi. CE She\nte Bey ost Yots an Sa Perret, Ic",
+    "name": "seni oA 1 sy)",
+    "oracle": "Sec 7 OE (Os SI\n7 one Sars ny 2 a i\nIIBenthie' Gi artes\ntreet eee",
+    "rules": "Sec 7 OE (Os SI\n7 one Sars ny 2 a i\nIIBenthie' Gi artes\ntreet eee"
+  },
+  "ocr_meta": {
+    "block_size": 31,
+    "clip_limit": 2.0,
+    "constant": 7,
+    "input_shape": [
+      873,
+      1007,
+      3
+    ],
+    "median_kernel": 3,
+    "method": "adaptive_gaussian",
+    "output_height": 1400,
+    "output_width": 1213,
+    "portrait_rotated": true,
+    "portrait_rotation": "rotate_90_ccw",
+    "portrait_shape": [
+      1007,
+      873,
+      3
+    ],
+    "rotation_direction": "counterclockwise",
+    "scale": 1.39,
+    "source": "composite_rotated",
+    "source_shape": [
+      873,
+      1007,
+      3
+    ]
+  },
+  "ocr_result": {
+    "duration_ms": 791,
+    "embedding": {
+      "available": true,
+      "best": {
+        "card": {
+          "collector_number": "41",
+          "id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+          "name": "Benthic Giant",
+          "scryfall_id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+          "set": "ths"
+        },
+        "distance": 0.5677839708748127,
+        "index": 17945,
+        "score": 43.22160291251873
+      },
+      "engine": "tfidf-char-ngram",
+      "error": null,
+      "matches": [
+        {
+          "card": {
+            "collector_number": "41",
+            "id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+            "name": "Benthic Giant",
+            "scryfall_id": "295f9eb0-5a75-4f86-aca9-3f76b0213c41",
+            "set": "ths"
+          },
+          "distance": 0.5677839708748127,
+          "index": 17945,
+          "score": 43.22160291251873
+        },
+        {
+          "card": {
+            "collector_number": "113",
+            "id": "1ff8671d-4da4-4dc2-a8c4-d695ff1aca0f",
+            "name": "Benthic Giant",
+            "scryfall_id": "1ff8671d-4da4-4dc2-a8c4-d695ff1aca0f",
+            "set": "bbd"
+          },
+          "distance": 0.587371725999406,
+          "index": 13832,
+          "score": 41.2628274000594
+        },
+        {
+          "card": {
+            "collector_number": "BBD-113",
+            "id": "63e8b531-e794-4fd1-971f-19d12c2958a6",
+            "name": "Benthic Giant",
+            "scryfall_id": "63e8b531-e794-4fd1-971f-19d12c2958a6",
+            "set": "plst"
+          },
+          "distance": 0.6589651393300306,
+          "index": 43095,
+          "score": 34.103486066996936
+        },
+        {
+          "card": {
+            "collector_number": "257",
+            "id": "95b03586-8d04-4114-a7ce-b8c8ab5ff857",
+            "name": "Benthic Djinn",
+            "scryfall_id": "95b03586-8d04-4114-a7ce-b8c8ab5ff857",
+            "set": "mir"
+          },
+          "distance": 0.6946174114915631,
+          "index": 64379,
+          "score": 30.53825885084369
+        },
+        {
+          "card": {
+            "collector_number": "63",
+            "id": "19577bda-2728-40c8-a262-26051e6c226b",
+            "name": "Benthic Behemoth",
+            "scryfall_id": "19577bda-2728-40c8-a262-26051e6c226b",
+            "set": "7ed"
+          },
+          "distance": 0.7055011701664222,
+          "index": 11062,
+          "score": 29.449882983357778
+        }
+      ],
+      "query": "seni oA 1 sy)\nSec 7 OE (Os SI\n7 one Sars ny 2 a i\nIIBenthie' Gi artes\ntreet eee\n755\nCO ot. oe\nBenthic Giant CU a\nwie han Bo OR ety US te\ntot wean Se: ok eS fe ny i mo 122"
+    },
+    "engine": "tesseract",
+    "engine_attempts": [
+      {
+        "duration_ms": 791,
+        "engine": "tesseract",
+        "psm": 6
+      }
+    ],
+    "error": null,
+    "psm": 6,
+    "regions": {
+      "collector": [
+        1087,
+        1400
+      ],
+      "full": [
+        0,
+        1400
+      ],
+      "name": [
+        0,
+        280
+      ],
+      "oracle": [
+        275,
+        1092
+      ]
+    }
+  },
+  "pair_orientation": {
+    "bottom_full_density": 3.3668098958333332,
+    "bottom_lower_density": 3.524142795138889,
+    "bottom_upper_density": 3.208943142361111,
+    "determination": "balanced",
+    "method": "gradient-density",
+    "segments": {
+      "bottom_lower": {
+        "density": 3.524142795138889
+      },
+      "bottom_upper": {
+        "density": 3.208943142361111
+      },
+      "top_lower": {
+        "density": 3.5069270833333333
+      },
+      "top_upper": {
+        "density": 3.210705295138889
+      }
+    },
+    "top_full_density": 3.3587934027777777,
+    "top_lower_density": 3.5069270833333333,
+    "top_upper_density": 3.210705295138889
+  },
+  "paths": {
+    "bottom": "data/snapshots/snapshot-20251124-010524-088943-bottom.jpg",
+    "composite": "data/snapshots/snapshot-20251124-010524-088943-composite.jpg",
+    "composite_aligned": "data/snapshots/snapshot-20251124-010524-088943-composite-aligned.jpg",
+    "composite_raw": "data/snapshots/snapshot-20251124-010524-088943-composite-raw.jpg",
+    "ocr_prepared": "data/snapshots/snapshot-20251124-010524-088943-ocr.png",
+    "top": "data/snapshots/snapshot-20251124-010524-088943-top.jpg"
+  },
+  "timestamp": "20251124-010524-088943"
+}
