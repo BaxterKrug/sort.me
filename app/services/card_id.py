@@ -25,13 +25,39 @@ import unicodedata
 import re
 import logging
 from pathlib import Path
+from datetime import datetime, timezone
 import numpy as np
+from scipy import sparse
 from sklearn.neighbors import NearestNeighbors
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 LOG = logging.getLogger("sort.card_id")
 
 _DEFAULT_EMBED_MODEL = "all-MiniLM-L6-v2"
+_EMBED_META_FILE = "embeddings.meta.json"
 _EMBED_CACHES: Dict[str, Dict[str, Any]] = {}
+
+
+def _dynamic_embed_batch_size() -> int:
+    try:
+        return max(8, int(os.environ.get("SORT_CARD_EMBED_BATCH", "256")))
+    except Exception:
+        return 256
+
+
+def _runtime_sentence_build_enabled() -> bool:
+    value = os.environ.get("SORT_CARD_EMBED_RUNTIME_BUILD", "0")
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+class _TfidfEncoder:
+    """Minimal encoder wrapper so TF-IDF vectors slot into existing pipeline."""
+
+    def __init__(self, vectorizer: TfidfVectorizer):
+        self.vectorizer = vectorizer
+
+    def encode(self, texts: List[str], convert_to_numpy: bool = True):  # pylint: disable=unused-argument
+        return self.vectorizer.transform(texts)
 
 # try to use rapidfuzz for better fuzzy matching, otherwise fallback
 try:
@@ -189,11 +215,277 @@ def _compose_embedding_query(ocr_map: Dict[str, str]) -> str:
     return "\n".join(unique_parts).strip()
 
 
+def _prepare_metadata_cards(cards: List[Any]) -> List[Dict[str, Any]]:
+    prepared: List[Dict[str, Any]] = []
+    for raw in cards:
+        if not isinstance(raw, dict):
+            continue
+        card = dict(raw)
+        card_id = card.get("id") or card.get("scryfall_id")
+        if card_id and not card.get("scryfall_id"):
+            card["scryfall_id"] = card_id
+        prepared.append(card)
+    return prepared
+
+
+def _build_card_text(card: Dict[str, Any]) -> str:
+    parts: List[str] = []
+    keys = (
+        "name",
+        "printed_name",
+        "flavor_name",
+        "oracle_text",
+        "type_line",
+        "set",
+        "set_code",
+        "set_name",
+        "collector_number",
+    )
+    for key in keys:
+        value = card.get(key)
+        if value is None:
+            continue
+        if not isinstance(value, str):
+            value = str(value)
+        cleaned = value.strip()
+        if cleaned:
+            parts.append(cleaned)
+    if not parts:
+        card_id = card.get("scryfall_id") or card.get("id")
+        if card_id:
+            parts.append(str(card_id))
+    return " ".join(parts)
+
+
+def _distance_to_score(distance: float, metric: str) -> float:
+    if metric == "cosine":
+        return max(0.0, (1.0 - float(distance)) * 100.0)
+    return max(0.0, 100.0 - (float(distance) * 100.0))
+
+
 def _resolve_embeddings_dir(directory: str) -> Path:
     path = Path(directory).expanduser()
     if not path.is_absolute():
         path = Path.cwd() / path
     return path
+
+
+def _build_tfidf_cache(resolved: str, metadata: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if not metadata:
+        return None
+    try:
+        texts: List[str] = []
+        for idx, raw_card in enumerate(metadata):
+            card = raw_card if isinstance(raw_card, dict) else {}
+            text = _build_card_text(card).strip()
+            if not text:
+                text = f"card-{idx}"
+            texts.append(text)
+        vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5))
+        matrix = vectorizer.fit_transform(texts)
+        if matrix.shape[0] == 0 or matrix.shape[1] == 0:
+            return None
+        nn = NearestNeighbors(metric="cosine", algorithm="brute")
+        nn.fit(matrix)
+        encoder = _TfidfEncoder(vectorizer)
+        return {
+            "ready": True,
+            "embeddings": matrix,
+            "meta": metadata,
+            "nn": nn,
+            "dir": resolved,
+            "encoder": encoder,
+            "encoder_failed": False,
+            "encoder_error": None,
+            "model_name": "tfidf-char-ngram",
+            "vectorizer": vectorizer,
+            "distance_metric": "cosine",
+        }
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        LOG.warning("Failed to build TF-IDF embeddings in %s: %s", resolved, exc)
+        return None
+
+
+def _embedding_meta_path(resolved: str) -> Path:
+    return Path(resolved) / _EMBED_META_FILE
+
+
+def _load_embedding_meta(resolved: str) -> Dict[str, Any]:
+    path = _embedding_meta_path(resolved)
+    if not path.exists():
+        return {}
+    try:
+        with path.open("r", encoding="utf8") as fh:
+            data = json.load(fh)
+        return data if isinstance(data, dict) else {}
+    except Exception as exc:  # pragma: no cover - defensive IO
+        LOG.debug("Failed to read embedding meta info from %s: %s", path, exc)
+        return {}
+
+
+def _write_embedding_meta(resolved: str, info: Dict[str, Any]) -> None:
+    path = _embedding_meta_path(resolved)
+    try:
+        with path.open("w", encoding="utf8") as fh:
+            json.dump(info, fh)
+    except Exception as exc:  # pragma: no cover - defensive IO
+        LOG.warning("Failed to write embedding meta to %s: %s", path, exc)
+
+
+def _extract_inline_embeddings(
+    metadata: List[Dict[str, Any]],
+    *,
+    key: str = "embedding",
+) -> Tuple[Optional[np.ndarray], List[Dict[str, Any]]]:
+    vectors: List[np.ndarray] = []
+    stripped_meta: List[Dict[str, Any]] = []
+    dims: Optional[int] = None
+    for card in metadata:
+        vec = card.get(key)
+        if not isinstance(vec, (list, tuple)):
+            continue
+        try:
+            arr = np.asarray(vec, dtype=np.float32)
+        except Exception:  # pragma: no cover - resilience to malformed entries
+            continue
+        if arr.ndim != 1:
+            continue
+        if dims is None:
+            dims = arr.shape[0]
+        if arr.shape[0] != dims:
+            LOG.debug(
+                "Skipping card %s due to embedding dim mismatch (%s != %s)",
+                card.get("id") or card.get("scryfall_id"),
+                arr.shape[0],
+                dims,
+            )
+            continue
+        vectors.append(arr)
+        trimmed = dict(card)
+        trimmed.pop(key, None)
+        stripped_meta.append(trimmed)
+    if not vectors:
+        return None, metadata
+    matrix = np.vstack(vectors)
+    if len(stripped_meta) != len(metadata):
+        LOG.debug(
+            "Inline embeddings available for %d/%d cards", len(stripped_meta), len(metadata)
+        )
+    return matrix, stripped_meta
+
+
+def _build_embedding_cache(
+    resolved: str,
+    embeddings: Any,
+    metadata: List[Dict[str, Any]],
+    model_name: Optional[str],
+    metric: Optional[str],
+) -> Optional[Dict[str, Any]]:
+    if embeddings is None or not metadata:
+        return None
+    arr = np.asarray(embeddings, dtype=np.float32)
+    if arr.ndim == 1:
+        arr = arr.reshape(1, -1)
+    if arr.ndim != 2 or arr.size == 0:
+        return None
+    rows = arr.shape[0]
+    if rows != len(metadata):
+        limit = min(rows, len(metadata))
+        LOG.warning(
+            "Embedding rows (%s) do not match metadata count (%s) in %s; truncating to %s",
+            rows,
+            len(metadata),
+            resolved,
+            limit,
+        )
+        arr = arr[:limit]
+        metadata = metadata[:limit]
+        rows = limit
+    if rows == 0:
+        return None
+    nn_metric = "cosine" if str(metric).lower() == "cosine" else "euclidean"
+    algorithm = "brute" if nn_metric == "cosine" else "auto"
+    nn = NearestNeighbors(metric=nn_metric, algorithm=algorithm)
+    nn.fit(arr)
+    cache = {
+        "ready": True,
+        "embeddings": arr,
+        "meta": metadata,
+        "nn": nn,
+        "dir": resolved,
+        "encoder": None,
+        "encoder_failed": False,
+        "encoder_error": None,
+        "model_name": model_name or _DEFAULT_EMBED_MODEL,
+        "distance_metric": nn_metric,
+    }
+    return cache
+
+
+def _build_sentence_cache(resolved: str, metadata: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if not metadata:
+        return None
+    texts: List[str] = []
+    filtered_meta: List[Dict[str, Any]] = []
+    for idx, card in enumerate(metadata):
+        text = _build_card_text(card).strip()
+        if not text:
+            text = f"card-{idx}"
+        texts.append(text)
+        filtered_meta.append(card)
+    if not texts:
+        return None
+    cache_seed: Dict[str, Any] = {
+        "model_name": os.environ.get("SORT_CARD_EMBED_MODEL", _DEFAULT_EMBED_MODEL),
+        "encoder": None,
+        "encoder_failed": False,
+        "encoder_error": None,
+    }
+    encoder = _ensure_sentence_encoder(cache_seed)
+    if encoder is None:
+        return None
+    batch_size = _dynamic_embed_batch_size()
+    LOG.info(
+        "Generating %d card embeddings via %s (batch=%d)",
+        len(texts),
+        cache_seed["model_name"],
+        batch_size,
+    )
+    embeddings = encoder.encode(
+        texts,
+        batch_size=batch_size,
+        show_progress_bar=False,
+        convert_to_numpy=True,
+    )
+    embeddings = np.asarray(embeddings, dtype=np.float32)
+    if embeddings.size == 0:
+        return None
+    meta_info = {
+        "model_name": cache_seed["model_name"],
+        "distance_metric": "cosine",
+        "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    }
+    emb_path = Path(resolved) / "embeddings.npy"
+    try:
+        np.save(str(emb_path), embeddings)
+    except Exception as exc:  # pragma: no cover - IO safeguards
+        LOG.warning("Failed to persist generated embeddings to %s: %s", emb_path, exc)
+    else:
+        _write_embedding_meta(resolved, meta_info)
+    nn = NearestNeighbors(metric="cosine", algorithm="brute")
+    nn.fit(embeddings)
+    return {
+        "ready": True,
+        "embeddings": embeddings,
+        "meta": filtered_meta,
+        "nn": nn,
+        "dir": resolved,
+        "encoder": cache_seed.get("encoder"),
+        "encoder_failed": False,
+        "encoder_error": None,
+        "model_name": cache_seed["model_name"],
+        "distance_metric": "cosine",
+    }
 
 
 def _get_embedding_cache(directory: Optional[str]) -> Optional[Dict[str, Any]]:
@@ -205,48 +497,71 @@ def _get_embedding_cache(directory: Optional[str]) -> Optional[Dict[str, Any]]:
         return cache
     emb_path = Path(resolved) / "embeddings.npy"
     meta_path = Path(resolved) / "cards_metadata.json"
-    if not emb_path.exists() or not meta_path.exists():
-        LOG.debug("Embedding assets missing in %s", resolved)
-        _EMBED_CACHES[resolved] = {"ready": False, "error": "files_missing"}
-        return None
-    try:
-        embeddings = np.load(str(emb_path))
-        with meta_path.open("r", encoding="utf8") as fh:
-            metadata = json.load(fh)
-    except Exception as exc:  # pragma: no cover - IO safeguards
-        LOG.warning("Failed to load embeddings from %s: %s", resolved, exc)
-        _EMBED_CACHES[resolved] = {"ready": False, "error": "load_failed"}
-        return None
-    if not isinstance(metadata, list):
-        LOG.warning("cards_metadata.json is not a list at %s", meta_path)
-        metadata = []
-    rows = embeddings.shape[0]
-    if rows != len(metadata):
-        LOG.warning(
-            "Embedding rows (%s) do not match metadata count (%s) in %s", rows, len(metadata), resolved
+    metadata: List[Dict[str, Any]] = []
+    if meta_path.exists():
+        try:
+            with meta_path.open("r", encoding="utf8") as fh:
+                raw = json.load(fh)
+            if isinstance(raw, list):
+                metadata = raw
+            else:
+                LOG.warning("cards_metadata.json at %s is not a list", meta_path)
+        except Exception as exc:  # pragma: no cover - defensive IO
+            LOG.warning("Failed to read metadata from %s: %s", meta_path, exc)
+    else:
+        LOG.debug("cards_metadata.json missing in %s", resolved)
+    metadata = _prepare_metadata_cards(metadata)
+    meta_info = _load_embedding_meta(resolved)
+
+    inline_embeddings, inline_meta = _extract_inline_embeddings(metadata)
+    if inline_embeddings is not None:
+        cache = _build_embedding_cache(
+            resolved,
+            inline_embeddings,
+            inline_meta,
+            meta_info.get("model_name") if meta_info else None,
+            meta_info.get("distance_metric") if meta_info else "cosine",
         )
-        limit = min(rows, len(metadata))
-        embeddings = embeddings[:limit]
-        metadata = metadata[:limit]
-    if embeddings.size == 0 or not metadata:
-        LOG.warning("Embeddings or metadata empty in %s", resolved)
-        _EMBED_CACHES[resolved] = {"ready": False, "error": "empty_embeddings"}
-        return None
-    nn = NearestNeighbors(algorithm="auto")
-    nn.fit(embeddings)
-    cache = {
-        "ready": True,
-        "embeddings": embeddings,
-        "meta": metadata,
-        "nn": nn,
-        "dir": resolved,
-        "encoder": None,
-        "encoder_failed": False,
-        "encoder_error": None,
-        "model_name": _DEFAULT_EMBED_MODEL,
-    }
-    _EMBED_CACHES[resolved] = cache
-    return cache
+        if cache:
+            _EMBED_CACHES[resolved] = cache
+            return cache
+
+    if emb_path.exists():
+        try:
+            embeddings = np.load(str(emb_path))
+        except Exception as exc:  # pragma: no cover - IO safeguards
+            LOG.warning("Failed to load embeddings from %s: %s", resolved, exc)
+            _EMBED_CACHES[resolved] = {"ready": False, "error": "load_failed"}
+            return None
+        cache = _build_embedding_cache(
+            resolved,
+            embeddings,
+            metadata,
+            meta_info.get("model_name") if meta_info else None,
+            meta_info.get("distance_metric") if meta_info else "euclidean",
+        )
+        if cache:
+            _EMBED_CACHES[resolved] = cache
+            return cache
+        LOG.warning("Failed to initialize embedding cache from %s", emb_path)
+
+    if _runtime_sentence_build_enabled():
+        sentence_cache = _build_sentence_cache(resolved, metadata)
+        if sentence_cache:
+            _EMBED_CACHES[resolved] = sentence_cache
+            return sentence_cache
+    else:
+        LOG.info(
+            "Runtime embedding build disabled (SORT_CARD_EMBED_RUNTIME_BUILD=0); "
+            "use embed_scryfall.py or scripts/embed_single_card.py to precompute vectors."
+        )
+    fallback_cache = _build_tfidf_cache(resolved, metadata)
+    if fallback_cache:
+        _EMBED_CACHES[resolved] = fallback_cache
+        return fallback_cache
+    LOG.debug("Embedding assets missing in %s", resolved)
+    _EMBED_CACHES[resolved] = {"ready": False, "error": "files_missing"}
+    return None
 
 
 def _ensure_sentence_encoder(cache: Dict[str, Any]):
@@ -285,7 +600,7 @@ def _run_embedding_search(
         query_emb = encoder.encode(
             [query_text],
             convert_to_numpy=True,
-        )[0]
+        )
     except Exception as exc:  # pragma: no cover - runtime dependent
         cache["encoder_failed"] = True
         cache["encoder_error"] = f"encode_failed: {exc}"
@@ -298,15 +613,23 @@ def _run_embedding_search(
     neighbor_count = min(max_results, embeddings.shape[0])
     if neighbor_count <= 0:
         return []
-    dists, idxs = nn.kneighbors(query_emb.reshape(1, -1), n_neighbors=neighbor_count)
+    if sparse.issparse(query_emb):
+        query_vec = query_emb
+    else:
+        arr = np.asarray(query_emb)
+        if arr.ndim == 1:
+            arr = arr.reshape(1, -1)
+        query_vec = arr
+    dists, idxs = nn.kneighbors(query_vec, n_neighbors=neighbor_count)
     matches: List[Dict[str, Any]] = []
+    metric = cache.get("distance_metric", "euclidean")
     for dist, idx in zip(dists[0], idxs[0]):
         meta = cache["meta"][int(idx)] if cache.get("meta") else {}
         matches.append(
             {
                 "card": meta,
                 "distance": float(dist),
-                "score": float(max(0.0, 100.0 - (float(dist) * 100.0))),
+                "score": _distance_to_score(float(dist), metric),
                 "index": int(idx),
             }
         )

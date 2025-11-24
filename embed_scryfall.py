@@ -17,6 +17,7 @@ Requirements:
 import os
 import json
 import argparse
+from datetime import datetime, timezone
 from tqdm import tqdm
 import numpy as np
 
@@ -86,13 +87,26 @@ def main():
 
     emb_path = os.path.join(args.out_dir, "embeddings.npy")
     meta_path = os.path.join(args.out_dir, "cards_metadata.json")
+    meta_info_path = os.path.join(args.out_dir, "embeddings.meta.json")
 
     print("Saving embeddings ->", emb_path)
     np.save(emb_path, embeddings)
 
+    embeddings_list = embeddings.tolist()
+    for idx, vector in enumerate(embeddings_list):
+        metadata[idx]["embedding"] = vector
+
     print("Saving metadata ->", meta_path)
     with open(meta_path, "w", encoding="utf-8") as fh:
         json.dump(metadata, fh, ensure_ascii=False)
+
+    meta_info = {
+        "model_name": args.model,
+        "distance_metric": "cosine",
+        "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    }
+    with open(meta_info_path, "w", encoding="utf-8") as fh:
+        json.dump(meta_info, fh, ensure_ascii=False)
 
     print("Done. Embeddings shape:", embeddings.shape)
 

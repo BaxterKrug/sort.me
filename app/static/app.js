@@ -93,6 +93,7 @@ const snapshotOcrName = $('snapshotOcrName');
 const snapshotOcrOracle = $('snapshotOcrOracle');
 const snapshotOcrCollector = $('snapshotOcrCollector');
 const snapshotOcrMeta = $('snapshotOcrMeta');
+const snapshotOcrScryfallId = $('snapshotOcrScryfallId');
 const btnCopyOcrText = $('btnCopyOcrText');
 const snapshotNeighborCard = $('snapshotNeighborCard');
 const snapshotNeighborName = $('snapshotNeighborName');
@@ -175,9 +176,31 @@ function formatOcr(value){
   return String(value).trim();
 }
 
+function resolveBestScryfallId(info){
+  if(!info || typeof info !== 'object') return '';
+  const best = info.best;
+  const card = best && best.card ? best.card : null;
+  if(!card || typeof card !== 'object') return '';
+  return (
+    card.scryfall_id ||
+    card.scryfallId ||
+    card.scryfallID ||
+    card.id ||
+    card.uuid ||
+    ''
+  );
+}
+
+function setScryfallIdDisplay(value){
+  if(!snapshotOcrScryfallId) return;
+  const formatted = value && typeof value === 'string' ? value.trim() : '';
+  snapshotOcrScryfallId.textContent = formatted || '—';
+}
+
 function renderEmbeddingMatch(info){
   lastEmbeddingMatch = info || null;
   if(!snapshotNeighborCard){
+    setScryfallIdDisplay(resolveBestScryfallId(info));
     return;
   }
   const best = info && info.best;
@@ -196,6 +219,7 @@ function renderEmbeddingMatch(info){
     if(snapshotNeighborId){
       snapshotNeighborId.textContent = '—';
     }
+    setScryfallIdDisplay(resolveBestScryfallId(info));
     if(snapshotNeighborStatus){
       if(info && info.error){
         snapshotNeighborStatus.textContent = info.error;
@@ -216,8 +240,9 @@ function renderEmbeddingMatch(info){
     snapshotNeighborSet.textContent = parts.length ? parts.join(' • ') : '—';
   }
   if(snapshotNeighborId){
-    const scryfallId = card.id || card.scryfall_id || card.scryfallId || card.scryfallID;
+    const scryfallId = resolveBestScryfallId(info);
     snapshotNeighborId.textContent = scryfallId || '—';
+    setScryfallIdDisplay(scryfallId);
   }
   if(snapshotNeighborScore){
     const scoreVal = typeof best.score === 'number' ? Number(best.score).toFixed(1) : '—';

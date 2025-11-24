@@ -53,6 +53,36 @@ using the provided `requirements.txt`:
 If you're running in a headless server environment prefer
 `opencv-python-headless` (already used in `requirements.txt`).
 
+Card embeddings
+---------------
+
+To keep startup light, the backend will only load embeddings that already
+exist on disk. If `data/embeddings/embeddings.npy` is missing, set the
+`sorting.embeddings_dir` config to a directory you prepared ahead of time.
+
+You can generate a tiny embedding set (even a single Scryfall ID) with:
+
+```bash
+python scripts/embed_single_card.py \
+	--card-id 0000419b-0bba-4488-8f7a-6194544ce91e \
+	--out-dir data/embeddings/custom-forest
+```
+
+Then point `config.yaml` at `data/embeddings/custom-forest` under
+`sorting.embeddings_dir`. The script only processes the requested IDs or
+names, so it won't hammer the CPU.
+
+Both the single-card helper and `embed_scryfall.py` now write each card's
+embedding directly into `cards_metadata.json`, so the server only needs to
+generate an OCR text embedding at runtime before comparing it against those
+precomputed vectors.
+
+If you prefer to build the full Scryfall index offline, continue using
+`embed_scryfall.py` (which reads the big oracle JSON export). During development
+you can block runtime generation entirely by leaving
+`SORT_CARD_EMBED_RUNTIME_BUILD` unset (defaults to off). Set it to `1` only if
+you intentionally want the server to compute all missing embeddings at startup.
+
 ### OCR fallbacks
 
 If Tesseract is not available, the snapshot pipeline will automatically

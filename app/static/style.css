@@ -172,6 +172,8 @@ label.checkbox{display:flex;align-items:center;gap:8px;margin-top:8px}
 .ocr-field{border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--cell-bg);display:flex;flex-direction:column;gap:4px}
 .ocr-field pre{margin:0;font-family:ui-monospace,Consolas,"Liberation Mono","Courier New",monospace;font-size:12px;white-space:pre-wrap;word-break:break-word;color:var(--text);max-height:140px;overflow:auto}
 .ocr-field .label{font-size:11px;text-transform:uppercase;letter-spacing:0.04em}
+.ocr-scryfall-id{display:flex;align-items:center;gap:10px;margin-top:6px;border:1px solid var(--border);border-radius:8px;padding:6px 10px;background:var(--ghost)}
+.ocr-scryfall-id code{font-family:ui-monospace,Consolas,"Liberation Mono","Courier New",monospace;font-size:12px;word-break:break-all;color:var(--text)}
 .tiny{font-size:11px}
 
 /* OCR Results Styling */

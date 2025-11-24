@@ -1,0 +1,816 @@
+{
+  "composite_meta": {
+    "aligned": {
+      "border": {
+        "area": 824037.5,
+        "box": [
+          [
+            71.66455078125,
+            7.595941543579102
+          ],
+          [
+            933.8856201171875,
+            23.41650390625
+          ],
+          [
+            912.6923828125,
+            1143.0
+          ],
+          [
+            50.4713134765625,
+            1143.0
+          ]
+        ],
+        "dest_height": 1136,
+        "dest_width": 862,
+        "found": true,
+        "margin_px": 20
+      },
+      "bottom_rows_used": 720,
+      "height": 1136,
+      "overlap_px": 296,
+      "top_rows_used": 720,
+      "width": 862
+    },
+    "raw": {
+      "bottom_rows_used": 720,
+      "height": 1144,
+      "overlap_px": 296,
+      "top_rows_used": 720,
+      "width": 1280
+    },
+    "rotated": {
+      "border": {
+        "area": 824037.5,
+        "box": [
+          [
+            71.66455078125,
+            7.595941543579102
+          ],
+          [
+            933.8856201171875,
+            23.41650390625
+          ],
+          [
+            912.6923828125,
+            1143.0
+          ],
+          [
+            50.4713134765625,
+            1143.0
+          ]
+        ],
+        "dest_height": 1136,
+        "dest_width": 862,
+        "found": true,
+        "margin_px": 20
+      },
+      "bottom_rows_used": 720,
+      "height": 862,
+      "orientation": {
+        "density_lower_final": 4.1567248619326165,
+        "density_lower_initial": 5.628968416064835,
+        "density_upper_final": 5.628968416064835,
+        "density_upper_initial": 4.1567248619326165,
+        "header_activity_final": {
+          "band_height": 189,
+          "bottom_brightness": 120.60868835449219,
+          "bottom_contrast": 82.9748764038086,
+          "bottom_energy": 25.727685928344727,
+          "bottom_score": 38.99982967376709,
+          "top_brightness": 125.54329681396484,
+          "top_contrast": 81.31433868408203,
+          "top_energy": 42.26243591308594,
+          "top_score": 62.41555938720703
+        },
+        "header_activity_initial": {
+          "band_height": 189,
+          "bottom_brightness": 125.5433120727539,
+          "bottom_contrast": 81.31433868408203,
+          "bottom_energy": 42.26243591308594,
+          "bottom_score": 50.15902175903321,
+          "top_brightness": 120.60867309570312,
+          "top_contrast": 82.9748764038086,
+          "top_energy": 25.727685928344727,
+          "top_score": 51.25636730194091
+        },
+        "hint_determination": "top_leading",
+        "mask_stats": {
+          "bonus": 0.012526738643646241,
+          "bottom_mean": 0.5041324496269226,
+          "score": 0.005693972110748291,
+          "top_mean": 0.5098264217376709
+        },
+        "orientation_candidates": [
+          {
+            "bias": 0.02,
+            "density_lower": 5.628968416064835,
+            "density_upper": 4.1567248619326165,
+            "direction": "clockwise",
+            "energy_ratio": 0.6087693859357614,
+            "header": {
+              "band_height": 189,
+              "bottom_brightness": 125.5433120727539,
+              "bottom_contrast": 81.31433868408203,
+              "bottom_energy": 42.26243591308594,
+              "bottom_score": 50.15902175903321,
+              "top_brightness": 120.60867309570312,
+              "top_contrast": 82.9748764038086,
+              "top_energy": 25.727685928344727,
+              "top_score": 51.25636730194091
+            },
+            "mask_bonus": -0.012526869773864748,
+            "mask_bottom_mean": 0.5098264813423157,
+            "mask_score": -0.005694031715393066,
+            "mask_top_mean": 0.5041324496269226,
+            "ratio_density": 0.7384987898100379,
+            "ratio_header": 1.021876895272879,
+            "score": 0.9097216179734569,
+            "score_raw": 0.9097216179734569,
+            "text_bonus": 0.45,
+            "text_features": {
+              "gap_ok": true,
+              "name_band": {
+                "center_norm": 0.1991869918699187,
+                "end": 175,
+                "end_norm": 0.2032520325203252,
+                "length": 8,
+                "start": 168,
+                "start_norm": 0.1951219512195122
+              },
+              "rules_band": {
+                "center_norm": 0.854239256678281,
+                "end": 771,
+                "end_norm": 0.8954703832752613,
+                "length": 72,
+                "start": 700,
+                "start_norm": 0.8130081300813008
+              },
+              "score": 0.45,
+              "segments": [
+                {
+                  "center_norm": 0.1991869918699187,
+                  "end": 175,
+                  "end_norm": 0.2032520325203252,
+                  "length": 8,
+                  "start": 168,
+                  "start_norm": 0.1951219512195122
+                },
+                {
+                  "center_norm": 0.20905923344947736,
+                  "end": 181,
+                  "end_norm": 0.21022067363530778,
+                  "length": 3,
+                  "start": 179,
+                  "start_norm": 0.20789779326364694
+                },
+                {
+                  "center_norm": 0.2659698025551684,
+                  "end": 233,
+                  "end_norm": 0.2706155632984901,
+                  "length": 9,
+                  "start": 225,
+                  "start_norm": 0.2613240418118467
+                },
+                {
+                  "center_norm": 0.2938443670150987,
+                  "end": 255,
+                  "end_norm": 0.2961672473867596,
+                  "length": 5,
+                  "start": 251,
+                  "start_norm": 0.29152148664343785
+                },
+                {
+                  "center_norm": 0.3089430894308943,
+                  "end": 268,
+                  "end_norm": 0.31126596980255516,
+                  "length": 5,
+                  "start": 264,
+                  "start_norm": 0.30662020905923343
+                },
+                {
+                  "center_norm": 0.351335656213705,
+                  "end": 304,
+                  "end_norm": 0.3530778164924506,
+                  "length": 4,
+                  "start": 301,
+                  "start_norm": 0.34959349593495936
+                },
+                {
+                  "center_norm": 0.359465737514518,
+                  "end": 313,
+                  "end_norm": 0.3635307781649245,
+                  "length": 8,
+                  "start": 306,
+                  "start_norm": 0.3554006968641115
+                },
+                {
+                  "center_norm": 0.4930313588850174,
+                  "end": 427,
+                  "end_norm": 0.4959349593495935,
+                  "length": 6,
+                  "start": 422,
+                  "start_norm": 0.4901277584204414
+                },
+                {
+                  "center_norm": 0.5209059233449478,
+                  "end": 449,
+                  "end_norm": 0.521486643437863,
+                  "length": 2,
+                  "start": 448,
+                  "start_norm": 0.5203252032520326
+                },
+                {
+                  "center_norm": 0.624274099883856,
+                  "end": 575,
+                  "end_norm": 0.667828106852497,
+                  "length": 76,
+                  "start": 500,
+                  "start_norm": 0.5807200929152149
+                },
+                {
+                  "center_norm": 0.673054587688734,
+                  "end": 580,
+                  "end_norm": 0.6736353077816493,
+                  "length": 2,
+                  "start": 579,
+                  "start_norm": 0.6724738675958188
+                },
+                {
+                  "center_norm": 0.7380952380952381,
+                  "end": 686,
+                  "end_norm": 0.7967479674796748,
+                  "length": 102,
+                  "start": 585,
+                  "start_norm": 0.6794425087108014
+                },
+                {
+                  "center_norm": 0.854239256678281,
+                  "end": 771,
+                  "end_norm": 0.8954703832752613,
+                  "length": 72,
+                  "start": 700,
+                  "start_norm": 0.8130081300813008
+                }
+              ]
+            }
+          },
+          {
+            "bias": 0.02,
+            "density_lower": 4.1567248619326165,
+            "density_upper": 5.628968416064835,
+            "direction": "counterclockwise",
+            "energy_ratio": 1.6426581610421556,
+            "header": {
+              "band_height": 189,
+              "bottom_brightness": 120.60868835449219,
+              "bottom_contrast": 82.9748764038086,
+              "bottom_energy": 25.727685928344727,
+              "bottom_score": 38.99982967376709,
+              "top_brightness": 125.54329681396484,
+              "top_contrast": 81.31433868408203,
+              "top_energy": 42.26243591308594,
+              "top_score": 62.41555938720703
+            },
+            "mask_bonus": 0.012526738643646241,
+            "mask_bottom_mean": 0.5041324496269226,
+            "mask_score": 0.005693972110748291,
+            "mask_top_mean": 0.5098264217376709,
+            "ratio_density": 1.3540983598053387,
+            "ratio_header": 1.6003905534653264,
+            "score": 1.5430442658080126,
+            "score_raw": 1.5430442658080126,
+            "text_bonus": 0.45,
+            "text_features": {
+              "gap_ok": true,
+              "name_band": {
+                "center_norm": 0.14576074332171893,
+                "end": 161,
+                "end_norm": 0.18699186991869918,
+                "length": 72,
+                "start": 90,
+                "start_norm": 0.10452961672473868
+              },
+              "rules_band": {
+                "center_norm": 0.8008130081300813,
+                "end": 693,
+                "end_norm": 0.8048780487804879,
+                "length": 8,
+                "start": 686,
+                "start_norm": 0.7967479674796748
+              },
+              "score": 0.45,
+              "segments": [
+                {
+                  "center_norm": 0.14576074332171893,
+                  "end": 161,
+                  "end_norm": 0.18699186991869918,
+                  "length": 72,
+                  "start": 90,
+                  "start_norm": 0.10452961672473868
+                },
+                {
+                  "center_norm": 0.2619047619047619,
+                  "end": 276,
+                  "end_norm": 0.3205574912891986,
+                  "length": 102,
+                  "start": 175,
+                  "start_norm": 0.2032520325203252
+                },
+                {
+                  "center_norm": 0.32694541231126595,
+                  "end": 282,
+                  "end_norm": 0.32752613240418116,
+                  "length": 2,
+                  "start": 281,
+                  "start_norm": 0.32636469221835074
+                },
+                {
+                  "center_norm": 0.37572590011614404,
+                  "end": 361,
+                  "end_norm": 0.41927990708478513,
+                  "length": 76,
+                  "start": 286,
+                  "start_norm": 0.3321718931475029
+                },
+                {
+                  "center_norm": 0.47909407665505227,
+                  "end": 413,
+                  "end_norm": 0.4796747967479675,
+                  "length": 2,
+                  "start": 412,
+                  "start_norm": 0.47851335656213706
+                },
+                {
+                  "center_norm": 0.5069686411149826,
+                  "end": 439,
+                  "end_norm": 0.5098722415795587,
+                  "length": 6,
+                  "start": 434,
+                  "start_norm": 0.5040650406504065
+                },
+                {
+                  "center_norm": 0.640534262485482,
+                  "end": 555,
+                  "end_norm": 0.6445993031358885,
+                  "length": 8,
+                  "start": 548,
+                  "start_norm": 0.6364692218350755
+                },
+                {
+                  "center_norm": 0.648664343786295,
+                  "end": 560,
+                  "end_norm": 0.6504065040650406,
+                  "length": 4,
+                  "start": 557,
+                  "start_norm": 0.6469221835075494
+                },
+                {
+                  "center_norm": 0.6910569105691057,
+                  "end": 597,
+                  "end_norm": 0.6933797909407665,
+                  "length": 5,
+                  "start": 593,
+                  "start_norm": 0.6887340301974448
+                },
+                {
+                  "center_norm": 0.7061556329849012,
+                  "end": 610,
+                  "end_norm": 0.7084785133565621,
+                  "length": 5,
+                  "start": 606,
+                  "start_norm": 0.7038327526132404
+                },
+                {
+                  "center_norm": 0.7340301974448316,
+                  "end": 636,
+                  "end_norm": 0.7386759581881533,
+                  "length": 9,
+                  "start": 628,
+                  "start_norm": 0.7293844367015099
+                },
+                {
+                  "center_norm": 0.7909407665505227,
+                  "end": 682,
+                  "end_norm": 0.7921022067363531,
+                  "length": 3,
+                  "start": 680,
+                  "start_norm": 0.7897793263646922
+                },
+                {
+                  "center_norm": 0.8008130081300813,
+                  "end": 693,
+                  "end_norm": 0.8048780487804879,
+                  "length": 8,
+                  "start": 686,
+                  "start_norm": 0.7967479674796748
+                }
+              ]
+            }
+          }
+        ],
+        "rotated": {
+          "direction": "counterclockwise",
+          "scores": {
+            "clockwise": 0.9097216179734569,
+            "counterclockwise": 1.5430442658080126
+          },
+          "selected_score": 1.5430442658080126
+        },
+        "rotated_180": false,
+        "rotated_90": true,
+        "rotation_direction": "counterclockwise",
+        "text_band": {
+          "gap_ok": true,
+          "name_band": {
+            "center_norm": 0.14576074332171893,
+            "end": 161,
+            "end_norm": 0.18699186991869918,
+            "length": 72,
+            "start": 90,
+            "start_norm": 0.10452961672473868
+          },
+          "rules_band": {
+            "center_norm": 0.8008130081300813,
+            "end": 693,
+            "end_norm": 0.8048780487804879,
+            "length": 8,
+            "start": 686,
+            "start_norm": 0.7967479674796748
+          },
+          "score": 0.45,
+          "segments": [
+            {
+              "center_norm": 0.14576074332171893,
+              "end": 161,
+              "end_norm": 0.18699186991869918,
+              "length": 72,
+              "start": 90,
+              "start_norm": 0.10452961672473868
+            },
+            {
+              "center_norm": 0.2619047619047619,
+              "end": 276,
+              "end_norm": 0.3205574912891986,
+              "length": 102,
+              "start": 175,
+              "start_norm": 0.2032520325203252
+            },
+            {
+              "center_norm": 0.32694541231126595,
+              "end": 282,
+              "end_norm": 0.32752613240418116,
+              "length": 2,
+              "start": 281,
+              "start_norm": 0.32636469221835074
+            },
+            {
+              "center_norm": 0.37572590011614404,
+              "end": 361,
+              "end_norm": 0.41927990708478513,
+              "length": 76,
+              "start": 286,
+              "start_norm": 0.3321718931475029
+            },
+            {
+              "center_norm": 0.47909407665505227,
+              "end": 413,
+              "end_norm": 0.4796747967479675,
+              "length": 2,
+              "start": 412,
+              "start_norm": 0.47851335656213706
+            },
+            {
+              "center_norm": 0.5069686411149826,
+              "end": 439,
+              "end_norm": 0.5098722415795587,
+              "length": 6,
+              "start": 434,
+              "start_norm": 0.5040650406504065
+            },
+            {
+              "center_norm": 0.640534262485482,
+              "end": 555,
+              "end_norm": 0.6445993031358885,
+              "length": 8,
+              "start": 548,
+              "start_norm": 0.6364692218350755
+            },
+            {
+              "center_norm": 0.648664343786295,
+              "end": 560,
+              "end_norm": 0.6504065040650406,
+              "length": 4,
+              "start": 557,
+              "start_norm": 0.6469221835075494
+            },
+            {
+              "center_norm": 0.6910569105691057,
+              "end": 597,
+              "end_norm": 0.6933797909407665,
+              "length": 5,
+              "start": 593,
+              "start_norm": 0.6887340301974448
+            },
+            {
+              "center_norm": 0.7061556329849012,
+              "end": 610,
+              "end_norm": 0.7084785133565621,
+              "length": 5,
+              "start": 606,
+              "start_norm": 0.7038327526132404
+            },
+            {
+              "center_norm": 0.7340301974448316,
+              "end": 636,
+              "end_norm": 0.7386759581881533,
+              "length": 9,
+              "start": 628,
+              "start_norm": 0.7293844367015099
+            },
+            {
+              "center_norm": 0.7909407665505227,
+              "end": 682,
+              "end_norm": 0.7921022067363531,
+              "length": 3,
+              "start": 680,
+              "start_norm": 0.7897793263646922
+            },
+            {
+              "center_norm": 0.8008130081300813,
+              "end": 693,
+              "end_norm": 0.8048780487804879,
+              "length": 8,
+              "start": 686,
+              "start_norm": 0.7967479674796748
+            }
+          ]
+        }
+      },
+      "overlap_px": 296,
+      "top_rows_used": 720,
+      "width": 1136
+    }
+  },
+  "embedding": {
+    "available": true,
+    "best": {
+      "card": {
+        "collector_number": "134",
+        "id": "899db99b-df27-4848-a23d-5c645deae450",
+        "name": "Magus of the Library",
+        "scryfall_id": "899db99b-df27-4848-a23d-5c645deae450",
+        "set": "plc"
+      },
+      "distance": 0.7586829751322602,
+      "index": 59249,
+      "score": 24.131702486773975
+    },
+    "engine": "tfidf-char-ngram",
+    "error": null,
+    "matches": [
+      {
+        "card": {
+          "collector_number": "134",
+          "id": "899db99b-df27-4848-a23d-5c645deae450",
+          "name": "Magus of the Library",
+          "scryfall_id": "899db99b-df27-4848-a23d-5c645deae450",
+          "set": "plc"
+        },
+        "distance": 0.7586829751322602,
+        "index": 59249,
+        "score": 24.131702486773975
+      },
+      {
+        "card": {
+          "collector_number": "18",
+          "id": "442cf173-8042-40fa-98d6-6ca93caa3e03",
+          "name": "Library",
+          "scryfall_id": "442cf173-8042-40fa-98d6-6ca93caa3e03",
+          "set": "clu"
+        },
+        "distance": 0.7756358937610086,
+        "index": 29365,
+        "score": 22.43641062389914
+      },
+      {
+        "card": {
+          "collector_number": "91",
+          "id": "9d243099-94b1-4571-96af-4c5a34241911",
+          "name": "Drag to the Bottom",
+          "scryfall_id": "9d243099-94b1-4571-96af-4c5a34241911",
+          "set": "dmu"
+        },
+        "distance": 0.7836278742855947,
+        "index": 67661,
+        "score": 21.637212571440536
+      },
+      {
+        "card": {
+          "collector_number": "59",
+          "id": "98b7070d-4b09-4390-aa21-1bc0aa2b629c",
+          "name": "One with the Stars",
+          "scryfall_id": "98b7070d-4b09-4390-aa21-1bc0aa2b629c",
+          "set": "thb"
+        },
+        "distance": 0.7941535677227551,
+        "index": 65731,
+        "score": 20.584643227724484
+      },
+      {
+        "card": {
+          "collector_number": "401",
+          "id": "6f72da0d-f48d-438d-8bc8-23e509a47149",
+          "name": "Drag to the Bottom",
+          "scryfall_id": "6f72da0d-f48d-438d-8bc8-23e509a47149",
+          "set": "dmu"
+        },
+        "distance": 0.7959854890338389,
+        "index": 48025,
+        "score": 20.401451096616107
+      }
+    ],
+    "query": "| \u201cSe \"1 |\none as     &       ye ead\nCP eR PNA Leh\nis a  ROR cial  eT Oe   ,      i\n:        r.                            -                                I,\n|                                                \u2018\n(Sorcery                                       WwW }\n1 IPut'two2/2'blue'Bird enchantment\ncreature tokens with flying onto the\nbattlefield. Scry 1. (Look at the top \u2014\ncard of your library. You may put that       ,\ncard on the bottom of vour herrea; ) -       7\nEE FE OEE IAS         Ls\n|      An offering to the sea brings an insight {|\nfrom the stars.\n\u2014\u00a9Noah Bradley ~\u00ab.. $     a a\nB&O 2014 Wirarde of the Com 49/165    LAN   ,\n| (oekortasies  Ae}\nyn                  ee a cae\n:       ro          \u2018        \u201cos                              I,\n|                                            \u2018\n(Sorcery                                       WwW }\nhh        lata     _\n| f!Putttwo\u20192/2'blue'Bird enchantment\ncreature tokens with flying onto the\nbattlefield. Scry 1. (Look at the top \u2014\ncard of your library. You may put that       ,\ncard on the bottom of your library.) -       .\nAn offering to the sea brings an insight {|\nfrom the stars.\n\u2014\u00a9Noah Bradley ~\u00ab.. $     a a\nB&O 2014 Wirarde of the Com 49/165    eK   a"
+  },
+  "ocr_map": {
+    "collector": "EE FE OEE IAS         Ls\n|      An offering to the sea brings an insight {|\nfrom the stars.\n\u2014\u00a9Noah Bradley ~\u00ab.. $     a a\nB&O 2014 Wirarde of the Com 49/165    LAN   ,",
+    "full": "| (oekortasies  Ae}\nyn                  ee a cae\n:       ro          \u2018        \u201cos                              I,\n|                                            \u2018\n(Sorcery                                       WwW }\nhh        lata     _\n| f!Putttwo\u20192/2'blue'Bird enchantment\ncreature tokens with flying onto the\nbattlefield. Scry 1. (Look at the top \u2014\ncard of your library. You may put that       ,\ncard on the bottom of your library.) -       .\nAn offering to the sea brings an insight {|\nfrom the stars.\n\u2014\u00a9Noah Bradley ~\u00ab.. $     a a\nB&O 2014 Wirarde of the Com 49/165    eK   a",
+    "full_text": "| (oekortasies  Ae}\nyn                  ee a cae\n:       ro          \u2018        \u201cos                              I,\n|                                            \u2018\n(Sorcery                                       WwW }\nhh        lata     _\n| f!Putttwo\u20192/2'blue'Bird enchantment\ncreature tokens with flying onto the\nbattlefield. Scry 1. (Look at the top \u2014\ncard of your library. You may put that       ,\ncard on the bottom of your library.) -       .\nAn offering to the sea brings an insight {|\nfrom the stars.\n\u2014\u00a9Noah Bradley ~\u00ab.. $     a a\nB&O 2014 Wirarde of the Com 49/165    eK   a",
+    "name": "| \u201cSe \"1 |",
+    "oracle": "one as     &       ye ead\nCP eR PNA Leh\nis a  ROR cial  eT Oe   ,      i\n:        r.                            -                                I,\n|                                                \u2018\n(Sorcery                                       WwW }\n1 IPut'two2/2'blue'Bird enchantment\ncreature tokens with flying onto the\nbattlefield. Scry 1. (Look at the top \u2014\ncard of your library. You may put that       ,\ncard on the bottom of vour herrea; ) -       7",
+    "rules": "one as     &       ye ead\nCP eR PNA Leh\nis a  ROR cial  eT Oe   ,      i\n:        r.                            -                                I,\n|                                                \u2018\n(Sorcery                                       WwW }\n1 IPut'two2/2'blue'Bird enchantment\ncreature tokens with flying onto the\nbattlefield. Scry 1. (Look at the top \u2014\ncard of your library. You may put that       ,\ncard on the bottom of vour herrea; ) -       7"
+  },
+  "ocr_meta": {
+    "block_size": 31,
+    "clip_limit": 2.0,
+    "constant": 7,
+    "input_shape": [
+      862,
+      1136,
+      3
+    ],
+    "median_kernel": 3,
+    "method": "adaptive_gaussian",
+    "output_height": 1400,
+    "output_width": 1062,
+    "portrait_rotated": true,
+    "portrait_rotation": "rotate_90_ccw",
+    "portrait_shape": [
+      1136,
+      862,
+      3
+    ],
+    "rotation_direction": "counterclockwise",
+    "scale": 1.232,
+    "source": "composite_rotated",
+    "source_shape": [
+      862,
+      1136,
+      3
+    ]
+  },
+  "ocr_result": {
+    "duration_ms": 816,
+    "embedding": {
+      "available": true,
+      "best": {
+        "card": {
+          "collector_number": "134",
+          "id": "899db99b-df27-4848-a23d-5c645deae450",
+          "name": "Magus of the Library",
+          "scryfall_id": "899db99b-df27-4848-a23d-5c645deae450",
+          "set": "plc"
+        },
+        "distance": 0.7586829751322602,
+        "index": 59249,
+        "score": 24.131702486773975
+      },
+      "engine": "tfidf-char-ngram",
+      "error": null,
+      "matches": [
+        {
+          "card": {
+            "collector_number": "134",
+            "id": "899db99b-df27-4848-a23d-5c645deae450",
+            "name": "Magus of the Library",
+            "scryfall_id": "899db99b-df27-4848-a23d-5c645deae450",
+            "set": "plc"
+          },
+          "distance": 0.7586829751322602,
+          "index": 59249,
+          "score": 24.131702486773975
+        },
+        {
+          "card": {
+            "collector_number": "18",
+            "id": "442cf173-8042-40fa-98d6-6ca93caa3e03",
+            "name": "Library",
+            "scryfall_id": "442cf173-8042-40fa-98d6-6ca93caa3e03",
+            "set": "clu"
+          },
+          "distance": 0.7756358937610086,
+          "index": 29365,
+          "score": 22.43641062389914
+        },
+        {
+          "card": {
+            "collector_number": "91",
+            "id": "9d243099-94b1-4571-96af-4c5a34241911",
+            "name": "Drag to the Bottom",
+            "scryfall_id": "9d243099-94b1-4571-96af-4c5a34241911",
+            "set": "dmu"
+          },
+          "distance": 0.7836278742855947,
+          "index": 67661,
+          "score": 21.637212571440536
+        },
+        {
+          "card": {
+            "collector_number": "59",
+            "id": "98b7070d-4b09-4390-aa21-1bc0aa2b629c",
+            "name": "One with the Stars",
+            "scryfall_id": "98b7070d-4b09-4390-aa21-1bc0aa2b629c",
+            "set": "thb"
+          },
+          "distance": 0.7941535677227551,
+          "index": 65731,
+          "score": 20.584643227724484
+        },
+        {
+          "card": {
+            "collector_number": "401",
+            "id": "6f72da0d-f48d-438d-8bc8-23e509a47149",
+            "name": "Drag to the Bottom",
+            "scryfall_id": "6f72da0d-f48d-438d-8bc8-23e509a47149",
+            "set": "dmu"
+          },
+          "distance": 0.7959854890338389,
+          "index": 48025,
+          "score": 20.401451096616107
+        }
+      ],
+      "query": "| \u201cSe \"1 |\none as     &       ye ead\nCP eR PNA Leh\nis a  ROR cial  eT Oe   ,      i\n:        r.                            -                                I,\n|                                                \u2018\n(Sorcery                                       WwW }\n1 IPut'two2/2'blue'Bird enchantment\ncreature tokens with flying onto the\nbattlefield. Scry 1. (Look at the top \u2014\ncard of your library. You may put that       ,\ncard on the bottom of vour herrea; ) -       7\nEE FE OEE IAS         Ls\n|      An offering to the sea brings an insight {|\nfrom the stars.\n\u2014\u00a9Noah Bradley ~\u00ab.. $     a a\nB&O 2014 Wirarde of the Com 49/165    LAN   ,\n| (oekortasies  Ae}\nyn                  ee a cae\n:       ro          \u2018        \u201cos                              I,\n|                                            \u2018\n(Sorcery                                       WwW }\nhh        lata     _\n| f!Putttwo\u20192/2'blue'Bird enchantment\ncreature tokens with flying onto the\nbattlefield. Scry 1. (Look at the top \u2014\ncard of your library. You may put that       ,\ncard on the bottom of your library.) -       .\nAn offering to the sea brings an insight {|\nfrom the stars.\n\u2014\u00a9Noah Bradley ~\u00ab.. $     a a\nB&O 2014 Wirarde of the Com 49/165    eK   a"
+    },
+    "engine": "tesseract",
+    "engine_attempts": [
+      {
+        "duration_ms": 816,
+        "engine": "tesseract",
+        "psm": 6
+      }
+    ],
+    "error": null,
+    "psm": 6,
+    "regions": {
+      "collector": [
+        1087,
+        1400
+      ],
+      "full": [
+        0,
+        1400
+      ],
+      "name": [
+        0,
+        280
+      ],
+      "oracle": [
+        275,
+        1092
+      ]
+    }
+  },
+  "pair_orientation": {
+    "bottom_full_density": 3.4057237413194446,
+    "bottom_lower_density": 3.6780208333333335,
+    "bottom_upper_density": 3.135392795138889,
+    "determination": "top_leading",
+    "method": "gradient-density",
+    "segments": {
+      "bottom_lower": {
+        "density": 3.6780208333333335
+      },
+      "bottom_upper": {
+        "density": 3.135392795138889
+      },
+      "top_lower": {
+        "density": 3.64884765625
+      },
+      "top_upper": {
+        "density": 4.807332899305556
+      }
+    },
+    "top_full_density": 4.228228081597222,
+    "top_lower_density": 3.64884765625,
+    "top_upper_density": 4.807332899305556
+  },
+  "paths": {
+    "bottom": "data/snapshots/snapshot-20251124-001445-141211-bottom.jpg",
+    "composite": "data/snapshots/snapshot-20251124-001445-141211-composite.jpg",
+    "composite_aligned": "data/snapshots/snapshot-20251124-001445-141211-composite-aligned.jpg",
+    "composite_raw": "data/snapshots/snapshot-20251124-001445-141211-composite-raw.jpg",
+    "ocr_prepared": "data/snapshots/snapshot-20251124-001445-141211-ocr.png",
+    "top": "data/snapshots/snapshot-20251124-001445-141211-top.jpg"
+  },
+  "timestamp": "20251124-001445-141211"
+}

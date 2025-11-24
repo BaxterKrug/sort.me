@@ -70,6 +70,10 @@
                   <pre id="snapshotOcrCollector">—</pre>
                 </div>
               </div>
+              <div class="ocr-scryfall-id">
+                <span class="label muted">Scryfall ID</span>
+                <code id="snapshotOcrScryfallId">—</code>
+              </div>
               <div id="snapshotOcrMeta" class="muted tiny">Engine: —</div>
               <div id="snapshotNeighborCard" class="nearest-card muted">
                 <div class="row between align-center">
@@ -230,55 +234,6 @@
       </div>
 
   
-      <!-- Demo OCR Batch Tester -->
-      <div class="card">
-        <h3>Demo: OCR &amp; Card ID Batch Test</h3>
-        <p class="muted">
-          Upload card images to exercise the OCR and identification pipeline without starting a full run. Filenames can include expected data using
-          <code>Name__Cell.jpg</code> — the name becomes the expected identification and the optional cell verifies placement.
-        </p>
-
-        <div class="form">
-          <label for="demoBatchFiles">Card Images</label>
-          <input id="demoBatchFiles" type="file" accept="image/*" multiple />
-
-          <label for="demoDbPath">Card Database Path (optional)</label>
-          <input id="demoDbPath" type="text" placeholder="e.g., data/demo_cards.json" />
-
-          <label class="checkbox" style="margin-top:10px">
-            <input id="demoFilenameExpect" type="checkbox" checked />
-            <span>Use filename to derive expected name/cell</span>
-          </label>
-
-          <div class="row">
-            <button id="btnDemoBatchRun" class="primary" type="button">Run Batch Test</button>
-            <button id="btnDemoBatchClear" class="ghost" type="button">Clear</button>
-          </div>
-        </div>
-
-        <div id="demoBatchSummary" class="muted" style="margin-top:12px"></div>
-
-        <div class="table-scroll hidden" id="demoBatchTableWrap">
-          <table class="results-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>File</th>
-                <th>Expected</th>
-                <th>OCR Name</th>
-                <th>Identified</th>
-                <th>Cell</th>
-                <th>Expected Cell</th>
-                <th>Match</th>
-                <th>ID Score</th>
-                <th>Reason / Notes</th>
-              </tr>
-            </thead>
-            <tbody id="demoBatchTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
       <div class="divider"></div>
 
       <div class="row between">
@@ -294,81 +249,6 @@
     <!-- Step 3: Run View -->
     <section id="panelRun" class="panel">
       <h2>Run</h2>
-      <div class="grid-2">
-        <div class="card">
-          <h3>Status</h3>
-          <div class="kvs">
-            <div><span>State</span><strong id="runState">Idle</strong></div>
-            <div><span>Batch</span><strong id="batchProgress">0 / 0</strong></div>
-            <div><span>Good / Diverted</span><strong id="countsOK">0</strong> / <strong id="countsErr">0</strong></div>
-            <div><span>Throughput</span><strong id="throughput">0 cpm</strong></div>
-          </div>
-          <div class="progress">
-            <div id="progressBar" style="width:0%"></div>
-          </div>
-          <div class="row">
-            <button id="btnOpenLogs" class="secondary">View Logs</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Controls</h3>
-          <div class="form">
-            <label for="positionSelect">Jog to Position</label>
-            <select id="positionSelect">
-              <option disabled selected>Select a cell</option>
-            </select>
-            <button id="btnMoveToCell">Move</button>
-            <button id="btnSetCurrent" class="secondary">Set current</button>
-
-            <div class="row compact">
-              <button id="btnJogUp">Z+</button>
-              <button id="btnJogDown">Z-</button>
-              <button id="btnHomeZRun">Home Z</button>
-            </div>
-            <div class="row compact">
-              <button id="btnHomeXY">Home XY</button>
-              <button id="btnHomeAll2">Home All</button>
-            </div>
-            <div class="row compact">
-              <button id="btnVacOnRun">Vacuum On</button>
-              <button id="btnVacOffRun">Vacuum Off</button>
-            </div>
-            <div class="row compact">
-              <button id="btnPlunge">Plunge</button>
-              <button id="btnRetract">Retract</button>
-            </div>
-            <div class="divider"></div>
-            <div>
-              <label for="simCardName">Simulate card name</label>
-              <input id="simCardName" type="text" placeholder="e.g., Lightning Bolt" />
-              <button id="btnSimulateAssign" class="secondary">Simulate Assign & G-code</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="grid-2">
-        <div class="card">
-          <h3>Error Cell (K3)</h3>
-          <p class="muted">Unreadable or overflowed cards are routed to <strong>K3</strong> for manual review.</p>
-          <div id="errorList" class="error-list"></div>
-          <div class="row">
-            <button id="btnExportCSV" class="secondary">Export CSV</button>
-            <button id="btnClearErrors" class="ghost">Clear</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Run Notes</h3>
-          <textarea id="runNotes" placeholder="Optional operator notes…"></textarea>
-          <div class="row end">
-            <button id="btnEndRun" class="danger">End Run</button>
-          </div>
-        </div>
-      </div>
     </section>
   </main>
 
