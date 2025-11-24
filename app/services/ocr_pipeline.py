@@ -390,6 +390,154 @@ def _text_band_features(image: np.ndarray) -> Dict[str, Any]:
     }
 
 
+def _detect_text_bands_gray(gray: np.ndarray) -> Dict[str, Any]:
+    height = int(gray.shape[0]) if gray.ndim >= 2 else 0
+    info: Dict[str, Any] = {
+        "segments": [],
+        "inactive_segments": [],
+        "name_band": None,
+        "rules_band": None,
+        "gap_rows": 0,
+        "height": height,
+    }
+    if height <= 0:
+        return info
+    sobel = cv2.Sobel(gray, cv2.CV_32F, 1, 0, ksize=3)
+    row_energy = np.mean(np.abs(sobel), axis=1)
+    smooth = cv2.GaussianBlur(row_energy.reshape(-1, 1), (1, 9), 0).reshape(-1)
+    min_e = float(np.min(smooth))
+    max_e = float(np.max(smooth))
+    denom = max(max_e - min_e, 1e-3)
+    norm = (smooth - min_e) / denom
+    threshold = float(np.percentile(norm, 60))
+    threshold = min(max(threshold, 0.18), 0.6)
+    active = norm > threshold
+    segments = []
+    start = None
+    active_list = active.tolist()
+    for idx, flag in enumerate(active_list):
+        if flag and start is None:
+            start = idx
+        elif not flag and start is not None:
+            segments.append((start, idx - 1))
+            start = None
+    if start is not None:
+        segments.append((start, len(active_list) - 1))
+
+    inactive_segments = []
+    start = None
+    for idx, flag in enumerate(active_list):
+        inactive = not flag
+        if inactive and start is None:
+            start = idx
+        elif not inactive and start is not None:
+            inactive_segments.append((start, idx - 1))
+            start = None
+    if start is not None:
+        inactive_segments.append((start, len(active_list) - 1))
+
+    norm_denom = max(height - 1, 1)
+
+    def _segment_dict(seg_start: int, seg_end: int) -> Dict[str, Any]:
+        seg_len = seg_end - seg_start + 1
+        return {
+            "start": int(seg_start),
+            "end": int(seg_end),
+            "length": int(seg_len),
+            "start_norm": float(seg_start / norm_denom),
+            "end_norm": float(seg_end / norm_denom),
+        }
+
+    info["segments"] = [_segment_dict(a, b) for a, b in segments]
+    info["inactive_segments"] = [_segment_dict(a, b) for a, b in inactive_segments]
+    name_band = next((seg for seg in info["segments"] if seg["start_norm"] < 0.28), None)
+    rules_band = None
+    if info["segments"]:
+        min_gap_rows = int(height * 0.02)
+        for seg in reversed(info["segments"]):
+            if seg["end_norm"] <= 0.4:
+                continue
+            if name_band and seg["start"] <= name_band["end"] + min_gap_rows:
+                continue
+            rules_band = seg
+            break
+        if rules_band is None:
+            rules_band = next((seg for seg in reversed(info["segments"]) if seg["end_norm"] > 0.55), None)
+    gap_rows = 0
+    if name_band and rules_band:
+        gap_rows = max(0, int(rules_band["start"] - name_band["end"]))
+    info.update(
+        {
+            "name_band": name_band,
+            "rules_band": rules_band,
+            "gap_rows": int(gap_rows),
+        }
+    )
+    return info
+
+
+def _mask_artwork_rows(gray: np.ndarray, bands: Dict[str, Any]) -> Tuple[np.ndarray, Dict[str, Any]]:
+    height = int(gray.shape[0]) if gray.ndim >= 2 else 0
+    meta: Dict[str, Any] = {
+        "masked": False,
+        "art_band_start": None,
+        "art_band_end": None,
+        "gap_rows": int(bands.get("gap_rows") or 0),
+        "height": height,
+        "source": None,
+    }
+    name_band = bands.get("name_band") or {}
+    rules_band = bands.get("rules_band") or {}
+    if height <= 0:
+        return gray, meta
+
+    inactive_segments = bands.get("inactive_segments") or []
+    min_length = max(10, int(height * 0.08))
+    padding = max(4, int(height * 0.015))
+    art_segment = None
+    if inactive_segments and name_band and rules_band:
+        ordered = sorted(inactive_segments, key=lambda seg: seg["length"], reverse=True)
+        for seg in ordered:
+            if seg["length"] < min_length:
+                continue
+            center = (seg["start_norm"] + seg["end_norm"]) / 2.0
+            if 0.2 <= center <= 0.75:
+                art_segment = seg
+                meta["source"] = "inactive"
+                break
+
+    if art_segment is None and name_band and rules_band:
+        gap_rows = int(rules_band["start"] - name_band["end"])
+        min_gap = max(8, int(height * 0.08))
+        if gap_rows > min_gap:
+            art_segment = {
+                "start": int(name_band["end"]),
+                "end": int(rules_band["start"]),
+            }
+            meta["source"] = "gap"
+
+    if art_segment is None:
+        return gray, meta
+
+    start = min(height, max(0, int(art_segment["start"]) + padding))
+    end = min(height, max(start, int(art_segment.get("end", start)) - padding))
+    if end - start <= max(6, int(height * 0.03)):
+        return gray, meta
+    masked = gray.copy()
+    masked[start:end, :] = 255
+    meta.update(
+        {
+            "masked": True,
+            "art_band_start": int(start),
+            "art_band_end": int(end),
+            "gap_rows": int(rules_band.get("start", start) - name_band.get("end", start))
+            if name_band and rules_band
+            else meta["gap_rows"],
+        }
+    )
+    return masked, meta
+
+
 def _orientation_candidate_metrics(image: np.ndarray, source_mask: np.ndarray) -> Dict[str, Any]:
     height = image.shape[0]
     upper = image[: height // 2, :]
@@ -519,8 +667,11 @@ def _prepare_for_ocr(image: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
     scale = max(1.0, target_height / float(max(height, 1)))
     resized = cv2.resize(gray, (int(width * scale), int(height * scale)), interpolation=cv2.INTER_CUBIC)
 
+    text_bands = _detect_text_bands_gray(resized)
+    masked_gray, art_mask_meta = _mask_artwork_rows(resized, text_bands)
+
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    equalized = clahe.apply(resized)
+    equalized = clahe.apply(masked_gray)
     blurred = cv2.GaussianBlur(equalized, (5, 5), 0)
     binary = cv2.adaptiveThreshold(
         blurred,
@@ -545,6 +696,8 @@ def _prepare_for_ocr(image: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
         "portrait_rotation": portrait_rotation or "none",
         "input_shape": list(image.shape),
         "portrait_shape": list(portrait_image.shape),
+        "text_band_features": text_bands,
+        "art_mask": art_mask_meta,
     }
     return cleaned, meta
 

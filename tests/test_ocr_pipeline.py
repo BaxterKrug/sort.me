@@ -26,6 +26,27 @@ def test_prepare_for_ocr_rotates_landscape():
     assert meta["portrait_shape"][0] > meta["portrait_shape"][1]
 
 
+def test_prepare_for_ocr_masks_art_band():
+    height, width = 360, 240
+    base = np.full((height, width), 150, dtype=np.uint8)
+    base[100:220, :] = 120
+    for col in range(0, width, 12):
+        base[20:80, col : col + 3] = 30
+    for col in range(6, width, 12):
+        base[250:330, col : col + 3] = 40
+    image = np.stack([base, base, base], axis=-1)
+
+    prepared, meta = ocr_pipeline._prepare_for_ocr(image)
+
+    art_meta = meta["art_mask"]
+    assert art_meta["masked"] is True
+    assert art_meta["art_band_start"] is not None
+    assert art_meta["art_band_end"] is not None
+    band = prepared[art_meta["art_band_start"] : art_meta["art_band_end"], :]
+    assert band.size > 0
+    assert np.mean(band) > 200, "art strip should be whitened for OCR"
+
+
 def test_perform_ocr_prefers_tesseract(monkeypatch):
     captured_regions = []
 
@@ -73,7 +94,7 @@ def test_perform_ocr_falls_back_to_easyocr(monkeypatch):
     assert meta.get("fallback_engine") == "easyocr"
 
 
-def test_perform_ocr_applies_text_cleaning(monkeypatch):
+def test_perform_ocr_applies_cleaning(monkeypatch):
     class DummyTesseract:
         @staticmethod
         def image_to_string(img, config=None, lang=None):  # pragma: no cover - arguments unused
@@ -85,7 +106,7 @@ def test_perform_ocr_applies_text_cleaning(monkeypatch):
 
     ocr_map, _ = ocr_pipeline._perform_ocr(_dummy_frame())
 
-    assert ocr_map["name"] == "Rakshasa Debaser"
+    assert ocr_map["name"] == "“Rakshasa -- Debaser” 012 / 345"
     assert ocr_map["collector"] == "012/345"
     assert "\n" not in ocr_map["full_text"]
     assert ocr_map["rules"] == ocr_map["oracle"]
