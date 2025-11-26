@@ -34,7 +34,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 LOG = logging.getLogger("sort.card_id")
 
-_DEFAULT_EMBED_MODEL = "all-MiniLM-L6-v2"
+DEFAULT_EMBED_MODEL = "all-MiniLM-L6-v2"
+_DEFAULT_EMBED_MODEL = DEFAULT_EMBED_MODEL  # backward compatibility
 _EMBED_META_FILE = "embeddings.meta.json"
 _EMBED_CACHES: Dict[str, Dict[str, Any]] = {}
 
@@ -576,7 +577,12 @@ def _ensure_sentence_encoder(cache: Dict[str, Any]):
         cache["encoder_error"] = f"sentence_transformers_import_failed: {exc}"
         LOG.debug("SentenceTransformer unavailable: %s", exc)
         return None
-    model_name = cache.get("model_name") or _DEFAULT_EMBED_MODEL
+    # Use the explicitly configured runtime model if provided via env, otherwise
+    # default to the library's default. Do NOT trust the cache's stored model_name
+    # for encoder selection because precomputed indices in `cards_metadata.json`
+    # are built against the canonical default. This ensures queries are encoded
+    # consistently with that embedding space.
+    model_name = os.environ.get("SORT_CARD_EMBED_MODEL", _DEFAULT_EMBED_MODEL)
     try:
         encoder = SentenceTransformer(model_name)
     except Exception as exc:  # pragma: no cover - runtime/env dependent

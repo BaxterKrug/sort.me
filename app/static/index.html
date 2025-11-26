@@ -57,18 +57,7 @@
               </div>
               <pre id="snapshotOcrFull" class="ocr-output muted">No OCR text yet</pre>
               <div class="ocr-field-grid">
-                <div class="ocr-field">
-                  <span class="label muted">Name Band</span>
-                  <pre id="snapshotOcrName">—</pre>
-                </div>
-                <div class="ocr-field">
-                  <span class="label muted">Rules / Oracle</span>
-                  <pre id="snapshotOcrOracle">—</pre>
-                </div>
-                <div class="ocr-field">
-                  <span class="label muted">Collector</span>
-                  <pre id="snapshotOcrCollector">—</pre>
-                </div>
+               
               </div>
               <div class="ocr-scryfall-id">
                 <span class="label muted">Scryfall ID</span>
@@ -91,6 +80,17 @@
                   <code id="snapshotNeighborId">—</code>
                 </div>
                 <div id="snapshotNeighborStatus" class="tiny muted">Embedding match unavailable.</div>
+              </div>
+              <div id="snapshotCardDetails" class="lookup-summary compact">
+                <div><span class="muted">Name:</span> <strong id="snapshotCardName">—</strong></div>
+                <div><span class="muted">Printed:</span> <strong id="snapshotCardPrinted">—</strong></div>
+                <div><span class="muted">Set:</span> <strong id="snapshotCardSet">—</strong></div>
+                <div><span class="muted">Released:</span> <strong id="snapshotCardYear">—</strong></div>
+                <div><span class="muted">Value (USD):</span> <strong id="snapshotCardValue">—</strong></div>
+                <div><span class="muted">Mode:</span> <strong id="snapshotCardMode">—</strong></div>
+                <div><span class="muted">Match:</span> <strong id="snapshotCardMatch">—</strong></div>
+                <div><span class="muted">Target:</span> <strong id="snapshotCardCell">—</strong></div>
+                <div><span class="muted">Reason:</span> <strong id="snapshotCardReason">—</strong></div>
               </div>
             </div>
             <div class="row">
@@ -162,7 +162,11 @@
                   <option value="5">5mm</option>
                   <option value="10">10mm</option>
                   <option value="25">25mm</option>
+                  <option value="100">100mm</option>
                 </select>
+                <div class="jog-buttons compact">
+                  <button id="btnSetJog100" class="jog-btn secondary" type="button">Set 100mm Step</button>
+                </div>
               </div>
             </div>
           </div>

@@ -103,7 +103,7 @@ def test_prepare_snapshot_artifacts_surface_rotated_and_aligned(tmp_path, monkey
 
     monkeypatch.setattr(ocr_pipeline.card_id, "embedding_matches_from_ocr", lambda *args, **kwargs: fake_embedding)
 
-    def fake_perform_ocr(_image):
+    def fake_perform_ocr(_image, **_kwargs):
         return ({"full": "Bolt", "name": "Lightning Bolt", "oracle": "Deal 3 damage.", "collector": "150"}, {"engine": "mock", "duration_ms": 1})
 
     monkeypatch.setattr(ocr_pipeline, "_perform_ocr", fake_perform_ocr)

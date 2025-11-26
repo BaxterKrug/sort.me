@@ -85,7 +85,7 @@ def _infer_model_name(metadata_path: Path, override: str | None) -> str:
             model = info.get("model_name")
             if isinstance(model, str) and model.strip():
                 return model.strip()
-    return card_id._DEFAULT_EMBED_MODEL  # type: ignore[attr-defined]
+    return card_id.DEFAULT_EMBED_MODEL  # type: ignore[attr-defined]
 
 
 def _load_sentence_transformer(model_name: str):

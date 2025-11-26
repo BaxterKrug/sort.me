@@ -32,4 +32,4 @@ def test_infer_model_name_falls_back_to_default(tmp_path):
 
     resolved = embed_single_card._infer_model_name(metadata_path, None)
 
-    assert resolved == card_id._DEFAULT_EMBED_MODEL
+    assert resolved == card_id.DEFAULT_EMBED_MODEL

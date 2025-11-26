@@ -77,6 +77,14 @@ embedding directly into `cards_metadata.json`, so the server only needs to
 generate an OCR text embedding at runtime before comparing it against those
 precomputed vectors.
 
+> **Model parity:** The CLI tools (`embed_scryfall.py`, `scripts/embed_single_card.py`)
+> and the runtime (`card_id.embedding_matches_from_ocr`) all pull their default
+> SentenceTransformer name from the same constant. If you override the model via
+> `--model` when generating embeddings, copy the resulting `embeddings.meta.json`
+> next to the vectors so the server loads the exact same model when encoding OCR
+> text. Alternatively, set `SORT_CARD_EMBED_MODEL` to the same model string to
+> force the runtime encoder.
+
 If you prefer to build the full Scryfall index offline, continue using
 `embed_scryfall.py` (which reads the big oracle JSON export). During development
 you can block runtime generation entirely by leaving
@@ -93,3 +101,14 @@ requirements list. When neither engine is present the API log will emit a
 clear error (`No OCR engines available; install tesseract or easyocr...`).
 Install at least one of the engines to see live OCR output in the UI and
 metadata files.
+
+### OCR accuracy tuning
+
+During snapshot preparation the server now analyses the detected text bands
+and records the exact row ranges for the name, rules text, and collector
+number before any OCR call happens. Those ranges are passed directly to
+Tesseract (along with region-specific `psm`/config choices) so the engine
+reads only the relevant parts of the card instead of the entire composite.
+If you capture sample assets via `prepare_snapshot_artifacts`, the emitted
+`*-meta.json` files include `ocr_meta.region_rows` so you can inspect or tweak
+the detected spans when diagnosing misreads.

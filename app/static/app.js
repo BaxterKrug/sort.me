@@ -101,6 +101,18 @@ const snapshotNeighborSet = $('snapshotNeighborSet');
 const snapshotNeighborScore = $('snapshotNeighborScore');
 const snapshotNeighborStatus = $('snapshotNeighborStatus');
 const snapshotNeighborId = $('snapshotNeighborId');
+const snapshotCardName = $('snapshotCardName');
+const snapshotCardPrinted = $('snapshotCardPrinted');
+const snapshotCardSet = $('snapshotCardSet');
+const snapshotCardYear = $('snapshotCardYear');
+const snapshotCardValue = $('snapshotCardValue');
+const snapshotCardMode = $('snapshotCardMode');
+const snapshotCardMatch = $('snapshotCardMatch');
+const snapshotCardCell = $('snapshotCardCell');
+const snapshotCardReason = $('snapshotCardReason');
+const gridPreview = $('gridPreview');
+
+let cells = [];
 let cameraObjUrl = null;
 let cameraWasOnline = false;
 let cameraSnapPending = false;
@@ -109,6 +121,9 @@ let lastSnapshotMeta = null;
 let snapshotAssets = {};
 let lastSnapshotOcr = null;
 let lastEmbeddingMatch = null;
+let snapshotLookupKey = null;
+let snapshotLookupSeq = 0;
+let snapshotLookupResult = null;
 
 function releaseSnapshotUrls(){
   const urls = new Set();
@@ -197,16 +212,109 @@ function setScryfallIdDisplay(value){
   snapshotOcrScryfallId.textContent = formatted || '—';
 }
 
-function renderEmbeddingMatch(info){
-  lastEmbeddingMatch = info || null;
-  if(!snapshotNeighborCard){
-    setScryfallIdDisplay(resolveBestScryfallId(info));
+async function ensureSnapshotLookupForId(scryfallId, opts = {}){
+  const id = (scryfallId || '').trim();
+  const force = !!opts.force;
+  const noIdMessage = opts.noIdMessage || 'Awaiting embedding match…';
+  if(!id){
+    snapshotLookupSeq += 1;
+    snapshotLookupKey = null;
+    snapshotLookupResult = null;
+    resetSnapshotCardDetails();
+    if(snapshotCardReason){
+      snapshotCardReason.textContent = noIdMessage;
+    }
     return;
   }
+  if(!force && snapshotLookupKey === id && snapshotLookupResult){
+    return;
+  }
+  snapshotLookupKey = id;
+  const seq = ++snapshotLookupSeq;
+  snapshotLookupResult = null;
+  resetSnapshotCardDetails();
+  if(snapshotCardReason){
+    snapshotCardReason.textContent = opts.pendingText || 'Looking up assignment…';
+  }
+  const sortMode = (sortModeSelect && sortModeSelect.value) || 'alpha_exact';
+  const payload = {
+    scryfall_id: id,
+    sorting: sortMode,
+    sort_mode: sortMode,
+    name: opts.name || (lastSnapshotOcr && lastSnapshotOcr.name) || id,
+    confidence: typeof opts.confidence === 'number' ? opts.confidence : 1.0,
+  };
+  if(sortOperationSelect && !sortOperationSelect.disabled && sortOperationSelect.value){
+    payload.sort_operation = sortOperationSelect.value;
+  }
+  try{
+    const res = await api('/debug/assign_preview', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if(seq !== snapshotLookupSeq || snapshotLookupKey !== id){
+      return;
+    }
+    snapshotLookupResult = res;
+    renderSnapshotCardDetails(res);
+
+    // After a successful identification/lookup, home the Z axis (with a short delay)
+    // so the head is safe/ready. Only attempt homing if the lookup returned a target
+    // (e.g. a cell or identified card). Use a delayed, non-blocking call so the UI
+    // remains responsive and the user sees the identification result first.
+    try{
+      const looksLikeAssigned = Boolean(res && (res.cell || res.assignment || res.identified_name || (typeof res.id_score === 'number' && res.id_score > 0)));
+      if(looksLikeAssigned){
+        setTimeout(()=>{
+          // Use fetch directly to ensure we call the backend even if the UI is
+          // running in local demo mode (demoApi would intercept api()).
+          try{
+            fetch(`${BASE}/motion/home_z`, {method: 'POST'})
+              .then(async (r)=>{
+                if(!r.ok){
+                  const txt = await r.text().catch(()=> '');
+                  throw new Error(`${r.status} ${r.statusText} ${txt}`.trim());
+                }
+                try{ await r.json(); }catch(e){}
+                toast('Homed Z');
+              })
+              .catch(err=> console.warn('Home Z failed', err));
+          }catch(err){ console.warn('Home Z fetch scheduling failed', err); }
+        }, 2000);
+      }
+    }catch(err){
+      console.warn('Error while scheduling Home Z', err);
+    }
+  }catch(err){
+    if(seq !== snapshotLookupSeq || snapshotLookupKey !== id){
+      return;
+    }
+    snapshotLookupResult = null;
+    resetSnapshotCardDetails();
+    if(snapshotCardReason){
+      const prefix = opts.errorPrefix || 'Lookup failed: ';
+      snapshotCardReason.textContent = `${prefix}${err.message}`;
+    }
+  }
+}
+
+function refreshSnapshotLookup(){
+  if(snapshotLookupKey){
+    ensureSnapshotLookupForId(snapshotLookupKey, {force: true});
+  }
+}
+
+function renderEmbeddingMatch(info){
+  lastEmbeddingMatch = info || null;
+  const scryfallId = resolveBestScryfallId(info);
+  setScryfallIdDisplay(scryfallId);
   const best = info && info.best;
   const card = best && best.card ? best.card : null;
   if(!best || !card){
-    snapshotNeighborCard.classList.add('muted');
+    if(snapshotNeighborCard){
+      snapshotNeighborCard.classList.add('muted');
+    }
     if(snapshotNeighborName){
       snapshotNeighborName.textContent = info && info.error ? 'No match' : 'Nearest card pending…';
     }
@@ -219,7 +327,6 @@ function renderEmbeddingMatch(info){
     if(snapshotNeighborId){
       snapshotNeighborId.textContent = '—';
     }
-    setScryfallIdDisplay(resolveBestScryfallId(info));
     if(snapshotNeighborStatus){
       if(info && info.error){
         snapshotNeighborStatus.textContent = info.error;
@@ -227,9 +334,13 @@ function renderEmbeddingMatch(info){
         snapshotNeighborStatus.textContent = 'Embedding match unavailable.';
       }
     }
+    const message = info && info.error ? info.error : 'No embedding match yet';
+    ensureSnapshotLookupForId('', {noIdMessage: message});
     return;
   }
-  snapshotNeighborCard.classList.remove('muted');
+  if(snapshotNeighborCard){
+    snapshotNeighborCard.classList.remove('muted');
+  }
   if(snapshotNeighborName){
     snapshotNeighborName.textContent = card.name || 'Unknown card';
   }
@@ -240,9 +351,7 @@ function renderEmbeddingMatch(info){
     snapshotNeighborSet.textContent = parts.length ? parts.join(' • ') : '—';
   }
   if(snapshotNeighborId){
-    const scryfallId = resolveBestScryfallId(info);
     snapshotNeighborId.textContent = scryfallId || '—';
-    setScryfallIdDisplay(scryfallId);
   }
   if(snapshotNeighborScore){
     const scoreVal = typeof best.score === 'number' ? Number(best.score).toFixed(1) : '—';
@@ -258,6 +367,11 @@ function renderEmbeddingMatch(info){
     }
     snapshotNeighborStatus.textContent = bits.length ? bits.join(' • ') : '';
   }
+  const confidence = typeof best.confidence === 'number' ? best.confidence : undefined;
+  ensureSnapshotLookupForId(scryfallId, {
+    name: card.name || card.printed_name || undefined,
+    confidence,
+  });
 }
 
 function updateSnapshotOcr(ocrMap, ocrMeta, embeddingInfo){
@@ -274,14 +388,16 @@ function updateSnapshotOcr(ocrMap, ocrMeta, embeddingInfo){
       snapshotOcrFull.classList.add('muted');
     }
   }
+  // We now present OCR as a single unified text block (full_text). Keep band fields as
+  // placeholders for debugging but do not populate them from the primary OCR flow.
   if(snapshotOcrName){
-    snapshotOcrName.textContent = formatOcr(map.name) || '—';
+    snapshotOcrName.textContent = '—';
   }
   if(snapshotOcrOracle){
-    snapshotOcrOracle.textContent = formatOcr(map.oracle) || '—';
+    snapshotOcrOracle.textContent = '—';
   }
   if(snapshotOcrCollector){
-    snapshotOcrCollector.textContent = formatOcr(map.collector) || '—';
+    snapshotOcrCollector.textContent = '—';
   }
   if(snapshotOcrMeta){
     const parts = [];
@@ -619,6 +735,123 @@ const lookupCardMatch = $('lookupCardMatch');
 const lookupCardCell = $('lookupCardCell');
 const lookupCardReason = $('lookupCardReason');
 
+const setupCardRefs = {
+  name: lookupCardName,
+  printed: lookupCardPrinted,
+  set: lookupCardSet,
+  year: lookupCardYear,
+  value: lookupCardValue,
+  mode: lookupCardMode,
+  match: lookupCardMatch,
+  cell: lookupCardCell,
+  reason: lookupCardReason,
+};
+
+const snapshotCardRefs = {
+  name: snapshotCardName,
+  printed: snapshotCardPrinted,
+  set: snapshotCardSet,
+  year: snapshotCardYear,
+  value: snapshotCardValue,
+  mode: snapshotCardMode,
+  match: snapshotCardMatch,
+  cell: snapshotCardCell,
+  reason: snapshotCardReason,
+};
+
+function resetCardDetailRefs(refs){
+  if(!refs) return;
+  ['name','printed','set','year','value','mode','match','cell','reason'].forEach((key)=>{
+    const el = refs[key];
+    if(el) el.textContent = '—';
+  });
+}
+
+function formatUsdValue(value){
+  if(value === null || value === undefined || value === ''){
+    return '—';
+  }
+  const num = Number(value);
+  if(Number.isFinite(num)){
+    return `$${num.toFixed(2)}`;
+  }
+  return `$${value}`;
+}
+
+function renderCardDetailRefs(refs, payload){
+  resetCardDetailRefs(refs);
+  if(!refs || !payload || typeof payload !== 'object') return;
+  const card = payload.card || {};
+  if(refs.name) refs.name.textContent = card.name || '—';
+  if(refs.printed) refs.printed.textContent = card.printed_name || card.flavor_name || '—';
+
+  if(refs.set){
+    const setParts = [];
+    const setName = card.set_name || card.setName;
+    if(setName) setParts.push(String(setName));
+    const code = card.set_code || card.set;
+    if(code) setParts.push(String(code).toUpperCase());
+    const collector = card.collector_number || card.collectorNumber;
+    if(collector) setParts.push(`#${collector}`);
+    refs.set.textContent = setParts.length ? setParts.join(' · ') : '—';
+  }
+
+  if(refs.year){
+    const year = card.released_year || (card.released_at ? String(card.released_at).slice(0, 4) : '');
+    refs.year.textContent = year || '—';
+  }
+
+  if(refs.value){
+    const prices = card.prices || {};
+    const usd = card.price_usd ?? prices.usd;
+    refs.value.textContent = formatUsdValue(usd);
+  }
+
+  if(refs.mode){
+    const label = payload.mode_label || payload.mode;
+    refs.mode.textContent = label || '—';
+  }
+
+  if(refs.match){
+    const details = (payload.reason_details && typeof payload.reason_details === 'object') ? payload.reason_details : {};
+    let matchText = '—';
+    if(details.kind === 'sort_op'){
+      const opLabel = details.operation || 'override';
+      matchText = `Sort op: ${opLabel}`;
+    }else if(details.divert){
+      matchText = details.reason ? `Divert: ${details.reason}` : 'Divert';
+    }else if(details.overflow){
+      const key = details.key || details.mode;
+      matchText = key ? `Overflow (${key})` : 'Overflow';
+    }else if(details.key){
+      matchText = details.key;
+    }
+    refs.match.textContent = matchText;
+  }
+
+  if(refs.cell) refs.cell.textContent = payload.cell || '—';
+  if(refs.reason){
+    const reasonText = payload.reason || payload.error || '—';
+    refs.reason.textContent = reasonText;
+  }
+}
+
+function resetLookupDetails(){
+  resetCardDetailRefs(setupCardRefs);
+}
+
+function renderLookupDetails(payload){
+  renderCardDetailRefs(setupCardRefs, payload);
+}
+
+function resetSnapshotCardDetails(){
+  resetCardDetailRefs(snapshotCardRefs);
+}
+
+function renderSnapshotCardDetails(payload){
+  renderCardDetailRefs(snapshotCardRefs, payload);
+}
+
 let sortModeReady = false;
 let sortOperationReady = false;
 
@@ -634,8 +867,9 @@ on($('btnPause'), 'click', async ()=>{
     runLoop.stop();
     hide($('btnPause'));
     show($('btnResume'));
-    toast('Paused');
-  }catch(e){ toast(`Pause failed: ${e.message}`); }
+  }catch(e){
+    toast(`Pause failed: ${e.message}`);
+  }
 });
 on($('btnResume'), 'click', async ()=>{
   try{
@@ -643,67 +877,10 @@ on($('btnResume'), 'click', async ()=>{
     runLoop.start();
     hide($('btnResume'));
     show($('btnPause'));
-    toast('Resumed');
-  }catch(e){ toast(`Resume failed: ${e.message}`); }
-});
-
-// ------------- Calibration -------------
-on($('btnHomeX'), 'click', ()=> api('/motion/home_x',{method:'POST'}).then(()=>toast('Homed X axis')).catch(e=>toast(e.message)));
-on($('btnHomeY'), 'click', ()=> api('/motion/home_y',{method:'POST'}).then(()=>toast('Homed Y axis')).catch(e=>toast(e.message)));
-on($('btnHomeZ'), 'click', ()=> api('/motion/home_z',{method:'POST'}).then(()=>toast('Homed Z axis')).catch(e=>toast(e.message)));
-
-on($('btnTestVacuum'), 'click', async ()=>{
-  try{
-    const res = await api('/motion/test_vacuum', {method:'POST'});
-    const msg = res?.message || 'Vacuum toggled';
-    toast(msg);
-  }catch(err){
-    toast(`Vacuum test failed: ${err.message}`);
-  }
-});
-on($('btnZDropVacuum'), 'click', async ()=>{
-  try{
-    const res = await api('/motion/z_drop_and_vacuum', {method:'POST'});
-    const msg = res?.message || 'Z dropped and vacuum engaged';
-    toast(msg);
-  }catch(err){
-    toast(`Z drop failed: ${err.message}`);
-  }
-});
-on($('btnVacuumOff'), 'click', ()=> {
-  api('/vacuum/off', {method:'POST'})
-    .then(() => toast('Vacuum off'))
-    .catch(e => toast(e.message));
-});
-
-// ------------- Grid / Cells -------------
-let cells = []; // [{id,x,y,z}, ...]
-
-async function loadGrid(){
-  try{
-    const res = await api('/grid/cells');
-    cells = res?.cells ?? [];
   }catch(e){
-    // Fallback Excel-style: columns A..K, rows 1..3; (A-row = feeders), K3 is error cell
-    cells = [];
-    // Expanded grid: A1 to K3 (11 columns × 3 rows) - exclude ERR1
-    const cols = ['A','B','C','D','E','F','G','H','I','J','K'];
-    const columnSpacing = 84.0; // mm between columns
-    const rowSpacing = 104.0;   // mm between rows
-    
-    for(let r=1;r<=3;r++){
-      for(let colIndex=0; colIndex<cols.length; colIndex++){
-        const col = cols[colIndex];
-        const id = `${col}${r}`;
-        const x = colIndex * columnSpacing;  // 0, 84, 168, 252, 336, 420, 504, 588, 672, 756, 840
-        const y = (r-1) * rowSpacing;        // 0, 104, 208
-        cells.push({id, x, y, z:0});
-      }
-    }
+    toast(`Resume failed: ${e.message}`);
   }
-  renderGridPreview('gridPreview', cells);
-  populatePositions();
-}
+});
 function renderGridPreview(hostId, list){
   const host = $(hostId);
   host.innerHTML = '';
@@ -757,15 +934,54 @@ function renderGridPreview(hostId, list){
     host.appendChild(el);
   });
 }
+
+function setGridPlaceholder(message, opts = {}){
+  if(!gridPreview) return;
+  gridPreview.innerHTML = '';
+  const note = document.createElement('div');
+  note.className = `grid-placeholder ${opts.muted ? 'muted' : ''}`.trim();
+  note.textContent = message;
+  gridPreview.appendChild(note);
+}
+
+async function loadGrid(){
+  if(!gridPreview){
+    cells = [];
+    return cells;
+  }
+  setGridPlaceholder('Loading grid…', {muted: true});
+  try{
+    const res = await api('/grid/cells');
+    const list = Array.isArray(res?.cells) ? res.cells : [];
+    if(list.length === 0){
+      throw new Error('No cells returned');
+    }
+    cells = list;
+    renderGridPreview('gridPreview', cells);
+    populatePositions();
+    return cells;
+  }catch(err){
+    console.warn('Failed to load grid', err);
+    setGridPlaceholder(`Failed to load grid: ${err.message || err}`, {muted: true});
+    throw err;
+  }
+}
+
 function populatePositions(){
-  const sel = $('positionSelect'); sel.innerHTML = '<option disabled selected>Select a cell</option>';
+  const sel = $('positionSelect');
+  if(!sel) return;
+  sel.innerHTML = '<option disabled selected>Select a cell</option>';
   cells.forEach(c=>{
     const o = document.createElement('option');
     o.value = c.id; o.textContent = c.id;
     sel.appendChild(o);
   });
 }
-on($('btnReloadGrid'), 'click', ()=> loadGrid().then(()=>toast('Grid loaded')));
+on($('btnReloadGrid'), 'click', ()=>{
+  loadGrid()
+    .then(()=> toast('Grid loaded'))
+    .catch((err)=> toast(`Grid load failed: ${err.message}`));
+});
 
 on($('btnTestCellMoves'), 'click', ()=>{
   const dlg = $('dlgTestMoves');
@@ -944,6 +1160,17 @@ function getJogDistance() {
   return Number.isFinite(value) && value > 0 ? value : 1;
 }
 
+async function homeAxis(axis){
+  if(!axis) return;
+  const lower = axis.toLowerCase();
+  try{
+    await api(`/motion/home_${lower}`, {method: 'POST'});
+    toast(`Homed ${lower.toUpperCase()}`);
+  }catch(e){
+    toast(`Home ${lower.toUpperCase()} failed: ${e.message}`);
+  }
+}
+
 on($('btnJogXMinus'), 'click', ()=> jogAxis('X', -getJogDistance()));
 on($('btnJogXPlus'), 'click', ()=> jogAxis('X',  getJogDistance()));
 on($('btnJogYMinus'), 'click', ()=> jogAxis('Y', -getJogDistance()));
@@ -952,9 +1179,28 @@ on($('btnJogZMinus'), 'click', ()=> jogAxis('Z', -getJogDistance()));
 on($('btnJogZPlus'), 'click', ()=> jogAxis('Z',  getJogDistance()));
 on($('btnJogUp'), 'click', ()=> jogAxis('Z',  getJogDistance()));
 on($('btnJogDown'), 'click', ()=> jogAxis('Z', -getJogDistance()));
+on($('btnHomeX'), 'click', ()=> homeAxis('x'));
+on($('btnHomeY'), 'click', ()=> homeAxis('y'));
+on($('btnHomeZ'), 'click', ()=> homeAxis('z'));
+on($('btnSetJog100'), 'click', ()=>{
+  const sel = $('jogDistance');
+  if(!sel) return;
+  const hasOption = Array.from(sel.options || []).some(opt => opt.value === '100');
+  if(!hasOption){
+    const opt = document.createElement('option');
+    opt.value = '100';
+    opt.textContent = '100mm';
+    sel.appendChild(opt);
+  }
+  sel.value = '100';
+  toast('Jog distance set to 100mm');
+});
 
-on($('btnVacOnRun'),'click', ()=> api('/vacuum/on',{method:'POST'}).then(()=>toast('Vacuum on')).catch(e=>toast(e.message)));
-on($('btnVacOffRun'),'click',()=> api('/vacuum/off',{method:'POST'}).then(()=>toast('Vacuum off')).catch(e=>toast(e.message)));
+// Vacuum control buttons in the UI
+on($('btnTestVacuum'),'click', ()=> api('/motion/test_vacuum',{method:'POST'}).then(()=>toast('Vacuum test')).catch(e=>toast(e.message)));
+on($('btnZDropVacuum'),'click', ()=> api('/motion/z_drop_and_vacuum',{method:'POST'}).then(()=>toast('Z drop + vacuum')).catch(e=>toast(e.message)));
+on($('btnVacuumOff'),'click',()=> api('/vacuum/off',{method:'POST'}).then(()=>toast('Vacuum off')).catch(e=>toast(e.message)));
+
 on($('btnPlunge'),'click',   ()=> api('/plunger/down',{method:'POST'}).then(()=>toast('Plunge')).catch(e=>toast(e.message)));
 on($('btnRetract'),'click',  ()=> api('/plunger/up',{method:'POST'}).then(()=>toast('Retract')).catch(e=>toast(e.message)));
 
@@ -1004,76 +1250,6 @@ on($('btnSimulateAssign'), 'click', async ()=>{
   }catch(e){ toast(`Simulate failed: ${e.message}`); }
 });
 
-function resetLookupDetails(){
-  if(lookupCardName) lookupCardName.textContent = '—';
-  if(lookupCardPrinted) lookupCardPrinted.textContent = '—';
-  if(lookupCardSet) lookupCardSet.textContent = '—';
-  if(lookupCardYear) lookupCardYear.textContent = '—';
-  if(lookupCardValue) lookupCardValue.textContent = '—';
-  if(lookupCardMode) lookupCardMode.textContent = '—';
-  if(lookupCardMatch) lookupCardMatch.textContent = '—';
-  if(lookupCardCell) lookupCardCell.textContent = '—';
-  if(lookupCardReason) lookupCardReason.textContent = '—';
-}
-
-function renderLookupDetails(payload){
-  resetLookupDetails();
-  if(!payload || typeof payload !== 'object') return;
-  const card = payload.card || {};
-  if(lookupCardName) lookupCardName.textContent = card.name || '—';
-  if(lookupCardPrinted) lookupCardPrinted.textContent = card.printed_name || card.flavor_name || '—';
-
-  if(lookupCardSet){
-    const setParts = [];
-    const setName = card.set_name || card.setName;
-    if(setName) setParts.push(String(setName));
-    const code = card.set_code || card.set;
-    if(code) setParts.push(String(code).toUpperCase());
-    const collector = card.collector_number || card.collectorNumber;
-    if(collector) setParts.push(`#${collector}`);
-    lookupCardSet.textContent = setParts.length ? setParts.join(' · ') : '—';
-  }
-
-  if(lookupCardYear){
-    const year = card.released_year || (card.released_at ? String(card.released_at).slice(0, 4) : '');
-    lookupCardYear.textContent = year || '—';
-  }
-
-  if(lookupCardValue){
-    const usd = card.price_usd || (card.prices && card.prices.usd);
-    if(usd === null || usd === undefined || usd === ''){
-      lookupCardValue.textContent = '—';
-    }else{
-      const num = Number(usd);
-      lookupCardValue.textContent = Number.isFinite(num) ? `$${num.toFixed(2)}` : `$${usd}`;
-    }
-  }
-
-  if(lookupCardMode){
-    const label = payload.mode_label || payload.mode;
-    lookupCardMode.textContent = label || '—';
-  }
-
-  if(lookupCardMatch){
-    const details = payload.reason_details || {};
-    let matchText = '—';
-    if(details.kind === 'sort_op'){
-      const opLabel = details.operation || 'override';
-      matchText = `Sort op: ${opLabel}`;
-    }else if(details.divert){
-      matchText = details.reason ? `Divert: ${details.reason}` : 'Divert';
-    }else if(details.overflow){
-      const key = details.key || details.mode;
-      matchText = key ? `Overflow (${key})` : 'Overflow';
-    }else if(details.key){
-      matchText = details.key;
-    }
-    lookupCardMatch.textContent = matchText;
-  }
-
-  if(lookupCardCell) lookupCardCell.textContent = payload.cell || '—';
-  if(lookupCardReason) lookupCardReason.textContent = payload.reason || '—';
-}
 
 async function lookupScryfallId(){
   if(!setupLookupInput){
@@ -1145,6 +1321,7 @@ async function setSortMode(modeId){
   }
   if(typeof doPreview === 'function') doPreview();
   lookupScryfallId();
+  refreshSnapshotLookup();
 }
 
 async function loadSortModes(){
@@ -1189,6 +1366,7 @@ async function loadSortModes(){
     sortModeReady = true;
     if(typeof doPreview === 'function') doPreview();
     lookupScryfallId();
+    refreshSnapshotLookup();
   }catch(err){
     console.warn('Unable to load sort modes', err);
     sortModeSelect.innerHTML = '<option value="alpha_exact">Alphabetical (fallback)</option>';
@@ -1197,6 +1375,7 @@ async function loadSortModes(){
     sortModeReady = true;
     if(typeof doPreview === 'function') doPreview();
     lookupScryfallId();
+    refreshSnapshotLookup();
   }
 }
 
@@ -1220,6 +1399,7 @@ async function setSortOperation(opId){
       toast(res.message);
     }
     lookupScryfallId();
+    refreshSnapshotLookup();
   }catch(err){
     toast(`Failed to set sort operation: ${err.message}`);
     sortOperationReady = false;
@@ -1257,6 +1437,7 @@ async function loadSortOperations(){
     sortOperationSelect.disabled = false;
     sortOperationReady = true;
     lookupScryfallId();
+    refreshSnapshotLookup();
   }catch(err){
     console.warn('Unable to load sort operations', err);
     sortOperationSelect.innerHTML = '<option value="">Operations unavailable</option>';
@@ -1780,7 +1961,7 @@ async function demoApi(path, opts){
     }
 
     // Motion / actuators (no-ops)
-    case '/motion/estop':
+  case '/motion/estop':
     case '/motion/home_all':
     case '/motion/home_x':
     case '/motion/home_y':
@@ -1791,6 +1972,8 @@ async function demoApi(path, opts){
     case '/plunger/up':
     case '/vacuum/on':
     case '/vacuum/off':
+    case '/motion/test_vacuum':
+    case '/motion/z_drop_and_vacuum':
       return {ok:true};
 
     // Camera / OCR

@@ -14,6 +14,7 @@ from typing import Any, Dict, Tuple, Optional, List
 
 import cv2  # type: ignore[import-not-found]
 import numpy as np  # type: ignore[import-not-found]
+import re
 try:  # pragma: no cover - optional dependency
     import pytesseract  # type: ignore[import-not-found]
     from pytesseract import TesseractError  # type: ignore[import-not-found]
@@ -44,12 +45,46 @@ _OCR_ENGINE_WARNED = False
 _EASYOCR_READER = None
 _EASYOCR_LOCK = threading.Lock()
 
+COLLECTOR_CHAR_WHITELIST = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/"
+_TESSERACT_REGION_CONFIGS = {
+    "full": "--oem 3 --psm 4 -c preserve_interword_spaces=1",
+    "name": "--oem 3 --psm 7 -c preserve_interword_spaces=1",
+    "oracle": "--oem 3 --psm 4 -c preserve_interword_spaces=1",
+    "collector": (
+        "--oem 3 --psm 7 -c preserve_interword_spaces=1 "
+        f"-c tessedit_char_whitelist={COLLECTOR_CHAR_WHITELIST}"
+    ),
+}
+_REGION_SLICE_MIN_HEIGHT = {
+    "full": 420,
+    "name": 140,
+    "oracle": 360,
+    "collector": 110,
+}
+
 
 def _calc_density(frame: np.ndarray) -> float:
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (3, 3), 0)
     lap = cv2.Laplacian(blurred, cv2.CV_64F)
     return float(np.mean(np.abs(lap)))
+
+
+def _region_config(region: str) -> str:
+    return _TESSERACT_REGION_CONFIGS.get(region, _TESSERACT_REGION_CONFIGS["full"])
+
+
+def _prepare_region_slice(slice_img: np.ndarray, region: str) -> np.ndarray:
+    if slice_img.size == 0:
+        return slice_img
+    if slice_img.ndim == 3:
+        slice_img = cv2.cvtColor(slice_img, cv2.COLOR_BGR2GRAY)
+    min_height = _REGION_SLICE_MIN_HEIGHT.get(region, 160)
+    if slice_img.shape[0] < min_height:
+        scale = float(min_height) / max(float(slice_img.shape[0]), 1.0)
+        width = max(1, int(round(slice_img.shape[1] * scale)))
+        slice_img = cv2.resize(slice_img, (width, min_height), interpolation=cv2.INTER_CUBIC)
+    return np.ascontiguousarray(slice_img)
 
 
 def _split_frame(frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -538,6 +573,62 @@ def _mask_artwork_rows(gray: np.ndarray, bands: Dict[str, Any]) -> Tuple[np.ndar
     return masked, meta
 
 
+def _derive_region_rows(height: int, bands: Dict[str, Any]) -> Dict[str, Tuple[int, int]]:
+    rows: Dict[str, Tuple[int, int]] = {}
+    if height <= 0:
+        return rows
+
+    min_span = max(10, int(height * 0.025))
+    pad_small = max(4, int(height * 0.01))
+    pad_large = max(pad_small * 3, int(height * 0.05))
+    norm_denom = max(height - 1, 1)
+
+    def _clamp(start: int, end: int) -> Tuple[int, int]:
+        start = max(0, min(start, height - 1))
+        end = max(start + min_span, min(end, height))
+        return int(start), int(end)
+
+    def _segment_rows(seg: Dict[str, Any]) -> Tuple[int, int]:
+        start = int(round(float(seg.get("start_norm", 0.0)) * norm_denom))
+        end = int(round(float(seg.get("end_norm", 0.0)) * norm_denom))
+        return _clamp(start - pad_small, end + pad_small)
+
+    segments = bands.get("segments") or []
+    name_band = bands.get("name_band")
+    rules_band = bands.get("rules_band")
+
+    if name_band:
+        rows["name"] = _segment_rows(name_band)
+    default_name_end = _clamp(0, int(height * 0.22))[1]
+    rows.setdefault("name", (0, default_name_end))
+
+    if rules_band:
+        start, end = _segment_rows(rules_band)
+        rows["oracle"] = _clamp(max(start - pad_small, rows["name"][1] + pad_small), end + pad_large)
+
+    if "oracle" not in rows:
+        lower_bound = max(rows["name"][1] + pad_small, int(height * 0.28))
+        rows["oracle"] = _clamp(lower_bound, int(height * 0.8))
+
+    collector_band = None
+    for seg in reversed(segments):
+        if float(seg.get("end_norm", 0.0)) < 0.72:
+            continue
+        collector_band = seg
+        break
+    if collector_band:
+        start, end = _segment_rows(collector_band)
+        rows["collector"] = _clamp(start, end + pad_small)
+    else:
+        rows["collector"] = _clamp(int(height * 0.8), height)
+
+    if rows["collector"][0] <= rows["oracle"][1]:
+        rows["oracle"] = _clamp(rows["oracle"][0], rows["collector"][0] - pad_small)
+
+    rows["full"] = (0, height)
+    return rows
+
+
 def _orientation_candidate_metrics(image: np.ndarray, source_mask: np.ndarray) -> Dict[str, Any]:
     height = image.shape[0]
     upper = image[: height // 2, :]
@@ -682,6 +773,11 @@ def _prepare_for_ocr(image: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
         7,
     )
     cleaned = cv2.medianBlur(binary, 3)
+    text_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 3))
+    enhanced = cv2.morphologyEx(cleaned, cv2.MORPH_CLOSE, text_kernel, iterations=1)
+
+    region_rows = _derive_region_rows(enhanced.shape[0], text_bands)
+    region_rows_serializable = {key: [int(start), int(end)] for key, (start, end) in region_rows.items()}
 
     meta = {
         "scale": float(round(scale, 3)),
@@ -698,22 +794,41 @@ def _prepare_for_ocr(image: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
         "portrait_shape": list(portrait_image.shape),
         "text_band_features": text_bands,
         "art_mask": art_mask_meta,
+        "region_rows": region_rows_serializable,
+        "region_rows_source": "text_bands" if region_rows else "default",
     }
-    return cleaned, meta
+    return enhanced, meta
 
 
-def _segment_ocr_regions(image: np.ndarray) -> Dict[str, Tuple[int, int]]:
+def _segment_ocr_regions(
+    image: np.ndarray,
+    region_hints: Optional[Dict[str, Tuple[int, int]]] = None,
+) -> Dict[str, Tuple[int, int]]:
     height = image.shape[0]
     if height <= 0:
         return {"full": (0, 0)}
-    name_end = int(height * 0.20)
-    collector_start = int(height * 0.78)
-    return {
+
+    def _clamp(start: int, end: int) -> Tuple[int, int]:
+        start = max(0, min(start, height - 1))
+        end = max(start + 4, min(end, height))
+        return int(start), int(end)
+
+    defaults = {
         "full": (0, height),
-        "name": (0, max(name_end, 1)),
-        "oracle": (max(name_end - 5, 0), max(collector_start, name_end + 1)),
-        "collector": (max(collector_start - 5, 0), height),
+        "name": (0, max(int(height * 0.20), 1)),
+        "oracle": (max(int(height * 0.20) - 5, 0), max(int(height * 0.78), int(height * 0.20) + 1)),
+        "collector": (max(int(height * 0.78) - 5, 0), height),
     }
+
+    if region_hints:
+        for key, value in region_hints.items():
+            if key not in defaults or not isinstance(value, (tuple, list)):
+                continue
+            if len(value) != 2:
+                continue
+            start, end = int(value[0]), int(value[1])
+            defaults[key] = _clamp(start, end)
+    return {key: _clamp(*value) for key, value in defaults.items()}
 
 
 def _easyocr_reader() -> Optional[Any]:
@@ -742,16 +857,40 @@ def _map_has_text(ocr_map: Dict[str, str]) -> bool:
 
 def _finalize_ocr_map(raw_map: Dict[str, str | None] | Dict[str, str]) -> Dict[str, str]:
     cleaned = text_clean.normalize_ocr_map(raw_map)
+    # ensure rules alias
     if not cleaned.get("rules"):
         cleaned["rules"] = cleaned.get("oracle", "")
+
+    # Build a single unified full_text by concatenating available regions in a sensible order.
+    # Keep this non-destructive: preserve any existing 'full_text' if explicitly provided,
+    # otherwise compose from available parts while avoiding duplication.
     if not cleaned.get("full_text"):
-        cleaned["full_text"] = (
-            cleaned.get("full")
-            or cleaned.get("oracle")
-            or cleaned.get("name")
-            or cleaned.get("rules")
-            or ""
-        )
+        parts = []
+        # prefer any explicit 'full' block first if it contains substantial text
+        for key in ("full", "name", "oracle", "rules", "collector"):
+            val = cleaned.get(key)
+            if isinstance(val, str):
+                v = val.strip()
+                if v:
+                    parts.append(v)
+        # deduplicate while preserving order
+        seen = set()
+        unique_parts = []
+        for p in parts:
+            if p in seen:
+                continue
+            seen.add(p)
+            unique_parts.append(p)
+        # join with space and collapse whitespace/newlines to keep a single-line
+        joined = " ".join(unique_parts).strip()
+        # collapse multiple whitespace/newlines into single space
+        joined = re.sub(r"\s+", " ", joined)
+        cleaned["full_text"] = joined or ""
+    else:
+        # normalize any existing full_text: collapse whitespace/newlines into single space
+        existing = cleaned.get("full_text") or ""
+        existing = re.sub(r"\s+", " ", str(existing)).strip()
+        cleaned["full_text"] = existing
     return cleaned
 
 
@@ -802,21 +941,26 @@ def _perform_easyocr(ocr_image: np.ndarray, regions: Dict[str, Tuple[int, int]])
     return ocr_map, meta
 
 
-def _perform_ocr(ocr_image: np.ndarray) -> Tuple[Dict[str, str], Dict[str, Any]]:
-    regions = _segment_ocr_regions(ocr_image)
+def _perform_ocr(
+    ocr_image: np.ndarray,
+    *,
+    region_hints: Optional[Dict[str, Tuple[int, int]]] = None,
+) -> Tuple[Dict[str, str], Dict[str, Any]]:
+    regions = _segment_ocr_regions(ocr_image, region_hints=region_hints)
     ocr_map = {key: "" for key in ("full", "name", "oracle", "collector")}
     meta: Dict[str, Any] = {
         "engine": "tesseract" if HAVE_TESSERACT else "unavailable",
         "psm": 6,
         "regions": regions,
+        "region_hints_used": bool(region_hints),
         "error": None,
     }
+    if region_hints:
+        meta["region_hints"] = {key: [int(start), int(end)] for key, (start, end) in regions.items() if key in region_hints}
     global _OCR_ENGINE_WARNED
     attempts: List[Dict[str, Any]] = []
 
     if HAVE_TESSERACT and pytesseract is not None:
-        config_common = "--oem 3 --psm 6 -c preserve_interword_spaces=1"
-        config_name = "--oem 3 --psm 7 -c preserve_interword_spaces=1"
         start = time.perf_counter()
         tesseract_meta: Dict[str, Any] = {
             "engine": "tesseract",
@@ -829,8 +973,9 @@ def _perform_ocr(ocr_image: np.ndarray) -> Tuple[Dict[str, str], Dict[str, Any]]
                 slice_img = ocr_image[row_start:row_end, :]
                 if slice_img.size == 0:
                     continue
-                cfg = config_name if region == "name" else config_common
-                text = pytesseract.image_to_string(slice_img, config=cfg, lang="eng")
+                prepared_slice = _prepare_region_slice(slice_img, region)
+                cfg = _region_config(region)
+                text = pytesseract.image_to_string(prepared_slice, config=cfg, lang="eng")
                 ocr_map[region] = text.strip()
         except (TesseractError, RuntimeError) as exc:  # pragma: no cover - depends on system binary
             meta["error"] = str(exc)
@@ -943,7 +1088,15 @@ def prepare_snapshot_artifacts(
             "rotation_direction": orientation_meta.get("rotation_direction"),
         }
     )
-    ocr_text_map, ocr_text_meta = _perform_ocr(ocr_ready)
+    region_hints_payload: Optional[Dict[str, Tuple[int, int]]] = None
+    region_rows_meta = ocr_meta.get("region_rows") if isinstance(ocr_meta, dict) else None
+    if isinstance(region_rows_meta, dict):
+        region_hints_payload = {
+            key: (int(value[0]), int(value[1]))
+            for key, value in region_rows_meta.items()
+            if isinstance(value, (tuple, list)) and len(value) == 2
+        }
+    ocr_text_map, ocr_text_meta = _perform_ocr(ocr_ready, region_hints=region_hints_payload)
     embedding_dir_str = str(embeddings_dir_path) if embeddings_dir_path else None
     embedding_info = card_id.embedding_matches_from_ocr(ocr_text_map, embedding_dir_str)
     ocr_text_meta["embedding"] = embedding_info

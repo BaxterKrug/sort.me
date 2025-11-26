@@ -45,6 +45,12 @@ def test_prepare_for_ocr_masks_art_band():
     band = prepared[art_meta["art_band_start"] : art_meta["art_band_end"], :]
     assert band.size > 0
     assert np.mean(band) > 200, "art strip should be whitened for OCR"
+    region_rows = meta.get("region_rows")
+    assert region_rows, "expected derived region rows metadata"
+    output_height = meta["output_height"]
+    name_rows = region_rows.get("name")
+    assert name_rows is not None
+    assert 0 <= name_rows[0] < name_rows[1] <= output_height
 
 
 def test_perform_ocr_prefers_tesseract(monkeypatch):
@@ -149,3 +155,38 @@ def test_run_ocr_from_path_reads_file(tmp_path, monkeypatch):
     result = ocr_pipeline.run_ocr_from_path(sample)
     assert captured["data"] == b"abc123"
     assert result["ocr_map"]["full"] == "Voyage's End"
+
+
+def test_segment_ocr_regions_prefers_hints():
+    image = np.zeros((200, 80), dtype=np.uint8)
+    hints = {
+        "name": (30, 70),
+        "collector": (140, 195),
+    }
+    regions = ocr_pipeline._segment_ocr_regions(image, hints)
+    assert regions["name"][0] == 30
+    assert regions["name"][1] > regions["name"][0]
+    assert regions["collector"][0] >= 140
+    assert regions["collector"][1] <= image.shape[0]
+
+
+def test_perform_ocr_passes_region_hints_to_segmenter(monkeypatch):
+    captured = {}
+
+    class DummyTesseract:
+        @staticmethod
+        def image_to_string(img, config=None, lang=None):
+            return "ok"
+
+    def fake_segment(image, region_hints=None):
+        captured["hints"] = region_hints
+        return {"full": (0, image.shape[0])}
+
+    monkeypatch.setattr(ocr_pipeline, "_segment_ocr_regions", fake_segment)
+    monkeypatch.setattr(ocr_pipeline, "HAVE_TESSERACT", True, raising=False)
+    monkeypatch.setattr(ocr_pipeline, "pytesseract", DummyTesseract, raising=False)
+    monkeypatch.setattr(ocr_pipeline, "HAVE_EASYOCR", False, raising=False)
+
+    ocr_pipeline._perform_ocr(_dummy_frame(), region_hints={"name": (5, 25)})
+
+    assert captured["hints"]["name"] == (5, 25)

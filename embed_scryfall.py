@@ -21,6 +21,10 @@ from datetime import datetime, timezone
 from tqdm import tqdm
 import numpy as np
 
+from app.services import card_id
+
+DEFAULT_EMBED_MODEL = card_id.DEFAULT_EMBED_MODEL
+
 def build_text(card: dict) -> str:
     # Combine key text fields into a single string for embedding.
     parts = []
@@ -37,7 +41,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", "-i", required=True, help="Path to scryfall_all_cards.json")
     parser.add_argument("--out-dir", "-o", default="data/embeddings", help="Output directory")
-    parser.add_argument("--model", default="all-MiniLM-L6-v2", help="SentenceTransformers model (default: all-MiniLM-L6-v2)")
+    parser.add_argument(
+        "--model",
+        default=DEFAULT_EMBED_MODEL,
+        help=f"SentenceTransformers model (default: {DEFAULT_EMBED_MODEL})",
+    )
     parser.add_argument("--batch-size", type=int, default=256, help="Batch size for encoding")
     parser.add_argument("--dtype", choices=["float32","float16"], default="float32", help="Output dtype for embeddings")
     args = parser.parse_args()
