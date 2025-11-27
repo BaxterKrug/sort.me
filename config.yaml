@@ -181,10 +181,7 @@ gcode:
   baud: 115200
   port: /dev/ttyACM1
   mcodes:
-    # The vacuum is implemented as the extruder axis in firmware.
-    # Move the extruder by +7mm at 50 mm/min to engage vacuum, and -7mm to disengage.
-    vacuum_on: "G1 E7 F50"
-    vacuum_off: "G1 E-7 F50"
+  # Vacuum/extruder test commands removed. Use plunger or raw gcode send if needed.
 motion:
   default_speed: 1600.0     # Default movement speed in mm/min (doubled from 800)
   rapid_speed: 2400.0       # Fast positioning speed for non-critical moves (doubled from 1200)

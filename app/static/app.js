@@ -1196,10 +1196,41 @@ on($('btnSetJog100'), 'click', ()=>{
   toast('Jog distance set to 100mm');
 });
 
-// Vacuum control buttons in the UI
-on($('btnTestVacuum'),'click', ()=> api('/motion/test_vacuum',{method:'POST'}).then(()=>toast('Vacuum test')).catch(e=>toast(e.message)));
-on($('btnZDropVacuum'),'click', ()=> api('/motion/z_drop_and_vacuum',{method:'POST'}).then(()=>toast('Z drop + vacuum')).catch(e=>toast(e.message)));
-on($('btnVacuumOff'),'click',()=> api('/vacuum/off',{method:'POST'}).then(()=>toast('Vacuum off')).catch(e=>toast(e.message)));
+// Extruder control handlers
+on($('btnExtrude'),'click', async ()=> {
+  const btn = $('btnExtrude');
+  const original = btn ? btn.textContent : null;
+  try{
+    if(btn){ btn.disabled = true; btn.textContent = 'Extruding...'; }
+    await api('/extruder/extrude', {method: 'POST', body: JSON.stringify({amount:0.2, feed:50})});
+    toast('Extruded 0.2mm (E+0.2)');
+  }catch(e){
+    toast(e.message || String(e));
+  }finally{
+    if(btn){ btn.disabled = false; if(original) btn.textContent = original; }
+  }
+});
+on($('btnZDropExtrude'),'click', async ()=>{
+  const btn = $('btnZDropExtrude');
+  const original = btn ? btn.textContent : null;
+  try{
+    if(btn){ btn.disabled = true; btn.textContent = 'Z dropping...'; }
+    await api('/motion/z_drop_and_extrude',{method:'POST'});
+    toast('Z drop + extrude');
+  }catch(e){ toast(e.message || String(e)); }
+  finally{ if(btn){ btn.disabled = false; if(original) btn.textContent = original; } }
+});
+
+on($('btnRetract'),'click', async ()=>{
+  const btn = $('btnRetract');
+  const original = btn ? btn.textContent : null;
+  try{
+    if(btn){ btn.disabled = true; btn.textContent = 'Retracting...'; }
+    await api('/extruder/retract',{method:'POST', body: JSON.stringify({amount:0.2, feed:50})});
+    toast('Retracted 0.2mm (E-0.2)');
+  }catch(e){ toast(e.message || String(e)); }
+  finally{ if(btn){ btn.disabled = false; if(original) btn.textContent = original; } }
+});
 
 on($('btnPlunge'),'click',   ()=> api('/plunger/down',{method:'POST'}).then(()=>toast('Plunge')).catch(e=>toast(e.message)));
 on($('btnRetract'),'click',  ()=> api('/plunger/up',{method:'POST'}).then(()=>toast('Retract')).catch(e=>toast(e.message)));
@@ -1970,11 +2001,13 @@ async function demoApi(path, opts){
     case '/motion/move_to':
     case '/plunger/down':
     case '/plunger/up':
-    case '/vacuum/on':
-    case '/vacuum/off':
-    case '/motion/test_vacuum':
-    case '/motion/z_drop_and_vacuum':
-      return {ok:true};
+    case '/extruder/extrude':
+    case '/extruder/retract':
+    case '/motion/z_drop_and_extrude':
+    case '/gcode/send':
+      return {ok:true, lines:['ok']};
+    
+    // vacuum endpoints removed in demo mode
 
     // Camera / OCR
     case '/camera/preview':
@@ -2033,8 +2066,8 @@ async function demoApi(path, opts){
     }
     case '/errors/clear': return {ok:true};
 
-    // Logs
-    case '/logs/tail': return {text:`[info] system ok\n[info] vacuum -19.2 kPa\n[info] limit switch: false\n`};
+  // Logs
+  case '/logs/tail': return {text:`[info] system ok\n[info] limit switch: false\n`};
 
     // Maps / Debug
     case '/debug/alpha_map': return {letter_to_cell: letterMap};

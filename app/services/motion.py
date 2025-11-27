@@ -53,6 +53,12 @@ class MotionDriver:
         the firmware acknowledges (or timeout)."""
         raise NotImplementedError()
 
+    async def extrude(self, amount_mm: float, feed: float = 50.0) -> None:
+        """Extrude or retract filament/plunger by amount_mm (positive extrude, negative retract).
+        feed is in mm/min. Drivers that support an E axis should implement this.
+        """
+        raise NotImplementedError()
+
     async def query_position(self) -> Tuple[float, float, float]:
         """Query the driver/firmware for its current position (X,Y,Z) and return
         a tuple of floats. Typical implementations use M114 (Marlin) or ?/status
@@ -73,8 +79,7 @@ class VirtualMotionDriver(MotionDriver):
     def __init__(self) -> None:
         self.port = "virtual"
         self.mcodes: Dict[str, str] = {
-            "vacuum_on": "M100",
-            "vacuum_off": "M101",
+            # vacuum mcodes removed
             "plunger_down": "M110",
             "plunger_up": "M111",
         }
@@ -82,6 +87,7 @@ class VirtualMotionDriver(MotionDriver):
         self._position: Tuple[float, float, float] = (0.0, 0.0, 0.0)
         self._speed: float = 800.0
         self._vacuum: bool = False
+        self._extruded_total: float = 0.0
         self._plunger: str = "up"
         LOG.info("VirtualMotionDriver initialised")
 
@@ -129,6 +135,15 @@ class VirtualMotionDriver(MotionDriver):
     async def send_gcode(self, cmd: str, wait_ok: bool = True, timeout: float = 2.0) -> List[str]:
         LOG.debug("Virtual driver gcode -> %s", cmd.strip())
         return ["ok"]
+
+    async def extrude(self, amount_mm: float, feed: float = 50.0) -> None:
+        # simulate extruder/plunger movement in demo
+        try:
+            self._extruded_total += float(amount_mm)
+            LOG.info("Virtual extrude: %.4f mm @ F%.1f (total %.4f)", amount_mm, float(feed), self._extruded_total)
+        except Exception:
+            LOG.debug("Invalid extrude arguments")
+        return
 
     async def query_position(self) -> Tuple[float, float, float]:
         return self._position
@@ -214,6 +229,18 @@ class GCodeDriver(MotionDriver):
             LOG.exception("GCodeDriver send_gcode failed for cmd=%s: %s", cmd.strip(), exc)
             raise
 
+    async def extrude(self, amount_mm: float, feed: float = 50.0) -> None:
+        """Send a relative extruder move: G91, G1 E{amount} F{feed}, G90."""
+        try:
+            amt = float(amount_mm)
+            fd = int(feed)
+            cmd = f'G91\nG1 E{amt:.4f} F{fd}\nG90'
+            LOG.info("GCodeDriver extrude -> %s", cmd.replace('\n', ' | '))
+            await self.send_gcode(cmd, wait_ok=True, timeout=2.0)
+        except Exception:
+            LOG.exception("extrude failed for amount=%s feed=%s", amount_mm, feed)
+            raise
+
     async def query_position(self) -> Tuple[float, float, float]:
         # send M114 and parse 'X:.. Y:.. Z:..' but ignore step counters after "Count"
         lines = await self.send_gcode('M114', wait_ok=True, timeout=1.0)
@@ -258,19 +285,21 @@ class GCodeDriver(MotionDriver):
         self.feedrates['current'] = float(speed)
 
     async def vacuum_on(self) -> None:
-        cmd = self.mcodes.get('vacuum_on', 'M100')
-        await self.send_gcode(cmd)
+        # Vacuum/extruder test removed: do not send any commands here.
+        LOG.info("vacuum_on called but vacuum features removed by configuration")
+        return
 
     async def vacuum_off(self) -> None:
-        cmd = self.mcodes.get('vacuum_off', 'M101')
-        await self.send_gcode(cmd)
+        # Vacuum/extruder test removed: do not send any commands here.
+        LOG.info("vacuum_off called but vacuum features removed by configuration")
+        return
 
     async def plunger_down(self) -> None:
-        cmd = self.mcodes.get('plunger_down', 'M110')
+        cmd = str((self.mcodes or {}).get('plunger_down', 'M110')).strip()
         await self.send_gcode(cmd)
 
     async def plunger_up(self) -> None:
-        cmd = self.mcodes.get('plunger_up', 'M111')
+        cmd = str((self.mcodes or {}).get('plunger_up', 'M111')).strip()
         await self.send_gcode(cmd)
 
     async def stop(self) -> None:
@@ -1027,11 +1056,7 @@ class MotionController:
             drop_z = base_z + pick_z_offset
             await self._move_head_locked(safe_x, safe_y, drop_z, self.default_speed / 4)
             z_limit = drop_z
-        if hasattr(self.driver, 'vacuum_on'):
-            try:
-                await self.driver.vacuum_on()
-            except Exception as exc:
-                LOG.warning("vacuum_on failed during pick: %s", exc)
+        # vacuum activation removed
         await asyncio.sleep(0.05)
         lift_target = max(z_limit + self.pick_retract_height, self.return_clearance)
         await self._move_head_locked(safe_x, safe_y, lift_target, self.default_speed / 2)
@@ -1051,11 +1076,7 @@ class MotionController:
             await self.driver.plunger_down()
         except AttributeError:
             LOG.debug("Driver lacks plunger_down during place")
-        if hasattr(self.driver, 'vacuum_off'):
-            try:
-                await self.driver.vacuum_off()
-            except Exception as exc:
-                LOG.warning("vacuum_off failed during place: %s", exc)
+        # vacuum release removed
         await asyncio.sleep(0.05)
         if hasattr(self.driver, 'plunger_up'):
             try:
@@ -1255,8 +1276,6 @@ def render_gcode_for_cell(cell_id: str, action: str = 'pick', pick_z_offset: flo
 
     # find M-code names from driver if available
     drv = ctrl.driver
-    mc_vac_on = getattr(drv, 'mcodes', {}).get('vacuum_on', 'M100') if hasattr(drv, 'mcodes') else 'M100'
-    mc_vac_off = getattr(drv, 'mcodes', {}).get('vacuum_off', 'M101') if hasattr(drv, 'mcodes') else 'M101'
     mc_plunge = getattr(drv, 'mcodes', {}).get('plunger_down', 'M110') if hasattr(drv, 'mcodes') else 'M110'
     mc_plunge_up = getattr(drv, 'mcodes', {}).get('plunger_up', 'M111') if hasattr(drv, 'mcodes') else 'M111'
 
@@ -1273,8 +1292,6 @@ def render_gcode_for_cell(cell_id: str, action: str = 'pick', pick_z_offset: flo
         # lower to pick depth
         pick_z = z + pick_z_offset
         lines.append(f'G1 Z{float(pick_z):.3f} F{pick_feed}')
-        # vacuum on
-        lines.append(mc_vac_on)
         # dwell briefly
         lines.append('G4 P0.05')
         # plunger up
@@ -1286,7 +1303,6 @@ def render_gcode_for_cell(cell_id: str, action: str = 'pick', pick_z_offset: flo
         lines.append(f'G1 X{float(x):.3f} Y{float(y):.3f} Z{float(safe_z):.3f} F{travel_feed}')
         place_z = z + pick_z_offset
         lines.append(f'G1 Z{float(place_z):.3f} F{pick_feed}')
-        lines.append(mc_vac_off)
         lines.append('G4 P0.03')
         lines.append(f'G1 Z{float(safe_z):.3f} F{travel_feed}')
 

@@ -14,7 +14,7 @@ from urllib import error as urlerror, request as urlrequest
 
 import numpy as np  # type: ignore[import-not-found]
 import yaml  # type: ignore[import-not-found]
-from fastapi import FastAPI, File, HTTPException, UploadFile  # type: ignore[import-not-found]
+from fastapi import FastAPI, File, HTTPException, UploadFile, Request  # type: ignore[import-not-found]
 from fastapi.responses import FileResponse, Response  # type: ignore[import-not-found]
 from fastapi.staticfiles import StaticFiles  # type: ignore[import-not-found]
 
@@ -745,30 +745,53 @@ async def motion_set_current(payload: Dict[str, Any]) -> Dict[str, Any]:
             raise HTTPException(status_code=404, detail=f"Unknown sort mode '{mode_request}'")
         STATE.active_sort_mode = mode_request
         activated_mode_override = True
-@app.post("/motion/test_vacuum")
-async def motion_test_vacuum() -> Dict[str, Any]:
-    try:
-        await MOTION.driver.vacuum_on()
-        await asyncio.sleep(0.1)
-        await MOTION.driver.vacuum_off()
-        return {"ok": True, "message": "Vacuum toggled"}
-    except Exception as exc:  # pragma: no cover - hardware specific
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-@app.post("/motion/z_drop_and_vacuum")
-async def motion_z_drop_and_vacuum() -> Dict[str, Any]:
-    try:
-        await MOTION.jog('z', -10.0)
-        await MOTION.driver.vacuum_on()
-        return {"ok": True, "message": "Z dropped and vacuum engaged"}
-    except Exception as exc:  # pragma: no cover - hardware specific
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+# motion test/vacuum endpoints removed
 
 
 @app.get("/motion/status")
 async def motion_status() -> Dict[str, Any]:
     return await _motion_status_payload()
+
+
+@app.post("/extruder/extrude")
+async def extruder_extrude(request: Request) -> Dict[str, Any]:
+    """Extrude a small amount to actuate an extruder/plunger.
+    Expects JSON body optional {amount: float, feed: float}. Defaults to 0.2mm @ 50 mm/min.
+    """
+    payload = await request.json() if request is not None else {}
+    amount = float(payload.get('amount', 0.2) if isinstance(payload, dict) else 0.2)
+    feed = float(payload.get('feed', 50.0) if isinstance(payload, dict) else 50.0)
+    try:
+        await MOTION.driver.extrude(amount, feed)
+        return {"ok": True, "amount": amount, "feed": feed}
+    except Exception as exc:  # pragma: no cover - hardware specific
+        LOG.exception("extruder_extrude failed: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.post("/extruder/retract")
+async def extruder_retract(request: Request) -> Dict[str, Any]:
+    payload = await request.json() if request is not None else {}
+    amount = float(payload.get('amount', 0.2) if isinstance(payload, dict) else 0.2)
+    feed = float(payload.get('feed', 50.0) if isinstance(payload, dict) else 50.0)
+    try:
+        await MOTION.driver.extrude(-abs(amount), feed)
+        return {"ok": True, "amount": -abs(amount), "feed": feed}
+    except Exception as exc:  # pragma: no cover - hardware specific
+        LOG.exception("extruder_retract failed: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.post("/motion/z_drop_and_extrude")
+async def motion_z_drop_and_extrude() -> Dict[str, Any]:
+    try:
+        await MOTION.jog('z', -10.0)
+        await MOTION.driver.extrude(0.2, 50.0)
+        return {"ok": True, "message": "Z dropped and extruded"}
+    except Exception as exc:  # pragma: no cover - hardware specific
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/motion/detect")
@@ -813,16 +836,9 @@ async def plunger_up() -> Dict[str, Any]:
     return {"ok": True}
 
 
-@app.post("/vacuum/on")
-async def vacuum_on() -> Dict[str, Any]:
-    await MOTION.driver.vacuum_on()
-    return {"ok": True}
 
 
-@app.post("/vacuum/off")
-async def vacuum_off() -> Dict[str, Any]:
-    await MOTION.driver.vacuum_off()
-    return {"ok": True}
+# /vacuum endpoints removed
 
 
 # ---------------------------------------------------------------------------
@@ -837,8 +853,12 @@ async def gcode_send(payload: Dict[str, Any]) -> Dict[str, Any]:
         raise HTTPException(status_code=400, detail="Missing or invalid 'cmd'")
     if not hasattr(MOTION.driver, 'send_gcode'):
         raise HTTPException(status_code=400, detail="Current driver does not support raw G-code send")
-    lines = await MOTION.driver.send_gcode(cmd)
-    return {"ok": True, "cmd": cmd, "lines": lines}
+    try:
+        lines = await MOTION.driver.send_gcode(cmd)
+        return {"ok": True, "cmd": cmd, "lines": lines}
+    except Exception as exc:  # pragma: no cover - hardware/serial errors
+        LOG.exception("gcode_send failed for cmd=%s: %s", cmd, exc)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/gcode/mcodes")
