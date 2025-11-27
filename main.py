@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, cast
 
 from urllib import error as urlerror, request as urlrequest
+import serial.serialutil
 
 import numpy as np  # type: ignore[import-not-found]
 import yaml  # type: ignore[import-not-found]
@@ -667,6 +668,79 @@ async def motion_home_z() -> Dict[str, Any]:
     return {"ok": True, "pos": MOTION.current}
 
 
+# New endpoint: home Z then extrude
+@app.post("/motion/home_z_and_extrude")
+async def motion_home_z_and_extrude() -> Dict[str, Any]:
+    try:
+        await MOTION.home_z()
+        # Poll Z position until confirmed at 0 (max 30s)
+        import serial
+        z_homed = False
+        for _ in range(600):
+            try:
+                lines = await MOTION.driver.send_gcode('M114', wait_ok=True, timeout=1.0)
+                if not lines or any('busy' in ln.lower() for ln in lines):
+                    await asyncio.sleep(0.2)
+                    continue
+                # Parse position from lines
+                pos = (0.0, 0.0, 0.0)
+                for ln in lines:
+                    if 'z:' in ln.lower():
+                        parts = ln.replace(',', ' ').split()
+                        for p in parts:
+                            if p.lower().startswith('z:'):
+                                try:
+                                    pos = (pos[0], pos[1], float(p[2:]))
+                                except Exception:
+                                    pass
+                if abs(pos[2]) < 0.01:
+                    z_homed = True
+                    break
+            except serial.serialutil.SerialException:
+                await asyncio.sleep(0.5)
+                continue
+            except Exception:
+                await asyncio.sleep(0.2)
+                continue
+            await asyncio.sleep(0.1)
+        if z_homed:
+            await asyncio.sleep(10.0)
+        # Send extrude command
+        await MOTION.driver.extrude(0.2, 50.0)
+
+        # Poll for extruder movement (E axis)
+        extrude_confirmed = False
+        last_e = None
+        for _ in range(50):  # up to 5 seconds
+            try:
+                lines = await MOTION.driver.send_gcode('M114', wait_ok=True, timeout=1.0)
+                for ln in lines:
+                    if 'e:' in ln.lower():
+                        parts = ln.replace(',', ' ').split()
+                        for p in parts:
+                            if p.lower().startswith('e:'):
+                                try:
+                                    e_val = float(p[2:])
+                                    if last_e is None:
+                                        last_e = e_val
+                                    elif abs(e_val - last_e) > 0.01:
+                                        extrude_confirmed = True
+                                        break
+                                except Exception:
+                                    pass
+                if extrude_confirmed:
+                    break
+            except Exception as exc:
+                LOG.debug(f"Extrude poll error: {exc}")
+            await asyncio.sleep(0.1)
+        LOG.info(f"Extrude command sent. Movement confirmed: {extrude_confirmed}")
+        return {"ok": extrude_confirmed, "message": "Z homed and extruded", "pos": MOTION.current}
+    except Exception as exc:
+        import traceback
+        tb = traceback.format_exc()
+        return {"ok": False, "error": str(exc), "traceback": tb}
+
+
 @app.post("/motion/home_xy")
 async def motion_home_xy() -> Dict[str, Any]:
     await MOTION.home_x()
@@ -689,7 +763,22 @@ async def motion_jog(payload: Dict[str, Any]) -> Dict[str, Any]:
     distance = float(payload.get('distance', 0.0))
     if axis not in {"X", "Y", "Z"}:
         raise HTTPException(status_code=400, detail="axis must be X, Y or Z")
-    await MOTION.jog_axis(axis, distance)
+
+    # Try jog, detect paused state, and unpause if needed
+    try:
+        await MOTION.jog_axis(axis, distance)
+    except Exception as exc:
+        # Check for paused for user in last response
+        last_lines = getattr(MOTION.driver, 'last_response', None)
+        if last_lines and any('paused for user' in ln.lower() for ln in last_lines):
+            # Send unpause command (M108 is common, but may need to be changed for your hardware)
+            try:
+                await MOTION.driver.send_gcode('M108', wait_ok=True, timeout=2.0)
+                await MOTION.jog_axis(axis, distance)
+            except Exception as exc2:
+                raise HTTPException(status_code=503, detail=f"Jog failed after unpause: {exc2}")
+        else:
+            raise HTTPException(status_code=503, detail=f"Jog failed: {exc}")
     return {"ok": True, "pos": MOTION.current}
 
 
@@ -1296,6 +1385,7 @@ async def camera_dual_snapshot(payload: Optional[Dict[str, Any]] = None) -> Dict
         except Exception:
             raise HTTPException(status_code=400, detail="offset_mm must be numeric")
     return await ocr_pipeline.capture_dual_snapshot(offset_mm=offset)
+
 
 
 # ---------------------------------------------------------------------------

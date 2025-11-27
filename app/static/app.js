@@ -458,11 +458,14 @@ async function captureSnapshot(opts = {}){
       btn.disabled = true;
       btn.textContent = 'Capturing…';
     }
+  // Step 1: Capture snapshot
   const res = await fetch(`${BASE}/camera/snapshot?offset_mm=40&ts=${Date.now()}`, {cache: 'no-store'});
-    if(!res.ok){
-      throw new Error(`${res.status} ${res.statusText}`.trim());
-    }
-    const data = await res.json();
+  if(!res.ok){
+    throw new Error(`${res.status} ${res.statusText}`.trim());
+  }
+  const data = await res.json();
+  // Pause 5 seconds before next step
+  await new Promise(resolve => setTimeout(resolve, 5000));
     const frames = Array.isArray(data?.frames) ? data.frames : [];
     const imageMap = (data && typeof data.images === 'object') ? data.images : {};
     const findFrame = (label) => {
@@ -662,6 +665,23 @@ async function captureSnapshot(opts = {}){
         catch(err){ console.warn('Failed to revoke previous asset URL', err); }
       }
     });
+    // After successful snapshot, home Z and extrude
+    // Pause 5 seconds before homing Z and extruding
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    try {
+      const extrudeRes = await fetch(`${BASE}/motion/home_z_and_extrude`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (extrudeRes.ok) {
+        const extrudeData = await extrudeRes.json();
+        toast(extrudeData.message || 'Z homed and extruded');
+      } else {
+        toast('Failed to home Z and extrude');
+      }
+    } catch (extrudeErr) {
+      toast(`Extrude error: ${extrudeErr.message}`);
+    }
   }catch(err){
     if(!silent){
       toast(`Snapshot failed: ${err.message}`);
@@ -1559,10 +1579,16 @@ async function pollMotionStatus(){
     if(chip) chip.textContent = 'Motion: ERROR - ' + e.message;
   }
 }
+  // Basic placeholder for scanDevice to prevent ReferenceError
+  async function scanDevice() {
+    // TODO: Implement actual device scanning logic
+    console.log('scanDevice called');
+    // Example: update device list UI or fetch device status from backend
+    // You can add more logic here as needed
+    return Promise.resolve();
+  }
 
 // Start polling motion status every second
-setInterval(pollMotionStatus, 1000);
-pollMotionStatus();
 on($('btnScanDevice'), 'click', async ()=>{ await scanDevice(); toast('Scan complete'); });
 
 setInterval(pollCameraStatus, 4000);
