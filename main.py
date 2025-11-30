@@ -671,73 +671,30 @@ async def motion_home_z() -> Dict[str, Any]:
 # New endpoint: home Z then extrude
 @app.post("/motion/home_z_and_extrude")
 async def motion_home_z_and_extrude() -> Dict[str, Any]:
+    """
+    Homes the Z-axis, sends an extrusion command, and then raises the Z-axis to 135mm,
+    without intermediate polling or delays.
+    """
     try:
+        # 1. Lower the Z-axis (Home Z)
+        # This command is assumed to block until the Z-axis is confirmed at Z=0.
         await MOTION.home_z()
-        # Poll Z position until confirmed at 0 (max 30s)
-        import serial
-        z_homed = False
-        for _ in range(600):
-            try:
-                lines = await MOTION.driver.send_gcode('M114', wait_ok=True, timeout=1.0)
-                if not lines or any('busy' in ln.lower() for ln in lines):
-                    await asyncio.sleep(0.2)
-                    continue
-                # Parse position from lines
-                pos = (0.0, 0.0, 0.0)
-                for ln in lines:
-                    if 'z:' in ln.lower():
-                        parts = ln.replace(',', ' ').split()
-                        for p in parts:
-                            if p.lower().startswith('z:'):
-                                try:
-                                    pos = (pos[0], pos[1], float(p[2:]))
-                                except Exception:
-                                    pass
-                if abs(pos[2]) < 0.01:
-                    z_homed = True
-                    break
-            except serial.serialutil.SerialException:
-                await asyncio.sleep(0.5)
-                continue
-            except Exception:
-                await asyncio.sleep(0.2)
-                continue
-            await asyncio.sleep(0.1)
-        if z_homed:
-            await asyncio.sleep(10.0)
-        # Send extrude command
+
+        # 2. Send the extrude command
+        # Extrude 0.2mm at a speed of 50.0 mm/min
         await MOTION.driver.extrude(0.2, 50.0)
 
-        # Poll for extruder movement (E axis)
-        extrude_confirmed = False
-        last_e = None
-        for _ in range(50):  # up to 5 seconds
-            try:
-                lines = await MOTION.driver.send_gcode('M114', wait_ok=True, timeout=1.0)
-                for ln in lines:
-                    if 'e:' in ln.lower():
-                        parts = ln.replace(',', ' ').split()
-                        for p in parts:
-                            if p.lower().startswith('e:'):
-                                try:
-                                    e_val = float(p[2:])
-                                    if last_e is None:
-                                        last_e = e_val
-                                    elif abs(e_val - last_e) > 0.01:
-                                        extrude_confirmed = True
-                                        break
-                                except Exception:
-                                    pass
-                if extrude_confirmed:
-                    break
-            except Exception as exc:
-                LOG.debug(f"Extrude poll error: {exc}")
-            await asyncio.sleep(0.1)
-        LOG.info(f"Extrude command sent. Movement confirmed: {extrude_confirmed}")
-        return {"ok": extrude_confirmed, "message": "Z homed and extruded", "pos": MOTION.current}
+        # 3. Raise Z-axis to 135 mm
+        # Send a rapid movement command (G0) to Z=135.0 at a speed of 1000 mm/min.
+        # This command is sent immediately after the extrusion command.
+        await MOTION.driver.send_gcode('G0 Z135.0 F1000')
+
+        # The commands were sent successfully. We assume success unless an exception occurs.
+        return {"ok": True, "message": "Z homing, extrusion, and raise command sent", "pos": MOTION.current}
     except Exception as exc:
         import traceback
         tb = traceback.format_exc()
+        # Return an error if any command fails
         return {"ok": False, "error": str(exc), "traceback": tb}
 
 
@@ -1385,51 +1342,6 @@ async def camera_dual_snapshot(payload: Optional[Dict[str, Any]] = None) -> Dict
         except Exception:
             raise HTTPException(status_code=400, detail="offset_mm must be numeric")
     return await ocr_pipeline.capture_dual_snapshot(offset_mm=offset)
-
-
-
-# ---------------------------------------------------------------------------
-# Demo helpers / compatibility
-# ---------------------------------------------------------------------------
-
-
-@app.post("/demo/mode")
-def demo_mode(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    requested = bool((payload or {}).get("demo")) if payload else False
-    message = None
-    if requested and not is_demo_mode():
-        message = "Switching drivers at runtime is not supported; using current driver."
-    return {"ok": True, "demo": is_demo_mode(), "message": message}
-
-
-# ---------------------------------------------------------------------------
-# Debug + simulation APIs
-# ---------------------------------------------------------------------------
-
-
-@app.post("/simulate/assign_move")
-def simulate_assign_move(payload: Dict[str, Any]) -> Dict[str, Any]:
-    name = str(payload.get('name', '')).strip()
-    if not name:
-        raise HTTPException(status_code=400, detail='Missing name')
-    game = payload.get('game', 'mtg')
-    action = payload.get('action', 'pick')
-    card = Card(
-        game=game,
-        name=name,
-        confidence=1.0,
-        scryfall_id=payload.get('scryfall_id'),
-        printed_name=payload.get('printed_name'),
-        flavor_name=payload.get('flavor_name'),
-    )
-    cell, reason = assign_card(card, CFG, STATE)
-    try:
-        from app.services.motion import render_gcode_for_cell
-
-        gcode = render_gcode_for_cell(cell, action=action)
-    except Exception:
-        gcode = ['; gcode preview unavailable']
-    return {"cell": cell, "reason": reason, "gcode": gcode}
 
 
 @app.get("/debug/alpha_map")

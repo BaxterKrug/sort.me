@@ -172,6 +172,8 @@ class GCodeDriver(MotionDriver):
         # obtain the running loop dynamically. Capturing a loop here can fail
         # when called from non-async threads.
         self._loop = None
+        # Cache last known position when firmware does not report positions
+        self._last_position = (0.0, 0.0, 0.0)
 
     def _ensure_serial(self):
         if self._serial:
@@ -245,6 +247,7 @@ class GCodeDriver(MotionDriver):
         # send M114 and parse 'X:.. Y:.. Z:..' but ignore step counters after "Count"
         lines = await self.send_gcode('M114', wait_ok=True, timeout=1.0)
         x = y = z = 0.0
+        found = False
         for ln in lines:
             # example Marlin response: 'X:1.23 Y:4.56 Z:7.89 E:0.00 Count X:...'
             # Split at "Count" to ignore step counter values that can corrupt position
@@ -260,18 +263,27 @@ class GCodeDriver(MotionDriver):
                 for p in parts:
                     if p.startswith('X:') and x == 0.0:  # Only parse first occurrence
                         x = float(p.split(':',1)[1])
+                        found = True
                         LOG.debug("Position parsing - Found X: %.3f", x)
                     elif p.startswith('Y:') and y == 0.0:  # Only parse first occurrence
                         y = float(p.split(':',1)[1])
+                        found = True
                         LOG.debug("Position parsing - Found Y: %.3f", y)
                     elif p.startswith('Z:') and z == 0.0:  # Only parse first occurrence
                         z = float(p.split(':',1)[1])
+                        found = True
                         LOG.debug("Position parsing - Found Z: %.3f", z)
             except Exception as e:
                 LOG.debug("Position parsing - Parse error on line %r: %s", ln, e)
                 continue
         
-        LOG.debug("Position parsing - Final result: (%.3f, %.3f, %.3f)", x, y, z)
+        LOG.debug("Position parsing - Final result: (%.3f, %.3f, %.3f) found=%s", x, y, z, found)
+        if not found:
+            # Firmware did not include X/Y/Z in the response; return last
+            # commanded position so UI and callers see movement when firmware
+            # suppresses position reporting.
+            LOG.warning("query_position: no X/Y/Z tokens in driver response; returning cached position %s", self._last_position)
+            return self._last_position
         return (x, y, z)
 
     async def move_absolute(self, x: float, y: float, z: float, speed: float) -> None:
@@ -279,6 +291,12 @@ class GCodeDriver(MotionDriver):
         feed = int(speed)
         cmd = f'G90\nG1 X{float(x):.3f} Y{float(y):.3f} Z{float(z):.3f} F{feed}'
         await self.send_gcode(cmd, wait_ok=True, timeout=5.0)
+        # Cache the last commanded position so callers can fall back when
+        # position reporting via M114 is unavailable or unparseable.
+        try:
+            self._last_position = (float(x), float(y), float(z))
+        except Exception:
+            pass
 
     async def set_speed(self, speed: float) -> None:
         # store as feedrate; not all firmwares support a global feedrate set command
