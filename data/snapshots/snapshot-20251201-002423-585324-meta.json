@@ -1,0 +1,1103 @@
+{
+  "composite_meta": {
+    "aligned": {
+      "border": {
+        "area": 824395.5,
+        "box": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1279.0,
+            0.0
+          ],
+          [
+            1279.0,
+            1007.0
+          ],
+          [
+            0.0,
+            1007.0
+          ]
+        ],
+        "dest_height": 1279,
+        "dest_width": 1007,
+        "found": true,
+        "margin_px": 20
+      },
+      "bottom_rows_used": 720,
+      "height": 1279,
+      "overlap_px": 432,
+      "top_rows_used": 720,
+      "width": 1007
+    },
+    "raw": {
+      "bottom_rows_used": 720,
+      "height": 1008,
+      "overlap_px": 432,
+      "top_rows_used": 720,
+      "width": 1280
+    },
+    "rotated": {
+      "border": {
+        "area": 824395.5,
+        "box": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1279.0,
+            0.0
+          ],
+          [
+            1279.0,
+            1007.0
+          ],
+          [
+            0.0,
+            1007.0
+          ]
+        ],
+        "dest_height": 1279,
+        "dest_width": 1007,
+        "found": true,
+        "margin_px": 20
+      },
+      "bottom_rows_used": 720,
+      "height": 1007,
+      "orientation": {
+        "density_lower_final": 2.9657563572731673,
+        "density_lower_initial": 3.7389531131712523,
+        "density_upper_final": 3.73957505941676,
+        "density_upper_initial": 2.963633367892722,
+        "header_activity_final": {
+          "band_height": 221,
+          "bottom_brightness": 110.43270874023438,
+          "bottom_contrast": 96.73424530029297,
+          "bottom_energy": 19.334074020385742,
+          "bottom_score": 40.23161144256592,
+          "top_brightness": 160.7166748046875,
+          "top_contrast": 86.2152099609375,
+          "top_energy": 25.128543853759766,
+          "top_score": 49.37958488464355
+        },
+        "header_activity_initial": {
+          "band_height": 221,
+          "bottom_brightness": 160.71665954589844,
+          "bottom_contrast": 86.21520233154297,
+          "bottom_energy": 25.128543853759766,
+          "bottom_score": 41.65797805786132,
+          "top_brightness": 110.43272399902344,
+          "top_contrast": 96.7342529296875,
+          "top_energy": 19.334074020385742,
+          "top_score": 47.95321826934815
+        },
+        "hint_determination": "top_leading",
+        "mask_stats": {
+          "bonus": 0.0,
+          "bottom_mean": 0.5,
+          "score": 0.0,
+          "top_mean": 0.5
+        },
+        "orientation_candidates": [
+          {
+            "bias": 0.02,
+            "density_lower": 3.7389531131712523,
+            "density_upper": 2.963633367892722,
+            "direction": "clockwise",
+            "energy_ratio": 0.7694160360771101,
+            "header": {
+              "band_height": 221,
+              "bottom_brightness": 160.71665954589844,
+              "bottom_contrast": 86.21520233154297,
+              "bottom_energy": 25.128543853759766,
+              "bottom_score": 41.65797805786132,
+              "top_brightness": 110.43272399902344,
+              "top_contrast": 96.7342529296875,
+              "top_energy": 19.334074020385742,
+              "top_score": 47.95321826934815
+            },
+            "mask_bonus": 0.0,
+            "mask_bottom_mean": 0.5,
+            "mask_score": 0.0,
+            "mask_top_mean": 0.5,
+            "ratio_density": 0.7926926563469383,
+            "ratio_header": 1.1511136495653636,
+            "score": 1.023338639911932,
+            "score_raw": 1.023338639911932,
+            "text_bonus": 0.45,
+            "text_features": {
+              "gap_ok": true,
+              "name_band": {
+                "center_norm": 0.20278330019880716,
+                "end": 211,
+                "end_norm": 0.20974155069582506,
+                "length": 15,
+                "start": 197,
+                "start_norm": 0.19582504970178927
+              },
+              "rules_band": {
+                "center_norm": 0.8682902584493042,
+                "end": 911,
+                "end_norm": 0.9055666003976143,
+                "length": 76,
+                "start": 836,
+                "start_norm": 0.831013916500994
+              },
+              "score": 0.45,
+              "segments": [
+                {
+                  "center_norm": 0.20278330019880716,
+                  "end": 211,
+                  "end_norm": 0.20974155069582506,
+                  "length": 15,
+                  "start": 197,
+                  "start_norm": 0.19582504970178927
+                },
+                {
+                  "center_norm": 0.24353876739562624,
+                  "end": 253,
+                  "end_norm": 0.2514910536779324,
+                  "length": 17,
+                  "start": 237,
+                  "start_norm": 0.2355864811133201
+                },
+                {
+                  "center_norm": 0.25795228628230615,
+                  "end": 261,
+                  "end_norm": 0.25944333996023855,
+                  "length": 4,
+                  "start": 258,
+                  "start_norm": 0.25646123260437376
+                },
+                {
+                  "center_norm": 0.3061630218687873,
+                  "end": 339,
+                  "end_norm": 0.33697813121272363,
+                  "length": 63,
+                  "start": 277,
+                  "start_norm": 0.2753479125248509
+                },
+                {
+                  "center_norm": 0.3474155069582505,
+                  "end": 352,
+                  "end_norm": 0.3499005964214712,
+                  "length": 6,
+                  "start": 347,
+                  "start_norm": 0.34493041749502984
+                },
+                {
+                  "center_norm": 0.36381709741550694,
+                  "end": 371,
+                  "end_norm": 0.3687872763419483,
+                  "length": 11,
+                  "start": 361,
+                  "start_norm": 0.3588469184890656
+                },
+                {
+                  "center_norm": 0.39015904572564614,
+                  "end": 402,
+                  "end_norm": 0.3996023856858847,
+                  "length": 20,
+                  "start": 383,
+                  "start_norm": 0.38071570576540753
+                },
+                {
+                  "center_norm": 0.408051689860835,
+                  "end": 414,
+                  "end_norm": 0.4115308151093439,
+                  "length": 8,
+                  "start": 407,
+                  "start_norm": 0.40457256461232605
+                },
+                {
+                  "center_norm": 0.5397614314115308,
+                  "end": 548,
+                  "end_norm": 0.5447316103379721,
+                  "length": 11,
+                  "start": 538,
+                  "start_norm": 0.5347912524850894
+                },
+                {
+                  "center_norm": 0.5636182902584493,
+                  "end": 573,
+                  "end_norm": 0.5695825049701789,
+                  "length": 13,
+                  "start": 561,
+                  "start_norm": 0.5576540755467196
+                },
+                {
+                  "center_norm": 0.5820079522862823,
+                  "end": 590,
+                  "end_norm": 0.5864811133200796,
+                  "length": 10,
+                  "start": 581,
+                  "start_norm": 0.5775347912524851
+                },
+                {
+                  "center_norm": 0.5909542743538767,
+                  "end": 597,
+                  "end_norm": 0.5934393638170974,
+                  "length": 6,
+                  "start": 592,
+                  "start_norm": 0.588469184890656
+                },
+                {
+                  "center_norm": 0.6078528827037774,
+                  "end": 621,
+                  "end_norm": 0.617296222664016,
+                  "length": 20,
+                  "start": 602,
+                  "start_norm": 0.5984095427435387
+                },
+                {
+                  "center_norm": 0.6500994035785288,
+                  "end": 682,
+                  "end_norm": 0.6779324055666004,
+                  "length": 57,
+                  "start": 626,
+                  "start_norm": 0.6222664015904572
+                },
+                {
+                  "center_norm": 0.7012922465208747,
+                  "end": 713,
+                  "end_norm": 0.7087475149105368,
+                  "length": 16,
+                  "start": 698,
+                  "start_norm": 0.6938369781312127
+                },
+                {
+                  "center_norm": 0.8682902584493042,
+                  "end": 911,
+                  "end_norm": 0.9055666003976143,
+                  "length": 76,
+                  "start": 836,
+                  "start_norm": 0.831013916500994
+                }
+              ]
+            }
+          },
+          {
+            "bias": 0.02,
+            "density_lower": 2.9657563572731673,
+            "density_upper": 3.73957505941676,
+            "direction": "counterclockwise",
+            "energy_ratio": 1.2996869744209245,
+            "header": {
+              "band_height": 221,
+              "bottom_brightness": 110.43270874023438,
+              "bottom_contrast": 96.73424530029297,
+              "bottom_energy": 19.334074020385742,
+              "bottom_score": 40.23161144256592,
+              "top_brightness": 160.7166748046875,
+              "top_contrast": 86.2152099609375,
+              "top_energy": 25.128543853759766,
+              "top_score": 49.37958488464355
+            },
+            "mask_bonus": 0.0,
+            "mask_bottom_mean": 0.5,
+            "mask_score": 0.0,
+            "mask_top_mean": 0.5,
+            "ratio_density": 1.2608298791528778,
+            "ratio_header": 1.2273770733261207,
+            "score": 1.2429712648922902,
+            "score_raw": 1.2429712648922902,
+            "text_bonus": 0.45,
+            "text_features": {
+              "gap_ok": true,
+              "name_band": {
+                "center_norm": 0.1317097415506958,
+                "end": 170,
+                "end_norm": 0.16898608349900596,
+                "length": 76,
+                "start": 95,
+                "start_norm": 0.09443339960238568
+              },
+              "rules_band": {
+                "center_norm": 0.7972166998011928,
+                "end": 809,
+                "end_norm": 0.8041749502982107,
+                "length": 15,
+                "start": 795,
+                "start_norm": 0.790258449304175
+              },
+              "score": 0.45,
+              "segments": [
+                {
+                  "center_norm": 0.1317097415506958,
+                  "end": 170,
+                  "end_norm": 0.16898608349900596,
+                  "length": 76,
+                  "start": 95,
+                  "start_norm": 0.09443339960238568
+                },
+                {
+                  "center_norm": 0.29870775347912526,
+                  "end": 308,
+                  "end_norm": 0.3061630218687873,
+                  "length": 16,
+                  "start": 293,
+                  "start_norm": 0.2912524850894632
+                },
+                {
+                  "center_norm": 0.3499005964214712,
+                  "end": 380,
+                  "end_norm": 0.37773359840954274,
+                  "length": 57,
+                  "start": 324,
+                  "start_norm": 0.3220675944333996
+                },
+                {
+                  "center_norm": 0.39214711729622265,
+                  "end": 404,
+                  "end_norm": 0.40159045725646125,
+                  "length": 20,
+                  "start": 385,
+                  "start_norm": 0.3827037773359841
+                },
+                {
+                  "center_norm": 0.40904572564612324,
+                  "end": 414,
+                  "end_norm": 0.4115308151093439,
+                  "length": 6,
+                  "start": 409,
+                  "start_norm": 0.40656063618290256
+                },
+                {
+                  "center_norm": 0.4179920477137177,
+                  "end": 425,
+                  "end_norm": 0.4224652087475149,
+                  "length": 10,
+                  "start": 416,
+                  "start_norm": 0.4135188866799205
+                },
+                {
+                  "center_norm": 0.4363817097415507,
+                  "end": 445,
+                  "end_norm": 0.4423459244532803,
+                  "length": 13,
+                  "start": 433,
+                  "start_norm": 0.4304174950298211
+                },
+                {
+                  "center_norm": 0.4602385685884692,
+                  "end": 468,
+                  "end_norm": 0.46520874751491054,
+                  "length": 11,
+                  "start": 458,
+                  "start_norm": 0.4552683896620278
+                },
+                {
+                  "center_norm": 0.591948310139165,
+                  "end": 599,
+                  "end_norm": 0.595427435387674,
+                  "length": 8,
+                  "start": 592,
+                  "start_norm": 0.588469184890656
+                },
+                {
+                  "center_norm": 0.6098409542743539,
+                  "end": 623,
+                  "end_norm": 0.6192842942345924,
+                  "length": 20,
+                  "start": 604,
+                  "start_norm": 0.6003976143141153
+                },
+                {
+                  "center_norm": 0.6361829025844931,
+                  "end": 645,
+                  "end_norm": 0.6411530815109344,
+                  "length": 11,
+                  "start": 635,
+                  "start_norm": 0.6312127236580517
+                },
+                {
+                  "center_norm": 0.6525844930417495,
+                  "end": 659,
+                  "end_norm": 0.6550695825049702,
+                  "length": 6,
+                  "start": 654,
+                  "start_norm": 0.6500994035785288
+                },
+                {
+                  "center_norm": 0.6938369781312127,
+                  "end": 729,
+                  "end_norm": 0.7246520874751491,
+                  "length": 63,
+                  "start": 667,
+                  "start_norm": 0.6630218687872763
+                },
+                {
+                  "center_norm": 0.7420477137176938,
+                  "end": 748,
+                  "end_norm": 0.7435387673956262,
+                  "length": 4,
+                  "start": 745,
+                  "start_norm": 0.7405566600397614
+                },
+                {
+                  "center_norm": 0.7564612326043738,
+                  "end": 769,
+                  "end_norm": 0.76441351888668,
+                  "length": 17,
+                  "start": 753,
+                  "start_norm": 0.7485089463220675
+                },
+                {
+                  "center_norm": 0.7972166998011928,
+                  "end": 809,
+                  "end_norm": 0.8041749502982107,
+                  "length": 15,
+                  "start": 795,
+                  "start_norm": 0.790258449304175
+                }
+              ]
+            }
+          }
+        ],
+        "rotated": {
+          "direction": "counterclockwise",
+          "scores": {
+            "clockwise": 1.023338639911932,
+            "counterclockwise": 1.2429712648922902
+          },
+          "selected_score": 1.2429712648922902
+        },
+        "rotated_180": false,
+        "rotated_90": true,
+        "rotation_direction": "counterclockwise",
+        "text_band": {
+          "gap_ok": true,
+          "name_band": {
+            "center_norm": 0.1317097415506958,
+            "end": 170,
+            "end_norm": 0.16898608349900596,
+            "length": 76,
+            "start": 95,
+            "start_norm": 0.09443339960238568
+          },
+          "rules_band": {
+            "center_norm": 0.7972166998011928,
+            "end": 809,
+            "end_norm": 0.8041749502982107,
+            "length": 15,
+            "start": 795,
+            "start_norm": 0.790258449304175
+          },
+          "score": 0.45,
+          "segments": [
+            {
+              "center_norm": 0.1317097415506958,
+              "end": 170,
+              "end_norm": 0.16898608349900596,
+              "length": 76,
+              "start": 95,
+              "start_norm": 0.09443339960238568
+            },
+            {
+              "center_norm": 0.29870775347912526,
+              "end": 308,
+              "end_norm": 0.3061630218687873,
+              "length": 16,
+              "start": 293,
+              "start_norm": 0.2912524850894632
+            },
+            {
+              "center_norm": 0.3499005964214712,
+              "end": 380,
+              "end_norm": 0.37773359840954274,
+              "length": 57,
+              "start": 324,
+              "start_norm": 0.3220675944333996
+            },
+            {
+              "center_norm": 0.39214711729622265,
+              "end": 404,
+              "end_norm": 0.40159045725646125,
+              "length": 20,
+              "start": 385,
+              "start_norm": 0.3827037773359841
+            },
+            {
+              "center_norm": 0.40904572564612324,
+              "end": 414,
+              "end_norm": 0.4115308151093439,
+              "length": 6,
+              "start": 409,
+              "start_norm": 0.40656063618290256
+            },
+            {
+              "center_norm": 0.4179920477137177,
+              "end": 425,
+              "end_norm": 0.4224652087475149,
+              "length": 10,
+              "start": 416,
+              "start_norm": 0.4135188866799205
+            },
+            {
+              "center_norm": 0.4363817097415507,
+              "end": 445,
+              "end_norm": 0.4423459244532803,
+              "length": 13,
+              "start": 433,
+              "start_norm": 0.4304174950298211
+            },
+            {
+              "center_norm": 0.4602385685884692,
+              "end": 468,
+              "end_norm": 0.46520874751491054,
+              "length": 11,
+              "start": 458,
+              "start_norm": 0.4552683896620278
+            },
+            {
+              "center_norm": 0.591948310139165,
+              "end": 599,
+              "end_norm": 0.595427435387674,
+              "length": 8,
+              "start": 592,
+              "start_norm": 0.588469184890656
+            },
+            {
+              "center_norm": 0.6098409542743539,
+              "end": 623,
+              "end_norm": 0.6192842942345924,
+              "length": 20,
+              "start": 604,
+              "start_norm": 0.6003976143141153
+            },
+            {
+              "center_norm": 0.6361829025844931,
+              "end": 645,
+              "end_norm": 0.6411530815109344,
+              "length": 11,
+              "start": 635,
+              "start_norm": 0.6312127236580517
+            },
+            {
+              "center_norm": 0.6525844930417495,
+              "end": 659,
+              "end_norm": 0.6550695825049702,
+              "length": 6,
+              "start": 654,
+              "start_norm": 0.6500994035785288
+            },
+            {
+              "center_norm": 0.6938369781312127,
+              "end": 729,
+              "end_norm": 0.7246520874751491,
+              "length": 63,
+              "start": 667,
+              "start_norm": 0.6630218687872763
+            },
+            {
+              "center_norm": 0.7420477137176938,
+              "end": 748,
+              "end_norm": 0.7435387673956262,
+              "length": 4,
+              "start": 745,
+              "start_norm": 0.7405566600397614
+            },
+            {
+              "center_norm": 0.7564612326043738,
+              "end": 769,
+              "end_norm": 0.76441351888668,
+              "length": 17,
+              "start": 753,
+              "start_norm": 0.7485089463220675
+            },
+            {
+              "center_norm": 0.7972166998011928,
+              "end": 809,
+              "end_norm": 0.8041749502982107,
+              "length": 15,
+              "start": 795,
+              "start_norm": 0.790258449304175
+            }
+          ]
+        }
+      },
+      "overlap_px": 432,
+      "top_rows_used": 720,
+      "width": 1279
+    }
+  },
+  "embedding": {
+    "available": true,
+    "best": {
+      "card": {
+        "collector_number": "127",
+        "id": "bbb03f2e-2b92-4aa1-afae-301ed5d151d3",
+        "name": "Lightning Strike",
+        "scryfall_id": "bbb03f2e-2b92-4aa1-afae-301ed5d151d3",
+        "set": "ths"
+      },
+      "distance": 0.6386083033452308,
+      "index": 80948,
+      "score": 36.13916966547692
+    },
+    "engine": "tfidf-char-ngram",
+    "error": null,
+    "matches": [
+      {
+        "card": {
+          "collector_number": "127",
+          "id": "bbb03f2e-2b92-4aa1-afae-301ed5d151d3",
+          "name": "Lightning Strike",
+          "scryfall_id": "bbb03f2e-2b92-4aa1-afae-301ed5d151d3",
+          "set": "ths"
+        },
+        "distance": 0.6386083033452308,
+        "index": 80948,
+        "score": 36.13916966547692
+      },
+      {
+        "card": {
+          "collector_number": "136",
+          "id": "30077b49-b825-4dbb-a0c7-f3992f647df0",
+          "name": "Lightning Strike",
+          "scryfall_id": "30077b49-b825-4dbb-a0c7-f3992f647df0",
+          "set": "dft"
+        },
+        "distance": 0.6398750365638859,
+        "index": 20740,
+        "score": 36.01249634361141
+      },
+      {
+        "card": {
+          "collector_number": "137",
+          "id": "7d541125-bfb8-4f88-8bf3-ad7b6af7ad1d",
+          "name": "Lightning Strike",
+          "scryfall_id": "7d541125-bfb8-4f88-8bf3-ad7b6af7ad1d",
+          "set": "dmu"
+        },
+        "distance": 0.6400179830954706,
+        "index": 53899,
+        "score": 35.99820169045294
+      },
+      {
+        "card": {
+          "collector_number": "42",
+          "id": "116d6679-2834-4cfe-a848-846c17f1af42",
+          "name": "Lightning Strike",
+          "scryfall_id": "116d6679-2834-4cfe-a848-846c17f1af42",
+          "set": "gn2"
+        },
+        "distance": 0.6410879878065129,
+        "index": 7717,
+        "score": 35.89120121934871
+      },
+      {
+        "card": {
+          "collector_number": "152",
+          "id": "084b7337-c06f-4cbf-8fc0-0b20c221f1dc",
+          "name": "Lightning Strike",
+          "scryfall_id": "084b7337-c06f-4cbf-8fc0-0b20c221f1dc",
+          "set": "m19"
+        },
+        "distance": 0.6411831425256286,
+        "index": 3643,
+        "score": 35.88168574743714
+      }
+    ],
+    "query": "Th Ate et hw Oe 4 NEG\nmaa Lightning Strike deals 3 damage to [I\ni {J farget creature or player... :. fj\nmaa Lightning Strike deals 3 damage to [I i {J farget creature or player... :. fj Th Ate et hw Oe 4 NEG"
+  },
+  "ocr_map": {
+    "collector": "",
+    "full": "maa Lightning Strike deals 3 damage to [I\ni {J farget creature or player... :. fj",
+    "full_text": "maa Lightning Strike deals 3 damage to [I i {J farget creature or player... :. fj Th Ate et hw Oe 4 NEG",
+    "name": "Th Ate et hw Oe 4 NEG",
+    "oracle": "",
+    "rules": ""
+  },
+  "ocr_meta": {
+    "art_mask": {
+      "art_band_end": 761,
+      "art_band_start": 532,
+      "gap_rows": 1147,
+      "height": 1400,
+      "masked": true,
+      "source": "inactive"
+    },
+    "block_size": 31,
+    "clip_limit": 2.0,
+    "constant": 7,
+    "input_shape": [
+      1007,
+      1279,
+      3
+    ],
+    "median_kernel": 3,
+    "method": "adaptive_gaussian",
+    "output_height": 1400,
+    "output_width": 1102,
+    "portrait_rotated": true,
+    "portrait_rotation": "rotate_90_ccw",
+    "portrait_shape": [
+      1279,
+      1007,
+      3
+    ],
+    "region_rows": {
+      "collector": [
+        1329,
+        1400
+      ],
+      "full": [
+        0,
+        1400
+      ],
+      "name": [
+        178,
+        213
+      ],
+      "oracle": [
+        1315,
+        1350
+      ]
+    },
+    "region_rows_source": "text_bands",
+    "rotation_direction": "counterclockwise",
+    "scale": 1.095,
+    "source": "composite_rotated",
+    "source_shape": [
+      1007,
+      1279,
+      3
+    ],
+    "text_band_features": {
+      "gap_rows": 1147,
+      "height": 1400,
+      "inactive_segments": [
+        {
+          "end": 191,
+          "end_norm": 0.13652609006433167,
+          "length": 192,
+          "start": 0,
+          "start_norm": 0.0
+        },
+        {
+          "end": 224,
+          "end_norm": 0.1601143674052895,
+          "length": 28,
+          "start": 197,
+          "start_norm": 0.14081486776268765
+        },
+        {
+          "end": 490,
+          "end_norm": 0.35025017869907077,
+          "length": 200,
+          "start": 291,
+          "start_norm": 0.20800571837026446
+        },
+        {
+          "end": 782,
+          "end_norm": 0.5589706933523946,
+          "length": 272,
+          "start": 511,
+          "start_norm": 0.3652609006433167
+        },
+        {
+          "end": 1028,
+          "end_norm": 0.7348105789849892,
+          "length": 9,
+          "start": 1020,
+          "start_norm": 0.7290922087205146
+        },
+        {
+          "end": 1048,
+          "end_norm": 0.7491065046461758,
+          "length": 11,
+          "start": 1038,
+          "start_norm": 0.7419585418155825
+        },
+        {
+          "end": 1070,
+          "end_norm": 0.7648320228734811,
+          "length": 3,
+          "start": 1068,
+          "start_norm": 0.7634024303073624
+        },
+        {
+          "end": 1187,
+          "end_norm": 0.8484631879914224,
+          "length": 105,
+          "start": 1083,
+          "start_norm": 0.7741243745532523
+        },
+        {
+          "end": 1284,
+          "end_norm": 0.9177984274481773,
+          "length": 66,
+          "start": 1219,
+          "start_norm": 0.8713366690493209
+        },
+        {
+          "end": 1342,
+          "end_norm": 0.9592566118656183,
+          "length": 10,
+          "start": 1333,
+          "start_norm": 0.9528234453180844
+        },
+        {
+          "end": 1399,
+          "end_norm": 1.0,
+          "length": 21,
+          "start": 1379,
+          "start_norm": 0.9857040743388135
+        }
+      ],
+      "name_band": {
+        "end": 196,
+        "end_norm": 0.1401000714796283,
+        "length": 5,
+        "start": 192,
+        "start_norm": 0.13724088634739098
+      },
+      "rules_band": {
+        "end": 1378,
+        "end_norm": 0.9849892780557541,
+        "length": 36,
+        "start": 1343,
+        "start_norm": 0.9599714081486777
+      },
+      "segments": [
+        {
+          "end": 196,
+          "end_norm": 0.1401000714796283,
+          "length": 5,
+          "start": 192,
+          "start_norm": 0.13724088634739098
+        },
+        {
+          "end": 290,
+          "end_norm": 0.20729092208720515,
+          "length": 66,
+          "start": 225,
+          "start_norm": 0.16082916368834882
+        },
+        {
+          "end": 510,
+          "end_norm": 0.3645461043602573,
+          "length": 20,
+          "start": 491,
+          "start_norm": 0.3509649749821301
+        },
+        {
+          "end": 1019,
+          "end_norm": 0.7283774124374554,
+          "length": 237,
+          "start": 783,
+          "start_norm": 0.559685489635454
+        },
+        {
+          "end": 1037,
+          "end_norm": 0.7412437455325233,
+          "length": 9,
+          "start": 1029,
+          "start_norm": 0.7355253752680486
+        },
+        {
+          "end": 1067,
+          "end_norm": 0.7626876340243031,
+          "length": 19,
+          "start": 1049,
+          "start_norm": 0.7498213009292352
+        },
+        {
+          "end": 1082,
+          "end_norm": 0.773409578270193,
+          "length": 12,
+          "start": 1071,
+          "start_norm": 0.7655468191565404
+        },
+        {
+          "end": 1218,
+          "end_norm": 0.8706218727662616,
+          "length": 31,
+          "start": 1188,
+          "start_norm": 0.8491779842744818
+        },
+        {
+          "end": 1332,
+          "end_norm": 0.952108649035025,
+          "length": 48,
+          "start": 1285,
+          "start_norm": 0.9185132237312366
+        },
+        {
+          "end": 1378,
+          "end_norm": 0.9849892780557541,
+          "length": 36,
+          "start": 1343,
+          "start_norm": 0.9599714081486777
+        }
+      ]
+    }
+  },
+  "ocr_result": {
+    "duration_ms": 561,
+    "embedding": {
+      "available": true,
+      "best": {
+        "card": {
+          "collector_number": "127",
+          "id": "bbb03f2e-2b92-4aa1-afae-301ed5d151d3",
+          "name": "Lightning Strike",
+          "scryfall_id": "bbb03f2e-2b92-4aa1-afae-301ed5d151d3",
+          "set": "ths"
+        },
+        "distance": 0.6386083033452308,
+        "index": 80948,
+        "score": 36.13916966547692
+      },
+      "engine": "tfidf-char-ngram",
+      "error": null,
+      "matches": [
+        {
+          "card": {
+            "collector_number": "127",
+            "id": "bbb03f2e-2b92-4aa1-afae-301ed5d151d3",
+            "name": "Lightning Strike",
+            "scryfall_id": "bbb03f2e-2b92-4aa1-afae-301ed5d151d3",
+            "set": "ths"
+          },
+          "distance": 0.6386083033452308,
+          "index": 80948,
+          "score": 36.13916966547692
+        },
+        {
+          "card": {
+            "collector_number": "136",
+            "id": "30077b49-b825-4dbb-a0c7-f3992f647df0",
+            "name": "Lightning Strike",
+            "scryfall_id": "30077b49-b825-4dbb-a0c7-f3992f647df0",
+            "set": "dft"
+          },
+          "distance": 0.6398750365638859,
+          "index": 20740,
+          "score": 36.01249634361141
+        },
+        {
+          "card": {
+            "collector_number": "137",
+            "id": "7d541125-bfb8-4f88-8bf3-ad7b6af7ad1d",
+            "name": "Lightning Strike",
+            "scryfall_id": "7d541125-bfb8-4f88-8bf3-ad7b6af7ad1d",
+            "set": "dmu"
+          },
+          "distance": 0.6400179830954706,
+          "index": 53899,
+          "score": 35.99820169045294
+        },
+        {
+          "card": {
+            "collector_number": "42",
+            "id": "116d6679-2834-4cfe-a848-846c17f1af42",
+            "name": "Lightning Strike",
+            "scryfall_id": "116d6679-2834-4cfe-a848-846c17f1af42",
+            "set": "gn2"
+          },
+          "distance": 0.6410879878065129,
+          "index": 7717,
+          "score": 35.89120121934871
+        },
+        {
+          "card": {
+            "collector_number": "152",
+            "id": "084b7337-c06f-4cbf-8fc0-0b20c221f1dc",
+            "name": "Lightning Strike",
+            "scryfall_id": "084b7337-c06f-4cbf-8fc0-0b20c221f1dc",
+            "set": "m19"
+          },
+          "distance": 0.6411831425256286,
+          "index": 3643,
+          "score": 35.88168574743714
+        }
+      ],
+      "query": "Th Ate et hw Oe 4 NEG\nmaa Lightning Strike deals 3 damage to [I\ni {J farget creature or player... :. fj\nmaa Lightning Strike deals 3 damage to [I i {J farget creature or player... :. fj Th Ate et hw Oe 4 NEG"
+    },
+    "engine": "tesseract",
+    "engine_attempts": [
+      {
+        "duration_ms": 561,
+        "engine": "tesseract",
+        "psm": 6
+      }
+    ],
+    "error": null,
+    "psm": 6,
+    "region_hints": {
+      "collector": [
+        1329,
+        1400
+      ],
+      "full": [
+        0,
+        1400
+      ],
+      "name": [
+        178,
+        213
+      ],
+      "oracle": [
+        1315,
+        1350
+      ]
+    },
+    "region_hints_used": true,
+    "regions": {
+      "collector": [
+        1329,
+        1400
+      ],
+      "full": [
+        0,
+        1400
+      ],
+      "name": [
+        178,
+        213
+      ],
+      "oracle": [
+        1315,
+        1350
+      ]
+    }
+  },
+  "pair_orientation": {
+    "bottom_full_density": 2.4557421875,
+    "bottom_lower_density": 2.808849826388889,
+    "bottom_upper_density": 2.1025629340277776,
+    "determination": "top_leading",
+    "method": "gradient-density",
+    "segments": {
+      "bottom_lower": {
+        "density": 2.808849826388889
+      },
+      "bottom_upper": {
+        "density": 2.1025629340277776
+      },
+      "top_lower": {
+        "density": 3.507682291666667
+      },
+      "top_upper": {
+        "density": 4.371627604166667
+      }
+    },
+    "top_full_density": 3.9402560763888888,
+    "top_lower_density": 3.507682291666667,
+    "top_upper_density": 4.371627604166667
+  },
+  "paths": {
+    "bottom": "data/snapshots/snapshot-20251201-002423-585324-bottom.jpg",
+    "composite": "data/snapshots/snapshot-20251201-002423-585324-composite.jpg",
+    "composite_aligned": "data/snapshots/snapshot-20251201-002423-585324-composite-aligned.jpg",
+    "composite_raw": "data/snapshots/snapshot-20251201-002423-585324-composite-raw.jpg",
+    "ocr_prepared": "data/snapshots/snapshot-20251201-002423-585324-ocr.png",
+    "top": "data/snapshots/snapshot-20251201-002423-585324-top.jpg"
+  },
+  "timestamp": "20251201-002423-585324"
+}

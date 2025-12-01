@@ -5,6 +5,7 @@ import base64
 import json
 import logging
 import os
+import shutil
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
@@ -689,8 +690,92 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         # This command is sent immediately after the extrusion command.
         await MOTION.driver.send_gcode('G0 Z135.0 F1000')
 
-        # The commands were sent successfully. We assume success unless an exception occurs.
-        return {"ok": True, "message": "Z homing, extrusion, and raise command sent", "pos": MOTION.current}
+        # Ensure the motion controller's cached position reflects the raised Z.
+        # Many callers (move_to_cell_xy) preserve the controller's current Z when
+        # performing XY-only moves, so it's critical to update MOTION.current here
+        # to avoid inadvertently moving down and colliding with the work surface.
+        try:
+            # Wait for the driver to report the new Z (or stable position near it).
+            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 135.0), tolerance=1.0, timeout=6.0)
+        except Exception:
+            # Fallback: try a direct query; if that fails, conservatively set the Z to 135
+            try:
+                pos = await MOTION.driver.query_position()
+                MOTION.current = (float(pos[0]), float(pos[1]), float(pos[2]))
+            except Exception:
+                MOTION.current = (MOTION.current[0], MOTION.current[1], 135.0)
+
+        # After extrusion/raise, attempt to read the most recent scanned assignment
+        moved_cell = None
+        move_error = None
+        try:
+            csv_path = Path("data") / "scanned_cards.csv"
+            if csv_path.exists():
+                import csv as _csv
+
+                with csv_path.open("r", encoding="utf8", newline="") as fh:
+                    reader = _csv.DictReader(fh)
+                    last_row = None
+                    for row in reader:
+                        last_row = row
+                if last_row:
+                    target = (last_row.get("assigned_cell") or "").strip().upper()
+                    if target:
+                        if target in CFG.cells:
+                            try:
+                                # Prefer an XY-only G-code move (no Z component) when the
+                                # driver supports raw G-code. This prevents the firmware
+                                # from interpolating Z movement while traveling in XY
+                                # which can cause the head to rise or lower during the move.
+                                pos = MOTION.cells.get(target) if hasattr(MOTION, 'cells') else CFG.cells.get(target)
+                                if not isinstance(pos, dict):
+                                    raise KeyError(f"Cell position for {target} missing or invalid: {pos}")
+                                raw_x = pos.get('x')
+                                raw_y = pos.get('y')
+                                if raw_x is None or raw_y is None:
+                                    raise KeyError(f"Cell position for {target} missing X/Y")
+                                tx = float(raw_x)
+                                ty = float(raw_y)
+
+                                driver = MOTION.driver
+                                # Current safe Z to preserve during XY travel
+                                safe_z = float(MOTION.current[2]) if MOTION.current is not None else 0.0
+
+                                if hasattr(driver, 'send_gcode'):
+                                    # Use absolute positioning and send a G1 with only X and Y.
+                                    try:
+                                        await driver.send_gcode('G90')
+                                    except Exception:
+                                        pass
+                                    feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 800)))
+                                    await driver.send_gcode(f'G1 X{tx:.3f} Y{ty:.3f} F{feed}')
+                                    # Update cached controller position to reflect the XY move
+                                    MOTION.current = (tx, ty, safe_z)
+                                    try:
+                                        await _await_motion_completion(MOTION, (tx, ty, safe_z), tolerance=1.0, timeout=6.0)
+                                    except Exception:
+                                        # Best-effort; don't fail the whole operation if completion wait fails
+                                        pass
+                                else:
+                                    # Fallback to controller helper which may include Z;
+                                    # the controller's move_to_cell_xy should preserve Z.
+                                    await MOTION.move_to_cell_xy(target)
+
+                                moved_cell = target
+                            except Exception as mex:
+                                move_error = str(mex)
+                                LOG.warning("Failed to move to assigned cell %s: %s", target, mex)
+                        else:
+                            LOG.debug("Assigned cell from CSV not in config: %s", target)
+        except Exception as exc:
+            LOG.warning("Failed to read scanned_cards.csv or move to assigned cell: %s", exc, exc_info=True)
+
+        result = {"ok": True, "message": "Z homing, extrusion, and raise command sent", "pos": MOTION.current}
+        if moved_cell:
+            result["moved_to"] = moved_cell
+        elif move_error:
+            result["move_error"] = move_error
+        return result
     except Exception as exc:
         import traceback
         tb = traceback.format_exc()
@@ -1236,6 +1321,20 @@ async def camera_snapshot(
     timestamp_iso = timestamp_dt.isoformat(timespec="milliseconds") + "Z"
     snapshot_dir = Path("data") / "snapshots"
 
+    # Clear existing snapshots to keep only the latest capture
+    try:
+        if snapshot_dir.exists():
+            for child in snapshot_dir.iterdir():
+                try:
+                    if child.is_dir():
+                        shutil.rmtree(child)
+                    else:
+                        child.unlink()
+                except Exception:
+                    LOG.debug("Failed to remove snapshot item %s", child, exc_info=True)
+    except Exception:
+        LOG.warning("Could not clear snapshots directory: %s", snapshot_dir, exc_info=True)
+
     artifacts = ocr_pipeline.prepare_snapshot_artifacts(
         frame_top,
         frame_bottom,
@@ -1317,6 +1416,22 @@ async def camera_snapshot(
         LOG.info("Snapshot %s OCR saved to %s%s", timestamp_iso, meta_path, f" — {ocr_summary}" if ocr_summary else "")
     elif ocr_summary:
         LOG.info("Snapshot %s OCR: %s", timestamp_iso, ocr_summary)
+
+    # Persist a small file with the best embedding match's scryfall id
+    try:
+        embed_info = artifacts.get("meta", {}).get("embedding") if isinstance(artifacts.get("meta", {}), dict) else None
+        scry_id = None
+        if isinstance(embed_info, dict):
+            best = embed_info.get("best")
+            if isinstance(best, dict):
+                card = best.get("card") or {}
+                # store only the scryfall_id (do NOT fall back to other id fields)
+                scry_id = card.get("scryfall_id")
+        last_path = snapshot_dir / "last_snapshot.json"
+        # Write just the scryfall id as a JSON string (or null)
+        last_path.write_text(json.dumps(scry_id), encoding="utf8")
+    except Exception:
+        LOG.warning("Failed to write last_snapshot.json", exc_info=True)
 
     return {
         "timestamp": timestamp_iso,

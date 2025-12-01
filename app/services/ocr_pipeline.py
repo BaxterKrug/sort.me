@@ -1266,6 +1266,21 @@ async def capture_dual_snapshot(offset_mm: float = 44.0, save_dir: str = "data/s
 
     orientation = analyze_orientation(frame_top, frame_bottom)
     timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S-%f")
+    # Clear existing snapshots directory so only the latest remains
+    try:
+        sd = Path(save_dir)
+        if sd.exists():
+            for child in sd.iterdir():
+                try:
+                    if child.is_dir():
+                        shutil.rmtree(child)
+                    else:
+                        child.unlink()
+                except Exception:
+                    LOG.debug("Failed to remove snapshot item %s", child, exc_info=True)
+    except Exception:
+        LOG.warning("Could not clear snapshots directory: %s", save_dir, exc_info=True)
+
     artifact_task = functools.partial(
         prepare_snapshot_artifacts,
         frame_top,

@@ -7,6 +7,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
+from datetime import datetime
+import json
 
 LOG = logging.getLogger("sort.assign")
 
@@ -409,6 +411,49 @@ def _load_sort_operations_csv(csv_path: str) -> Dict[str, Dict[str, str]]:
     return operations
 
 
+def _append_scan_csv(card: Card, cell_id: str, reason: str) -> None:
+    """Append a row to data/scanned_cards.csv recording the scan.
+
+    Fields: timestamp_iso, scryfall_id, name, assigned_cell, reason, confidence
+    If card.scryfall_id is not set, attempt to read it from data/snapshots/last_snapshot.json.
+    """
+    data_dir = Path("data")
+    data_dir.mkdir(parents=True, exist_ok=True)
+    csv_path = data_dir / "scanned_cards.csv"
+
+    scry_id = card.scryfall_id
+    if not scry_id:
+        try:
+            lastp = Path("data") / "snapshots" / "last_snapshot.json"
+            if lastp.exists():
+                txt = lastp.read_text(encoding="utf8")
+                try:
+                    scry = json.loads(txt)
+                    if isinstance(scry, str):
+                        scry_id = scry
+                except Exception:
+                    # tolerate non-json content
+                    scry_id = txt.strip() or None
+        except Exception:
+            scry_id = None
+
+    row = {
+        "timestamp": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "scryfall_id": scry_id or "",
+        "name": (card.name or "") if isinstance(card.name, str) else str(card.name or ""),
+        "assigned_cell": cell_id,
+        "reason": reason,
+        "confidence": f"{float(card.confidence):.3f}",
+    }
+
+    write_header = not csv_path.exists()
+    with csv_path.open("a", encoding="utf8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=["timestamp", "scryfall_id", "name", "assigned_cell", "reason", "confidence"])
+        if write_header:
+            writer.writeheader()
+        writer.writerow(row)
+
+
 def _has_capacity(cell: Cell, state: SystemState) -> bool:
     return state.counts_by_cell.get(cell.id, 0) < cell.capacity
 
@@ -620,10 +665,18 @@ def assign_card(card: Card, cfg: Config, state: SystemState) -> Tuple[str, str]:
       - Never place into feeder cells (assert)
     Returns: (cell_id, reason)
     """
+    # helper to record scan and return
+    def _do_return(cell_id: str, reason: str) -> Tuple[str, str]:
+        try:
+            _append_scan_csv(card, cell_id, reason)
+        except Exception:
+            LOG.debug("Failed to append scan CSV", exc_info=True)
+        return cell_id, reason
+
     # 1) Confidence gate
     if card.confidence < cfg.low_conf_thresh:
         target = _overflow_target(cfg, state)
-        return target, "divert:low_confidence"
+        return _do_return(target, "divert:low_confidence")
 
     display_name_raw = (card.display_name() or "").strip()
     reason_name = display_name_raw or (card.name.strip() if card.name else "")
@@ -642,11 +695,11 @@ def assign_card(card: Card, cfg: Config, state: SystemState) -> Tuple[str, str]:
         elif _is_feeder(cell_id, cfg.feeder_re):
             LOG.warning("Sort operation target %s for card %s points to feeder; ignoring", cell_id, card.scryfall_id or card.name)
         elif _has_capacity(cell_obj, state):
-            return cell_id, f"sort_op:{operation}:{reason_name}"
+                return _do_return(cell_id, f"sort_op:{operation}:{reason_name}")
         else:
             LOG.info("Sort operation target %s is full; falling back to overflow", cell_id)
             overflow_id = _overflow_target(cfg, state)
-            return overflow_id, f"overflow:{operation}:{reason_name}"
+            return _do_return(overflow_id, f"overflow:{operation}:{reason_name}")
 
     # 3) Mode-based assignment
     active_mode_id = (state.active_sort_mode or cfg.default_sort_mode or DEFAULT_SORT_MODE).lower()
@@ -656,7 +709,12 @@ def assign_card(card: Card, cfg: Config, state: SystemState) -> Tuple[str, str]:
 
     mode_result = _resolve_mode_target(card, cfg, state, mode, reason_name)
     if mode_result:
-        return mode_result
+        # mode_result is a tuple (cell, reason)
+        try:
+            cell_id, reason = mode_result
+        except Exception:
+            return mode_result
+        return _do_return(cell_id, reason)
 
     if mode.id != DEFAULT_SORT_MODE:
         fallback_mode = cfg.sort_modes.get(DEFAULT_SORT_MODE)
@@ -666,7 +724,7 @@ def assign_card(card: Card, cfg: Config, state: SystemState) -> Tuple[str, str]:
                 return fallback_result
 
     overflow_id = _overflow_target(cfg, state)
-    return overflow_id, f"overflow:{mode.id}:{reason_name}"
+    return _do_return(overflow_id, f"overflow:{mode.id}:{reason_name}")
 
 
 def _resolve_sort_operation_target(card: Card, cfg: Config, state: SystemState) -> Optional[Tuple[str, str]]:

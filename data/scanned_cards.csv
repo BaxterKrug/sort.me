@@ -1,0 +1,7 @@
+timestamp,scryfall_id,name,assigned_cell,reason,confidence
+2025-12-01T00:06:23Z,6db14cb8-9ff8-41ee-a733-4f1130e73b29,When We Were Young,I2,alpha_exact:W:When We Were Young,1.000
+2025-12-01T00:06:23Z,6db14cb8-9ff8-41ee-a733-4f1130e73b29,When We Were Young,I2,alpha_exact:W:When We Were Young,1.000
+2025-12-01T00:12:13Z,783a7e1a-2ff2-4c0f-bfcc-f08ffcb07f0f,"Klement, Nature Acolyte",E2,"alpha_exact:K:Klement, Nature Acolyte",1.000
+2025-12-01T00:12:13Z,c9745205-8bbf-4bea-a360-7662de05e47b,Now You See Me . . .,F2,alpha_exact:N:Now You See Me . . .,1.000
+2025-12-01T00:24:30Z,bbb03f2e-2b92-4aa1-afae-301ed5d151d3,Lightning Strike,E3,alpha_exact:L:Lightning Strike,1.000
+2025-12-01T00:24:30Z,30077b49-b825-4dbb-a0c7-f3992f647df0,Lightning Strike,E3,alpha_exact:L:Lightning Strike,1.000
