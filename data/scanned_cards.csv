@@ -5,3 +5,17 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2025-12-01T00:12:13Z,c9745205-8bbf-4bea-a360-7662de05e47b,Now You See Me . . .,F2,alpha_exact:N:Now You See Me . . .,1.000
 2025-12-01T00:24:30Z,bbb03f2e-2b92-4aa1-afae-301ed5d151d3,Lightning Strike,E3,alpha_exact:L:Lightning Strike,1.000
 2025-12-01T00:24:30Z,30077b49-b825-4dbb-a0c7-f3992f647df0,Lightning Strike,E3,alpha_exact:L:Lightning Strike,1.000
+2025-12-01T02:29:28Z,c3b5b278-b883-4703-9bfa-bab5a6da4660,Rise of Eagles,G3,alpha_exact:R:Rise of Eagles,1.000
+2025-12-01T02:29:28Z,1f17ac75-8e49-42a3-8a31-2e2d5f65316e,"I Know All, I See All",D3,"alpha_exact:I:I Know All, I See All",1.000
+2025-12-01T02:31:24Z,f717c096-e161-426e-a8d7-c93b117e16b9,With Great Power...,I2,alpha_exact:W:With Great Power...,1.000
+2025-12-01T02:31:25Z,1d94a1d1-6d24-46e1-9568-42e1a810ad31,Melt Terrain,F1,alpha_exact:M:Melt Terrain,1.000
+2025-12-04T00:11:13Z,3faed400-0712-4fc1-b710-144db40a5e11,Thran Vigil,H2,alpha_exact:T:Thran Vigil,1.000
+2025-12-04T00:11:14Z,11c65a35-e219-4b60-ab95-ce7eff67d646,Giant Crab,D1,alpha_exact:G:Giant Crab,1.000
+2025-12-04T00:13:08Z,295f9eb0-5a75-4f86-aca9-3f76b0213c41,Benthic Giant,B2,alpha_exact:B:Benthic Giant,1.000
+2025-12-04T00:13:08Z,30c5fd8e-753a-45e1-bcdd-fb6e072ffbb0,You See a Guard Approach,J1,alpha_exact:Y:You See a Guard Approach,1.000
+2025-12-04T00:15:17Z,496f79d6-33ee-4e31-9601-2722b0bc9141,Mind Control,F1,alpha_exact:M:Mind Control,1.000
+2025-12-04T00:15:17Z,1f17ac75-8e49-42a3-8a31-2e2d5f65316e,"I Know All, I See All",D3,"alpha_exact:I:I Know All, I See All",1.000
+2025-12-04T00:18:13Z,c361ea9c-a989-4ded-8b2c-f565aa9d8a1d,Ainok Guide,B1,alpha_exact:A:Ainok Guide,1.000
+2025-12-04T00:18:13Z,c361ea9c-a989-4ded-8b2c-f565aa9d8a1d,Ainok Guide,B1,alpha_exact:A:Ainok Guide,1.000
+2025-12-04T00:19:26Z,25ab9a2b-e248-4ae2-aac3-b49fdb3e260a,Flying Men,C3,alpha_exact:F:Flying Men,1.000
+2025-12-04T00:21:47Z,ac063445-d0e2-4015-96dc-97098433f30a,Renegade Map,G3,alpha_exact:R:Renegade Map,1.000
