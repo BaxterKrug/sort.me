@@ -78,6 +78,11 @@ MOTION = get_controller()
 SESSION = sort_session.get_manager()
 ERROR_LOG: List[Dict[str, Any]] = []
 
+# Auto-sort loop control
+AUTO_SORT_RUNNING = False
+AUTO_SORT_TASK: Optional[asyncio.Task] = None
+AUTO_SORT_STATS = {"cards_processed": 0, "errors": 0, "started_at": None}
+
 CARD_METADATA_CACHE: Dict[str, Dict[str, Any]] = {}
 CARD_DETAILS_CACHE: Dict[str, Dict[str, Any]] = {}
 SET_CACHE: Dict[str, Dict[str, Any]] = {}
@@ -1700,6 +1705,222 @@ async def ocr_upload(file: UploadFile = File(...)) -> Dict[str, Any]:  # pragma:
         raise HTTPException(status_code=400, detail="Empty upload")
     encoded = base64.b64encode(data[:80]).decode("ascii")
     return {"ok": True, "preview": encoded}
+
+
+# ---------------------------------------------------------------------------
+# Auto-sort loop (capture -> OCR -> identify -> move -> repeat)
+# ---------------------------------------------------------------------------
+
+async def _auto_sort_loop():
+    """
+    Continuously captures snapshots, identifies cards, and moves them to assigned cells.
+    Runs until AUTO_SORT_RUNNING is set to False.
+    """
+    global AUTO_SORT_RUNNING, AUTO_SORT_STATS
+    
+    LOG.info("Auto-sort loop started")
+    AUTO_SORT_STATS["started_at"] = datetime.utcnow().isoformat(timespec="seconds")
+    AUTO_SORT_STATS["cards_processed"] = 0
+    AUTO_SORT_STATS["errors"] = 0
+    
+    # Small delay to ensure camera is ready
+    await asyncio.sleep(1.0)
+    
+    while AUTO_SORT_RUNNING:
+        try:
+            # Step 1: Capture snapshot with OCR and card identification
+            LOG.info("Auto-sort: Capturing snapshot...")
+            try:
+                snapshot_data = await camera_snapshot(quality=80, max_age=0.0, offset_mm=40.0)
+            except Exception as snap_exc:
+                LOG.error("Auto-sort: Camera snapshot failed: %s", snap_exc, exc_info=True)
+                AUTO_SORT_STATS["errors"] += 1
+                await asyncio.sleep(3.0)
+                continue
+            
+            # Extract card information from snapshot
+            frames = snapshot_data.get("frames", [])
+            ocr_text_frame = None
+            for frame in frames:
+                if frame.get("label") == "ocr_text":
+                    ocr_text_frame = frame
+                    break
+            
+            if not ocr_text_frame:
+                LOG.warning("Auto-sort: No OCR text frame found in snapshot")
+                AUTO_SORT_STATS["errors"] += 1
+                await asyncio.sleep(2.0)
+                continue
+            
+            # Get card identification from OCR frame
+            text_data = ocr_text_frame.get("text", {})
+            card_name = None
+            scryfall_id = None
+            
+            # Try to get card name and ID from various OCR fields
+            if isinstance(text_data, dict):
+                card_name = (
+                    text_data.get("name") 
+                    or text_data.get("oracle") 
+                    or text_data.get("full_text")
+                    or text_data.get("full")
+                )
+                meta = text_data.get("meta", {})
+                if isinstance(meta, dict):
+                    embedding = meta.get("embedding", {})
+                    if isinstance(embedding, dict):
+                        matches = embedding.get("matches", [])
+                        if matches and len(matches) > 0:
+                            top_match = matches[0]
+                            if isinstance(top_match, dict):
+                                scryfall_id = top_match.get("scryfall_id")
+                                if not card_name:
+                                    card_name = top_match.get("name")
+            
+            if not card_name and not scryfall_id:
+                LOG.warning("Auto-sort: Could not identify card from snapshot")
+                AUTO_SORT_STATS["errors"] += 1
+                await asyncio.sleep(2.0)
+                continue
+            
+            LOG.info("Auto-sort: Identified card: %s (ID: %s)", card_name or "unknown", scryfall_id or "none")
+            
+            # Step 2: Assign cell for the card
+            card = Card(
+                game="mtg",
+                name=card_name or scryfall_id or "Unknown",
+                confidence=0.8,
+                scryfall_id=scryfall_id,
+            )
+            cell, reason = assign_card(card, CFG, STATE)
+            STATE.counts_by_cell[cell] = STATE.counts_by_cell.get(cell, 0) + 1
+            
+            LOG.info("Auto-sort: Assigned to cell %s (reason: %s)", cell, reason)
+            
+            # Write to scanned_cards.csv for the motion endpoint to pick up
+            csv_path = Path("data") / "scanned_cards.csv"
+            csv_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Write header if file doesn't exist
+            write_header = not csv_path.exists()
+            
+            import csv as _csv
+            with csv_path.open("a", encoding="utf8", newline="") as fh:
+                writer = _csv.DictWriter(fh, fieldnames=["timestamp", "card_name", "scryfall_id", "assigned_cell", "reason"])
+                if write_header:
+                    writer.writeheader()
+                writer.writerow({
+                    "timestamp": datetime.utcnow().isoformat(timespec="seconds"),
+                    "card_name": card_name or "",
+                    "scryfall_id": scryfall_id or "",
+                    "assigned_cell": cell,
+                    "reason": reason or "",
+                })
+            
+            # Step 3: Execute motion sequence (home Z, extrude, move to cell, drop, return)
+            LOG.debug("Auto-sort: Executing motion sequence...")
+            motion_result = await motion_home_z_and_extrude()
+            
+            if not motion_result.get("ok"):
+                LOG.error("Auto-sort: Motion sequence failed: %s", motion_result.get("error", "unknown"))
+                AUTO_SORT_STATS["errors"] += 1
+                await asyncio.sleep(2.0)
+                continue
+            
+            moved_to = motion_result.get("moved_to")
+            if moved_to:
+                LOG.info("Auto-sort: Successfully moved card to %s", moved_to)
+            else:
+                LOG.warning("Auto-sort: Motion completed but did not move to target cell")
+            
+            AUTO_SORT_STATS["cards_processed"] += 1
+            LOG.info("Auto-sort: Card processed successfully (total: %d)", AUTO_SORT_STATS["cards_processed"])
+            
+            # Small delay before next card
+            await asyncio.sleep(1.0)
+            
+        except Exception as exc:
+            LOG.error("Auto-sort loop error: %s", exc, exc_info=True)
+            AUTO_SORT_STATS["errors"] += 1
+            await asyncio.sleep(3.0)  # Longer delay on error
+    
+    LOG.info("Auto-sort loop stopped (processed: %d, errors: %d)", 
+             AUTO_SORT_STATS["cards_processed"], 
+             AUTO_SORT_STATS["errors"])
+
+
+@app.post("/auto_sort/start")
+async def auto_sort_start() -> Dict[str, Any]:
+    """Start the automatic sorting loop."""
+    global AUTO_SORT_RUNNING, AUTO_SORT_TASK
+    
+    if AUTO_SORT_RUNNING:
+        return {"ok": False, "message": "Auto-sort is already running", "running": True}
+    
+    # Check if camera is available before starting
+    try:
+        cam = camera_svc.get_manager()
+        info = cam.info(ensure_capture=False)
+        if not info.get("online"):
+            return {
+                "ok": False,
+                "message": f"Camera is not online: {info.get('error', 'unknown error')}",
+                "running": False
+            }
+    except Exception as exc:
+        LOG.error("Camera check failed before starting auto-sort: %s", exc)
+        return {
+            "ok": False,
+            "message": f"Camera check failed: {str(exc)}",
+            "running": False
+        }
+    
+    AUTO_SORT_RUNNING = True
+    AUTO_SORT_TASK = asyncio.create_task(_auto_sort_loop())
+    
+    return {
+        "ok": True,
+        "message": "Auto-sort loop started",
+        "running": True,
+        "stats": AUTO_SORT_STATS,
+    }
+
+
+@app.post("/auto_sort/stop")
+async def auto_sort_stop() -> Dict[str, Any]:
+    """Stop the automatic sorting loop."""
+    global AUTO_SORT_RUNNING, AUTO_SORT_TASK
+    
+    if not AUTO_SORT_RUNNING:
+        return {"ok": False, "message": "Auto-sort is not running", "running": False}
+    
+    AUTO_SORT_RUNNING = False
+    
+    # Wait for the task to complete (with timeout)
+    if AUTO_SORT_TASK:
+        try:
+            await asyncio.wait_for(AUTO_SORT_TASK, timeout=10.0)
+        except asyncio.TimeoutError:
+            LOG.warning("Auto-sort task did not stop within timeout, cancelling...")
+            AUTO_SORT_TASK.cancel()
+        except Exception as exc:
+            LOG.warning("Error waiting for auto-sort task: %s", exc)
+    
+    return {
+        "ok": True,
+        "message": "Auto-sort loop stopped",
+        "running": False,
+        "stats": AUTO_SORT_STATS,
+    }
+
+
+@app.get("/auto_sort/status")
+async def auto_sort_status() -> Dict[str, Any]:
+    """Get the status of the automatic sorting loop."""
+    return {
+        "running": AUTO_SORT_RUNNING,
+        "stats": AUTO_SORT_STATS,
+    }
 
 
 if __name__ == "__main__":  # pragma: no cover - manual launch helper

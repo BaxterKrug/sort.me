@@ -2218,8 +2218,94 @@ async function demoApi(path, opts){
   }
 }
 
+// ------------- Auto-Sort Controls -------------
+let autoSortPollingInterval = null;
+
+async function updateAutoSortStatus() {
+  try {
+    const status = await api('/auto_sort/status');
+    const statusChip = $('autoSortStatus');
+    const countSpan = $('autoSortCount');
+    const errorsSpan = $('autoSortErrors');
+    const startBtn = $('btnAutoSortStart');
+    const stopBtn = $('btnAutoSortStop');
+    
+    if (status.running) {
+      statusChip.textContent = 'Running';
+      statusChip.classList.remove('muted');
+      statusChip.style.background = 'var(--cell-feeder-bg)';
+      statusChip.style.color = 'var(--cell-feeder-text)';
+      statusChip.style.border = '1px solid var(--cell-feeder-border)';
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    } else {
+      statusChip.textContent = 'Stopped';
+      statusChip.classList.add('muted');
+      statusChip.style.background = '';
+      statusChip.style.color = '';
+      statusChip.style.border = '';
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+    
+    if (status.stats) {
+      countSpan.textContent = status.stats.cards_processed || 0;
+      errorsSpan.textContent = status.stats.errors || 0;
+    }
+  } catch (e) {
+    console.error('Failed to update auto-sort status:', e);
+  }
+}
+
+on($('btnAutoSortStart'), 'click', async () => {
+  try {
+    const result = await api('/auto_sort/start', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}
+    });
+    
+    if (result.ok) {
+      toast('Auto-sort loop started');
+      await updateAutoSortStatus();
+      
+      // Start polling for status updates
+      if (autoSortPollingInterval) clearInterval(autoSortPollingInterval);
+      autoSortPollingInterval = setInterval(updateAutoSortStatus, 2000);
+    } else {
+      toast(result.message || 'Failed to start auto-sort');
+    }
+  } catch (e) {
+    toast(`Start failed: ${e.message}`);
+  }
+});
+
+on($('btnAutoSortStop'), 'click', async () => {
+  try {
+    const result = await api('/auto_sort/stop', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}
+    });
+    
+    if (result.ok) {
+      toast('Auto-sort loop stopped');
+      await updateAutoSortStatus();
+      
+      // Stop polling
+      if (autoSortPollingInterval) {
+        clearInterval(autoSortPollingInterval);
+        autoSortPollingInterval = null;
+      }
+    } else {
+      toast(result.message || 'Failed to stop auto-sort');
+    }
+  } catch (e) {
+    toast(`Stop failed: ${e.message}`);
+  }
+});
+
 // ------------- boot -------------
 resetLookupDetails();
 loadGrid();
 loadSortModes();
 loadSortOperations();
+updateAutoSortStatus(); // Initial status check

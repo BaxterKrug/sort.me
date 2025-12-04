@@ -240,7 +240,7 @@ sorting:
         kaldheim: E3
         "*": K2
 camera:
-  device: 0
+  device: 1
   resolution:
   - 1280
   - 720

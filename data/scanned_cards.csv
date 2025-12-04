@@ -27,3 +27,12 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2025-12-04T00:43:17Z,295f9eb0-5a75-4f86-aca9-3f76b0213c41,Benthic Giant,B2,alpha_exact:B:Benthic Giant,1.000
 2025-12-04T00:45:49Z,295f9eb0-5a75-4f86-aca9-3f76b0213c41,Benthic Giant,B2,alpha_exact:B:Benthic Giant,1.000
 2025-12-04T00:45:50Z,295f9eb0-5a75-4f86-aca9-3f76b0213c41,Benthic Giant,B2,alpha_exact:B:Benthic Giant,1.000
+2025-12-04T00:59:06Z,295f9eb0-5a75-4f86-aca9-3f76b0213c41,Benthic Giant,B2,alpha_exact:B:Benthic Giant,1.000
+2025-12-04T01:00:06Z,5d89669b-f08a-400c-8673-7ffd91c05f5d,"Creature — Giant Hexproof (T) his creature can't be the rarget of spells or abilities your opponents control. “Some fates you can See coming for you, plain as day, and there's nothing you can steylagerthernia",B3,"alpha_exact:C:Creature — Giant Hexproof (T) his creature can't be the rarget of spells or abilities your opponents control. “Some fates you can See coming for you, plain as day, and there's nothing you can steylagerthernia",0.800
+2025-12-04T01:00:06,"Creature — Giant Hexproof (T) his creature can't be the rarget of spells or abilities your opponents control. “Some fates you can See coming for you, plain as day, and there's nothing you can steylagerthernia",,B3,"alpha_exact:C:Creature — Giant Hexproof (T) his creature can't be the rarget of spells or abilities your opponents control. “Some fates you can See coming for you, plain as day, and there's nothing you can steylagerthernia"
+2025-12-04T01:00:58Z,09b661a5-359b-4f21-b1b6-aa0988810b4d,Mi Vaporkin nen TF.”,F1,alpha_exact:M:Mi Vaporkin nen TF.”,0.800
+2025-12-04T01:00:58,Mi Vaporkin nen TF.”,,F1,alpha_exact:M:Mi Vaporkin nen TF.”
+2025-12-04T01:02:00Z,23bcf64a-ae3d-4abb-acc7-81bba237f37b,Pal) oi). ORB OU ET OT a a AE Cee,G1,alpha_exact:P:Pal) oi). ORB OU ET OT a a AE Cee,0.800
+2025-12-04T01:02:00,Pal) oi). ORB OU ET OT a a AE Cee,,G1,alpha_exact:P:Pal) oi). ORB OU ET OT a a AE Cee
+2025-12-04T01:03:02Z,f259bc90-463d-4ad5-b803-c478ef6b3172,“?¢ —_ om A an red,B1,alpha_exact:A:“?¢ —_ om A an red,0.800
+2025-12-04T01:03:02,“?¢ —_ om A an red,,B1,alpha_exact:A:“?¢ —_ om A an red

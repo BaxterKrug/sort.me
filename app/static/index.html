@@ -208,36 +208,6 @@
         </div>
       </div>
 
-      <div class="card">
-        <h3>Scryfall Lookup</h3>
-        <p class="muted">Enter a Scryfall ID to preview where the card will land and confirm metadata.</p>
-        <div class="form">
-          <label for="sortOperationSelect">Sort Operation</label>
-          <select id="sortOperationSelect" disabled>
-            <option value="">Loading operations…</option>
-          </select>
-
-          <label for="lookupScryfallSetup">Scryfall ID</label>
-          <div class="row compact">
-            <input id="lookupScryfallSetup" type="text" placeholder="e.g., 3c6f1f34-3bd1-4b8d-a0bf-42fb0a5c681a" autocomplete="off" />
-            <button id="btnLookupScryfallSetup" class="secondary" type="button">Lookup</button>
-          </div>
-
-          <div id="lookupSetupSummary" class="lookup-summary">
-            <div><span class="muted">Name:</span> <strong id="lookupCardName">—</strong></div>
-            <div><span class="muted">Printed:</span> <strong id="lookupCardPrinted">—</strong></div>
-            <div><span class="muted">Set:</span> <strong id="lookupCardSet">—</strong></div>
-            <div><span class="muted">Released:</span> <strong id="lookupCardYear">—</strong></div>
-            <div><span class="muted">Value (USD):</span> <strong id="lookupCardValue">—</strong></div>
-            <div><span class="muted">Mode:</span> <strong id="lookupCardMode">—</strong></div>
-            <div><span class="muted">Match:</span> <strong id="lookupCardMatch">—</strong></div>
-            <div><span class="muted">Target:</span> <strong id="lookupCardCell">—</strong></div>
-            <div><span class="muted">Reason:</span> <strong id="lookupCardReason">—</strong></div>
-          </div>
-        </div>
-      </div>
-
-  
       <div class="divider"></div>
 
       <div class="row between">
@@ -253,6 +223,29 @@
     <!-- Step 3: Run View -->
     <section id="panelRun" class="panel">
       <h2>Run</h2>
+      
+      <div class="card">
+        <h3>Automatic Sorting</h3>
+        <p class="muted">Start the automated card sorting loop. The system will continuously capture, identify, and sort cards.</p>
+        
+        <div class="auto-sort-status">
+          <div class="row between align-center">
+            <div>
+              <span class="label">Status:</span>
+              <span id="autoSortStatus" class="chip muted">Stopped</span>
+            </div>
+            <div class="auto-sort-stats">
+              <span class="muted">Cards: <strong id="autoSortCount">0</strong></span>
+              <span class="muted">Errors: <strong id="autoSortErrors">0</strong></span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row" style="margin-top: 1rem;">
+          <button id="btnAutoSortStart" class="primary">Start Auto-Sort</button>
+          <button id="btnAutoSortStop" class="secondary" disabled>Stop Auto-Sort</button>
+        </div>
+      </div>
     </section>
   </main>
 
