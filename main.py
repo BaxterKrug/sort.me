@@ -677,6 +677,10 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
     without intermediate polling or delays.
     """
     try:
+        # Save starting position
+        start_x = float(MOTION.current[0])
+        start_y = float(MOTION.current[1])
+        
         # 1. Lower the Z-axis (Home Z)
         # This command is assumed to block until the Z-axis is confirmed at Z=0.
         await MOTION.home_z()
@@ -755,6 +759,41 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                         await _await_motion_completion(MOTION, (tx, ty, safe_z), tolerance=1.0, timeout=6.0)
                                     except Exception:
                                         # Best-effort; don't fail the whole operation if completion wait fails
+                                        pass
+                                    
+                                    # Lower Z by 100mm after reaching the target cell
+                                    new_z = safe_z - 100.0
+                                    await driver.send_gcode(f'G1 Z{new_z:.3f} F1000')
+                                    MOTION.current = (tx, ty, new_z)
+                                    try:
+                                        await _await_motion_completion(MOTION, (tx, ty, new_z), tolerance=1.0, timeout=6.0)
+                                    except Exception:
+                                        pass
+                                    
+                                    # Retract extruder by 0.2mm at 50 mm/min
+                                    await driver.extrude(-0.2, 50.0)
+                                    
+                                    # Small delay to ensure retraction completes
+                                    import asyncio
+                                    await asyncio.sleep(0.5)
+                                    
+                                    # Raise Z by 100mm back to safe height
+                                    await driver.send_gcode(f'G0 Z{safe_z:.3f} F1000')
+                                    MOTION.current = (tx, ty, safe_z)
+                                    try:
+                                        await _await_motion_completion(MOTION, (tx, ty, safe_z), tolerance=1.0, timeout=6.0)
+                                    except Exception as e:
+                                        LOG.warning("Z raise completion wait failed: %s", e)
+                                        pass
+                                    
+                                    # Return to starting position
+                                    feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 800)))
+                                    await driver.send_gcode(f'G1 X{start_x:.3f} Y{start_y:.3f} F{feed}')
+                                    MOTION.current = (start_x, start_y, safe_z)
+                                    try:
+                                        await _await_motion_completion(MOTION, (start_x, start_y, safe_z), tolerance=1.0, timeout=6.0)
+                                    except Exception as e:
+                                        LOG.warning("Return to start completion wait failed: %s", e)
                                         pass
                                 else:
                                     # Fallback to controller helper which may include Z;
