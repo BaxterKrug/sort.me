@@ -1,0 +1,124 @@
+INFO:sort.motion:Using VirtualMotionDriver (fake hardware mode enabled)
+INFO:sort.motion:VirtualMotionDriver initialised
+INFO:sort.motion:Configured 33 cells (XY coordinates only)
+INFO:sort.camera:Camera configured: device=1 resolution=(1280, 720) fps=30 use_fake=True
+INFO:sort.feeder_monitor:Feeder monitor configured for cells: ['A1', 'A2', 'A3']
+DEBUG:asyncio:Using selector: EpollSelector
+INFO:     Started server process [51894]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:sort.camera:Using FakeCamera (fake hardware mode enabled)
+INFO:sort.camera:FakeCamera: Found 1 images in Photos
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /debug/preview HTTP/1.1" 200 OK
+DEBUG:sort.motion:Virtual driver gcode -> M400
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+/home/baxterkrug/Documents/sort.me/main.py:1510: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  timestamp_dt = datetime.utcnow()
+DEBUG:pytesseract:['tesseract', '/tmp/tess_if9cdyoj_input.PNG', '/tmp/tess_if9cdyoj', '-l', 'eng', '--psm', '7', 'txt']
+DEBUG:pytesseract:['tesseract', '/tmp/tess_gih_89pf_input.PNG', '/tmp/tess_gih_89pf', '-l', 'eng', '--psm', '7', 'txt']
+DEBUG:pytesseract:['tesseract', '/tmp/tess_7usiwahz_input.PNG', '/tmp/tess_7usiwahz', '-l', 'eng', '--psm', '7', 'txt']
+DEBUG:pytesseract:['tesseract', '/tmp/tess_2oqhuvr2_input.PNG', '/tmp/tess_2oqhuvr2', '-l', 'eng', '--psm', '7', 'txt']
+INFO:sort.api:Snapshot 2026-01-08T03:03:53.372Z OCR: ee ee = TEINIAHOA INVER | me Coe
+INFO:     127.0.0.1:34074 - "GET /camera/snapshot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36058 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34074 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47658 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56846 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56846 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56846 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56846 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56846 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56846 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56846 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /debug/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+DEBUG:sort.motion:Virtual driver gcode -> M400
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+DEBUG:sort.camera:FakeCamera: Loading image 2026-01-07-172322.jpg
+/home/baxterkrug/Documents/sort.me/main.py:1510: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  timestamp_dt = datetime.utcnow()
+DEBUG:pytesseract:['tesseract', '/tmp/tess_pu25o3qa_input.PNG', '/tmp/tess_pu25o3qa', '-l', 'eng', '--psm', '7', 'txt']
+DEBUG:pytesseract:['tesseract', '/tmp/tess_pw6sgt3n_input.PNG', '/tmp/tess_pw6sgt3n', '-l', 'eng', '--psm', '7', 'txt']
+DEBUG:pytesseract:['tesseract', '/tmp/tess_p4xbp5he_input.PNG', '/tmp/tess_p4xbp5he', '-l', 'eng', '--psm', '7', 'txt']
+DEBUG:pytesseract:['tesseract', '/tmp/tess_1p62ay4z_input.PNG', '/tmp/tess_1p62ay4z', '-l', 'eng', '--psm', '7', 'txt']
+INFO:sort.api:Snapshot 2026-01-08T03:06:43.811Z OCR: ee ee = TEINIAHOA INVER | me Coe
+INFO:     127.0.0.1:55758 - "GET /camera/snapshot HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55758 - "GET /camera/status HTTP/1.1" 200 OK

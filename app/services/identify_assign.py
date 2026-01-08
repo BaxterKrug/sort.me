@@ -1,6 +1,6 @@
 import os
 from typing import Optional, List, Dict, Any
-from . import card_id, assign
+from . import card_id_lightweight as card_id, assign
 
 def identify_and_assign(ocr_map: Dict[str, str],
                         db_path: Optional[str],
@@ -15,12 +15,11 @@ def identify_and_assign(ocr_map: Dict[str, str],
     Returns a dict with the assigned cell, reason, constructed card and
     the identification debug info.
     """
-    # prefer using precomputed embeddings when available
+    # Use lightweight string-matching based identification
     id_res = card_id.identify_card_from_ocr(
         ocr_map,
         db_path=db_path,
         cards_list=cards_list,
-        embeddings_dir=os.path.join("data", "embeddings"),
     )
 
     # identification confidence -> 0.0..1.0

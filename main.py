@@ -14,10 +14,11 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 from urllib import error as urlerror, request as urlrequest
 import serial.serialutil
 
+import cv2  # type: ignore[import-not-found]
 import numpy as np  # type: ignore[import-not-found]
 import yaml  # type: ignore[import-not-found]
 from fastapi import FastAPI, File, HTTPException, UploadFile, Request  # type: ignore[import-not-found]
-from fastapi.responses import FileResponse, Response  # type: ignore[import-not-found]
+from fastapi.responses import FileResponse, Response, HTMLResponse  # type: ignore[import-not-found]
 from fastapi.staticfiles import StaticFiles  # type: ignore[import-not-found]
 
 from app.services import card_id
@@ -63,7 +64,13 @@ STATE.active_sort_mode = CFG.default_sort_mode
 
 configure_from_cfg(raw_cfg)
 
+# Configure camera with fake hardware flag if set
 camera_cfg = raw_cfg.get("camera") if isinstance(raw_cfg, dict) else None
+if camera_cfg is None:
+    camera_cfg = {}
+# Pass the use_fake_hardware flag to camera configuration
+use_fake_hardware = raw_cfg.get("use_fake_hardware", False)
+camera_cfg["use_fake"] = use_fake_hardware
 try:
     camera_svc.configure(camera_cfg)
 except Exception as exc:  # pragma: no cover - best effort on startup
@@ -694,10 +701,35 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         # Extrude 0.2mm at a speed of 50.0 mm/min
         await MOTION.driver.extrude(0.2, 50.0)
 
-        # 3. Raise Z-axis to 135 mm
-        # Send a rapid movement command (G0) to Z=135.0 at a speed of 1000 mm/min.
-        # This command is sent immediately after the extrusion command.
-        await MOTION.driver.send_gcode('G0 Z135.0 F1000')
+        # 3. Raise Z-axis with jerking motion to shake off extra cards
+        # Start at Z=0, do shake pattern, end at Z=135mm safe height
+        # Pattern: +40mm, -20mm, +40mm, -20mm, +95mm = 135mm total
+        # Wait for each move to complete before sending the next
+        await MOTION.driver.send_gcode('G0 Z40.0 F1000')   # Up 40mm to Z=40
+        try:
+            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 40.0), tolerance=1.0, timeout=5.0)
+        except Exception:
+            await asyncio.sleep(1.0)  # Fallback wait
+        
+        await MOTION.driver.send_gcode('G0 Z20.0 F1000')   # Down 20mm to Z=20
+        try:
+            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 20.0), tolerance=1.0, timeout=5.0)
+        except Exception:
+            await asyncio.sleep(1.0)
+        
+        await MOTION.driver.send_gcode('G0 Z60.0 F1000')   # Up 40mm to Z=60
+        try:
+            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 60.0), tolerance=1.0, timeout=5.0)
+        except Exception:
+            await asyncio.sleep(1.0)
+        
+        await MOTION.driver.send_gcode('G0 Z40.0 F1000')   # Down 20mm to Z=40
+        try:
+            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 40.0), tolerance=1.0, timeout=5.0)
+        except Exception:
+            await asyncio.sleep(1.0)
+        
+        await MOTION.driver.send_gcode('G0 Z135.0 F1000')  # Up 95mm to Z=135 (safe height)
 
         # Ensure the motion controller's cached position reflects the raised Z.
         # Many callers (move_to_cell_xy) preserve the controller's current Z when
@@ -783,13 +815,27 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                     await asyncio.sleep(0.5)
                                     
                                     # Raise Z by 100mm back to safe height
+                                    # CRITICAL: Must complete before XY move to avoid collision
                                     await driver.send_gcode(f'G0 Z{safe_z:.3f} F1000')
-                                    MOTION.current = (tx, ty, safe_z)
-                                    try:
-                                        await _await_motion_completion(MOTION, (tx, ty, safe_z), tolerance=1.0, timeout=6.0)
-                                    except Exception as e:
-                                        LOG.warning("Z raise completion wait failed: %s", e)
-                                        pass
+                                    
+                                    # Wait for Z raise with extended timeout and mandatory completion
+                                    z_raised = False
+                                    for attempt in range(3):
+                                        try:
+                                            await _await_motion_completion(MOTION, (tx, ty, safe_z), tolerance=1.0, timeout=10.0)
+                                            MOTION.current = (tx, ty, safe_z)
+                                            z_raised = True
+                                            break
+                                        except Exception as e:
+                                            LOG.warning("Z raise attempt %d failed: %s", attempt + 1, e)
+                                            if attempt < 2:
+                                                await asyncio.sleep(0.5)
+                                    
+                                    if not z_raised:
+                                        # Emergency: Force position update and add safety delay
+                                        LOG.error("Z raise did not complete after retries! Adding emergency delay")
+                                        await asyncio.sleep(3.0)  # Extra time for Z to complete
+                                        MOTION.current = (tx, ty, safe_z)
                                     
                                     # Return to starting position
                                     feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 800)))
@@ -1230,27 +1276,196 @@ def camera_status() -> Dict[str, Any]:
     }
 
 
+def _simple_ocr_pipeline(frame: np.ndarray) -> Dict[str, Any]:
+    """Simple OCR pipeline for test photos: rotate, align, and OCR."""
+    
+    # Step 1: Rotate the image to portrait orientation if needed
+    height, width = frame.shape[:2]
+    rotated = frame
+    rotation_applied = "none"
+    
+    if width > height:
+        # Image is landscape, rotate 90 degrees counter-clockwise
+        rotated = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        rotation_applied = "90_ccw"
+        LOG.info("Rotated image 90° counter-clockwise: %dx%d -> %dx%d", width, height, rotated.shape[1], rotated.shape[0])
+    
+    # Step 2: Detect and align the card border
+    # Create a dummy mask for single frame processing
+    dummy_mask = np.ones((rotated.shape[0], rotated.shape[1]), dtype=np.uint8) * 255
+    
+    # First, visualize the border detection
+    processed = ocr_pipeline._enhance_for_border_detection(rotated)
+    edges = cv2.Canny(processed, 40, 160)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    edges = cv2.dilate(edges, kernel, iterations=2)
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Draw the detected border on the rotated image
+    rotated_with_border = rotated.copy()
+    if contours:
+        contour = max(contours, key=cv2.contourArea)
+        rect = cv2.minAreaRect(contour)
+        box = cv2.boxPoints(rect)
+        box = box.astype(np.int32)
+        cv2.drawContours(rotated_with_border, [box], 0, (0, 255, 0), 3)
+        LOG.info("Detected border with %d contours, largest has area %.1f", len(contours), cv2.contourArea(contour))
+    else:
+        LOG.warning("No contours found for border detection")
+    
+    # Use border_margin_px=0 to crop tightly to the card edge
+    card_aligned, card_mask, border_meta = ocr_pipeline._warp_card_to_bounds(
+        rotated, dummy_mask, border_margin_px=0
+    )
+    
+    LOG.info("Card alignment: found=%s, area=%.1f", border_meta.get("found"), border_meta.get("area", 0))
+    
+    # Step 3: Define card regions on aligned card
+    # Assuming card_aligned is now in portrait orientation and properly cropped
+    h, w = card_aligned.shape[:2]
+    
+    # Card layout regions:
+    # - Title: top 15% of card (0-15%)
+    # - Type line: 10% section above rules (53-63%)
+    # - Rules text: 30% section above collector (63-93%)
+    # - Collector/Artist: bottom 7% (93-100%)
+    
+    regions = {
+        "title": (0, int(h * 0.15)),                    # Top 15%
+        "type_line": (int(h * 0.53), int(h * 0.63)),    # 53-63% (10% section)
+        "rules": (int(h * 0.63), int(h * 0.93)),        # 63-93% (30% section)
+        "collector": (int(h * 0.93), h),                # Bottom 7% (93-100%)
+    }
+    
+    LOG.info("Card regions (h=%d): title=%s, type_line=%s, rules=%s, collector=%s", 
+             h, regions["title"], regions["type_line"], regions["rules"], regions["collector"])
+    
+    # Step 4: Prepare aligned card for OCR (enhance, etc.)
+    ocr_ready, ocr_meta = ocr_pipeline._prepare_for_ocr(card_aligned)
+    
+    # Step 5: Perform OCR on each region
+    ocr_text_map = {}
+    ocr_results_by_region = {}
+    
+    for region_name, (start_y, end_y) in regions.items():
+        # Extract region from OCR-ready image
+        region_img = ocr_ready[start_y:end_y, :]
+        
+        if region_img.size == 0:
+            continue
+        
+        # Perform OCR on this region
+        region_ocr_map, region_ocr_meta = ocr_pipeline._perform_ocr(region_img, region_hints=None)
+        
+        # Store the full text from this region
+        ocr_text_map[region_name] = region_ocr_map.get("full", "")
+        ocr_results_by_region[region_name] = {
+            "text": region_ocr_map.get("full", ""),
+            "meta": region_ocr_meta,
+            "bounds": (start_y, end_y),
+        }
+    
+    # Step 6: Build combined OCR meta
+    combined_ocr_meta = {
+        "engine": ocr_results_by_region.get("title", {}).get("meta", {}).get("engine", "unknown"),
+        "regions": regions,
+        "by_region": ocr_results_by_region,
+        "border": border_meta,
+    }
+    
+    return {
+        "original": frame,
+        "rotated": rotated,
+        "rotated_with_border": rotated_with_border,
+        "edges": edges,
+        "aligned": card_aligned,
+        "ocr_ready": ocr_ready,
+        "ocr_text": ocr_text_map,
+        "ocr_meta": combined_ocr_meta,
+        "rotation_applied": rotation_applied,
+        "regions": regions,
+    }
+
+
+@app.get("/camera/test_photo")
+async def camera_test_photo() -> Dict[str, Any]:
+    """Capture a single test photo with simple OCR pipeline."""
+    cam = camera_svc.get_manager()
+    loop = asyncio.get_running_loop()
+    
+    # Discard a few buffered frames and capture a fresh one
+    for _ in range(5):
+        await loop.run_in_executor(None, cam.grab_frame_sync, 0.0)
+        await asyncio.sleep(0.05)
+    
+    frame = await loop.run_in_executor(None, cam.grab_frame_sync, 0.0)
+    
+    if frame is None:
+        raise HTTPException(status_code=503, detail="Failed to capture frame")
+    
+    # Run simple OCR pipeline
+    result = _simple_ocr_pipeline(frame)
+    
+    # Encode original frame as JPEG
+    _, buffer = cv2.imencode('.jpg', result["original"], [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+    img_bytes = buffer.tobytes()
+    encoded_image = base64.b64encode(img_bytes).decode('ascii')
+    
+    # Encode rotated frame as JPEG
+    _, rot_buffer = cv2.imencode('.jpg', result["rotated"], [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+    rot_bytes = rot_buffer.tobytes()
+    encoded_rotated = base64.b64encode(rot_bytes).decode('ascii')
+    
+    # Encode rotated frame with border detection as JPEG
+    _, border_buffer = cv2.imencode('.jpg', result["rotated_with_border"], [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+    border_bytes = border_buffer.tobytes()
+    encoded_border = base64.b64encode(border_bytes).decode('ascii')
+    
+    # Encode edge detection as PNG
+    _, edges_buffer = cv2.imencode('.png', result["edges"])
+    edges_bytes = edges_buffer.tobytes()
+    encoded_edges = base64.b64encode(edges_bytes).decode('ascii')
+    
+    # Encode aligned card as JPEG
+    _, aligned_buffer = cv2.imencode('.jpg', result["aligned"], [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+    aligned_bytes = aligned_buffer.tobytes()
+    encoded_aligned = base64.b64encode(aligned_bytes).decode('ascii')
+    
+    # Encode OCR-prepared image as PNG
+    _, ocr_buffer = cv2.imencode('.png', result["ocr_ready"])
+    ocr_bytes = ocr_buffer.tobytes()
+    encoded_ocr = base64.b64encode(ocr_bytes).decode('ascii')
+    
+    return {
+        "success": True,
+        "shape": list(frame.shape),
+        "size_bytes": len(img_bytes),
+        "image": encoded_image,
+        "mime": "image/jpeg",
+        "rotated_image": encoded_rotated,
+        "rotated_shape": list(result["rotated"].shape),
+        "border_detection_image": encoded_border,
+        "edges_image": encoded_edges,
+        "aligned_image": encoded_aligned,
+        "aligned_shape": list(result["aligned"].shape),
+        "rotation_applied": result["rotation_applied"],
+        "ocr_image": encoded_ocr,
+        "ocr_mime": "image/png",
+        "ocr_text": result["ocr_text"],
+        "ocr_meta": result["ocr_meta"],
+        "regions": result["regions"],
+    }
+
+
 @app.get("/camera/snapshot")
 async def camera_snapshot(
     quality: int = 80,
     max_age: float = 0.0,
-    offset_mm: float = 40.0,
 ) -> Dict[str, Any]:
+    """Capture a single snapshot for card identification (no dual-frame compositing)."""
     cam = camera_svc.get_manager()
     ctrl = motion.get_controller()
     loop = asyncio.get_running_loop()
-
-    frame_top: Optional[np.ndarray] = None
-    frame_bottom: Optional[np.ndarray] = None
-
-    def _frame_difference(first: np.ndarray, second: np.ndarray) -> float:
-        min_height = min(first.shape[0], second.shape[0])
-        min_width = min(first.shape[1], second.shape[1])
-        if min_height <= 0 or min_width <= 0:
-            return 0.0
-        a = first[:min_height, :min_width].astype(np.float32, copy=False)
-        b = second[:min_height, :min_width].astype(np.float32, copy=False)
-        return float(np.mean(np.abs(a - b)))
 
     async def _capture_fresh_frame(
         *,
@@ -1258,11 +1473,13 @@ async def camera_snapshot(
         discard: int = 2,
         settle: float = 0.05,
     ) -> np.ndarray:
+        # Discard buffered frames to ensure we get a fresh capture
         for _ in range(max(0, discard)):
             await loop.run_in_executor(None, cam.grab_frame_sync, 0.0)
             if settle > 0:
                 await asyncio.sleep(settle)
-        frame = cast(np.ndarray, await loop.run_in_executor(None, cam.grab_frame_sync, max_age_override))
+        # Final capture - always use max_age=0.0 to force a fresh read
+        frame = cast(np.ndarray, await loop.run_in_executor(None, cam.grab_frame_sync, 0.0))
         return frame
 
     async with ctrl.lock:
@@ -1277,88 +1494,18 @@ async def camera_snapshot(
         except RuntimeError as exc:
             raise HTTPException(status_code=503, detail=str(exc))
 
-        start_pos = measured_start
-        top_pos = measured_start
-        bottom_pos = measured_start
         ctrl.current = measured_start
-
-        travel = max(offset_mm, 0.0)
-        expected_bottom = (
-            top_pos[0],
-            top_pos[1] + travel,
-            top_pos[2],
-        )
 
         try:
             await ctrl.driver.set_speed(ctrl.default_speed)
             await asyncio.sleep(0.3)
-            frame_top = await _capture_fresh_frame(max_age_override=max_age, discard=3, settle=0.05)
-
-            await asyncio.sleep(0.25)
-
-            # Move Y axis by offset (positive direction) without changing other axes
-            if travel > 0.0:
-                await ctrl.driver.move_absolute(
-                    expected_bottom[0],
-                    expected_bottom[1],
-                    expected_bottom[2],
-                    ctrl.default_speed,
-                )
-                try:
-                    bottom_pos = await _await_motion_completion(
-                        ctrl,
-                        expected_bottom,
-                        tolerance=0.4,
-                        timeout=10.0,
-                    )
-                except RuntimeError as exc:
-                    raise HTTPException(status_code=503, detail=str(exc))
-            else:
-                bottom_pos = top_pos
-
-            await asyncio.sleep(0.18)
-            frame_bottom = await _capture_fresh_frame(max_age_override=0.0, discard=3, settle=0.06)
-            if frame_top is not None:
-                diff_score = _frame_difference(frame_top, frame_bottom)
-                attempts = 0
-                while diff_score < 2.0 and attempts < 3:
-                    LOG.debug("Bottom frame matched top (diff=%.3f); retrying capture", diff_score)
-                    await asyncio.sleep(0.2)
-                    frame_bottom = await _capture_fresh_frame(max_age_override=0.0, discard=3, settle=0.06)
-                    diff_score = _frame_difference(frame_top, frame_bottom)
-                    attempts += 1
-                if diff_score < 2.0:
-                    LOG.warning("Bottom frame still similar to top after retries (diff=%.3f)", diff_score)
+            # Capture single frame
+            frame = await _capture_fresh_frame(max_age_override=0.0, discard=5, settle=0.05)
         except Exception as exc:
             raise HTTPException(status_code=503, detail=f"Camera snapshot failed: {exc}")
-        finally:
-            # Return to original position while keeping X/Z fixed
-            try:
-                if travel > 0.0:
-                    await ctrl.driver.move_absolute(
-                        top_pos[0],
-                        top_pos[1],
-                        top_pos[2],
-                        ctrl.default_speed,
-                    )
-                    try:
-                        start_pos = await _await_motion_completion(
-                            ctrl,
-                            top_pos,
-                            tolerance=0.5,
-                            timeout=10.0,
-                        )
-                    except RuntimeError as exc:
-                        LOG.warning("Motion controller did not confirm return-to-start: %s", exc)
-                    await asyncio.sleep(0.1)
-                ctrl.current = start_pos
-            except Exception as exc:
-                LOG.warning("Failed to return motion system to original position: %s", exc)
-                ctrl.current = commanded_start
-                start_pos = commanded_start
 
-    if frame_top is None or frame_bottom is None:
-        raise HTTPException(status_code=503, detail="Snapshot frames unavailable")
+    if frame is None:
+        raise HTTPException(status_code=503, detail="Snapshot frame unavailable")
 
     timestamp_dt = datetime.utcnow()
     timestamp_slug = timestamp_dt.strftime("%Y%m%d-%H%M%S-%f")
@@ -1379,25 +1526,23 @@ async def camera_snapshot(
     except Exception:
         LOG.warning("Could not clear snapshots directory: %s", snapshot_dir, exc_info=True)
 
-    artifacts = ocr_pipeline.prepare_snapshot_artifacts(
-        frame_top,
-        frame_bottom,
+    # Process single frame (no compositing)
+    artifacts = ocr_pipeline.prepare_single_snapshot_artifacts(
+        frame,
         timestamp_slug=timestamp_slug,
         save_dir=snapshot_dir,
         jpeg_quality=quality,
         persist=True,
         include_bytes=True,
-        embeddings_dir=EMBEDDINGS_DIR,
     )
 
     labels = [
-        "composite_rotated",
-        "composite",
-        "composite_aligned",
+        "rotated",
+        "aligned",
+        "flipped",
         "ocr_prepared",
         "ocr_text",
-        "top",
-        "bottom",
+        "original",
     ]
     frames: List[Dict[str, Any]] = []
     for label in labels:
@@ -1427,19 +1572,12 @@ async def camera_snapshot(
             artifacts[label].pop("bytes", None)
 
     saved_paths = {
-        "top_path": artifacts.get("top", {}).get("path", ""),
-        "bottom_path": artifacts.get("bottom", {}).get("path", ""),
-        "composite_path": artifacts.get("composite", {}).get("path", ""),
+        "original_path": artifacts.get("original", {}).get("path", ""),
         "ocr_path": artifacts.get("ocr_prepared", {}).get("path", ""),
         "meta_path": artifacts.get("meta", {}).get("path", ""),
     }
 
     meta_block = dict(artifacts.get("meta", {}))
-    orientation_metrics = meta_block.get("pair_orientation")
-    if orientation_metrics is None:
-        orientation_metrics = ocr_pipeline.analyze_orientation(frame_top, frame_bottom)
-    meta_block["analysis"] = orientation_metrics
-
     processing_meta = meta_block
 
     ocr_summary = None
@@ -1461,16 +1599,16 @@ async def camera_snapshot(
     elif ocr_summary:
         LOG.info("Snapshot %s OCR: %s", timestamp_iso, ocr_summary)
 
-    # Persist a small file with the best embedding match's scryfall id
+    # Persist a small file with the best identification match's scryfall id
     try:
-        embed_info = artifacts.get("meta", {}).get("embedding") if isinstance(artifacts.get("meta", {}), dict) else None
+        # Use lightweight identification instead of embeddings
+        identification_info = artifacts.get("meta", {}).get("identification") if isinstance(artifacts.get("meta", {}), dict) else None
         scry_id = None
-        if isinstance(embed_info, dict):
-            best = embed_info.get("best")
+        if isinstance(identification_info, dict):
+            best = identification_info.get("best")
             if isinstance(best, dict):
-                card = best.get("card") or {}
-                # store only the scryfall_id (do NOT fall back to other id fields)
-                scry_id = card.get("scryfall_id")
+                # FTS identification stores scryfall_id directly in best
+                scry_id = best.get("scryfall_id")
         last_path = snapshot_dir / "last_snapshot.json"
         # Write just the scryfall id as a JSON string (or null)
         last_path.write_text(json.dumps(scry_id), encoding="utf8")
@@ -1479,14 +1617,8 @@ async def camera_snapshot(
 
     return {
         "timestamp": timestamp_iso,
-        "offset_mm": offset_mm,
         "frames": frames,
         "images": frame_map,
-        "motion": {
-            "start": {"x": start_pos[0], "y": start_pos[1], "z": start_pos[2]},
-            "top": {"x": top_pos[0], "y": top_pos[1], "z": top_pos[2]},
-            "bottom": {"x": bottom_pos[0], "y": bottom_pos[1], "z": bottom_pos[2]},
-        },
         "saved": saved_paths,
         "processing": processing_meta,
     }
@@ -1506,6 +1638,283 @@ async def camera_dual_snapshot(payload: Optional[Dict[str, Any]] = None) -> Dict
 @app.get("/debug/alpha_map")
 def alpha_map() -> Dict[str, Any]:
     return {"letter_to_cell": CFG.letter_to_cell}
+
+
+@app.get("/debug/preview")
+async def debug_preview():
+    """Debug preview page showing image processing stages."""
+    html = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Card Processing Debug Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        h1 { color: #4a9eff; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .controls {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #4a9eff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #3a8eef; }
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+        }
+        .frames-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .frame-card {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .frame-card h3 {
+            margin-top: 0;
+            color: #4a9eff;
+            border-bottom: 2px solid #4a9eff;
+            padding-bottom: 10px;
+        }
+        .frame-image {
+            width: 100%;
+            height: auto;
+            border: 2px solid #444;
+            border-radius: 4px;
+            background: #000;
+        }
+        .frame-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        .frame-info div {
+            margin: 5px 0;
+        }
+        .ocr-text {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .identification {
+            background: #1a3a1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .identification h4 {
+            margin: 0 0 10px 0;
+            color: #6fff6f;
+        }
+        .no-match {
+            background: #3a1a1a;
+            color: #ff6f6f;
+        }
+        .metadata {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+        .metadata pre {
+            margin: 5px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Card Processing Debug Preview</h1>
+        
+        <div class="controls">
+            <button onclick="captureSnapshot()" id="captureBtn">Capture Snapshot</button>
+            <div class="status" id="status">Ready to capture</div>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function captureSnapshot() {
+            const btn = document.getElementById('captureBtn');
+            const status = document.getElementById('status');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            status.textContent = 'Capturing snapshot...';
+            results.innerHTML = '';
+            
+            try {
+                const response = await fetch('/camera/snapshot');
+                const data = await response.json();
+                
+                status.textContent = `Captured at ${data.timestamp}`;
+                
+                // Display frames in order
+                const frameOrder = ['original', 'rotated', 'aligned', 'flipped', 'ocr_prepared', 'ocr_text'];
+                const framesGrid = document.createElement('div');
+                framesGrid.className = 'frames-grid';
+                
+                for (const label of frameOrder) {
+                    const frame = data.frames.find(f => f.label === label);
+                    if (!frame) continue;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'frame-card';
+                    
+                    const title = document.createElement('h3');
+                    title.textContent = `${label.toUpperCase().replace('_', ' ')}`;
+                    card.appendChild(title);
+                    
+                    if (frame.image) {
+                        const img = document.createElement('img');
+                        img.className = 'frame-image';
+                        img.src = `data:${frame.mime};base64,${frame.image}`;
+                        card.appendChild(img);
+                    }
+                    
+                    const info = document.createElement('div');
+                    info.className = 'frame-info';
+                    
+                    if (frame.shape) {
+                        const shapeDiv = document.createElement('div');
+                        shapeDiv.innerHTML = `<strong>Shape:</strong> ${frame.shape[1]}×${frame.shape[0]} (W×H)`;
+                        info.appendChild(shapeDiv);
+                        
+                        const orientDiv = document.createElement('div');
+                        const orientation = frame.shape[1] > frame.shape[0] ? 'LANDSCAPE' : 'PORTRAIT';
+                        orientDiv.innerHTML = `<strong>Orientation:</strong> ${orientation}`;
+                        info.appendChild(orientDiv);
+                    }
+                    
+                    if (frame.size) {
+                        const sizeDiv = document.createElement('div');
+                        sizeDiv.innerHTML = `<strong>Size:</strong> ${(frame.size / 1024).toFixed(1)} KB`;
+                        info.appendChild(sizeDiv);
+                    }
+                    
+                    if (frame.meta) {
+                        const metaDiv = document.createElement('div');
+                        metaDiv.className = 'metadata';
+                        metaDiv.innerHTML = `<strong>Metadata:</strong><pre>${JSON.stringify(frame.meta, null, 2)}</pre>`;
+                        info.appendChild(metaDiv);
+                    }
+                    
+                    if (frame.text) {
+                        const textDiv = document.createElement('div');
+                        textDiv.className = 'ocr-text';
+                        textDiv.innerHTML = `<strong>OCR Text:</strong><pre>${JSON.stringify(frame.text, null, 2)}</pre>`;
+                        info.appendChild(textDiv);
+                    }
+                    
+                    card.appendChild(info);
+                    framesGrid.appendChild(card);
+                }
+                
+                results.appendChild(framesGrid);
+                
+                // Display identification results
+                if (data.processing && data.processing.identification) {
+                    const ident = data.processing.identification;
+                    const identCard = document.createElement('div');
+                    identCard.className = 'frame-card';
+                    
+                    const identTitle = document.createElement('h3');
+                    identTitle.textContent = 'CARD IDENTIFICATION';
+                    identCard.appendChild(identTitle);
+                    
+                    if (ident.best) {
+                        const identDiv = document.createElement('div');
+                        identDiv.className = 'identification';
+                        identDiv.innerHTML = `
+                            <h4>✓ Match Found</h4>
+                            <div><strong>Name:</strong> ${ident.best.name}</div>
+                            <div><strong>Score:</strong> ${(ident.score || 0).toFixed(2)}</div>
+                            <div><strong>Scryfall ID:</strong> ${ident.best.scryfall_id || 'N/A'}</div>
+                            <div><strong>Set:</strong> ${ident.best.set || 'N/A'}</div>
+                            <div><strong>Collector:</strong> ${ident.best.collector_number || 'N/A'}</div>
+                        `;
+                        identCard.appendChild(identDiv);
+                    } else {
+                        const noMatch = document.createElement('div');
+                        noMatch.className = 'identification no-match';
+                        noMatch.innerHTML = '<h4>✗ No Match Found</h4>';
+                        identCard.appendChild(noMatch);
+                    }
+                    
+                    results.appendChild(identCard);
+                }
+                
+                // Display OCR regions metadata
+                if (data.processing && data.processing.ocr_meta && data.processing.ocr_meta.region_rows) {
+                    const regionsCard = document.createElement('div');
+                    regionsCard.className = 'frame-card';
+                    
+                    const regionsTitle = document.createElement('h3');
+                    regionsTitle.textContent = 'OCR REGION ROWS';
+                    regionsCard.appendChild(regionsTitle);
+                    
+                    const regionsDiv = document.createElement('div');
+                    regionsDiv.className = 'metadata';
+                    
+                    const regions = data.processing.ocr_meta.region_rows;
+                    for (const [region, rows] of Object.entries(regions)) {
+                        const height = rows[1] - rows[0];
+                        regionsDiv.innerHTML += `<div><strong>${region}:</strong> rows ${rows[0]}-${rows[1]} (height: ${height}px)</div>`;
+                    }
+                    
+                    regionsCard.appendChild(regionsDiv);
+                    results.appendChild(regionsCard);
+                }
+                
+            } catch (error) {
+                status.textContent = `Error: ${error.message}`;
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
+    """
+    return HTMLResponse(content=html)
 
 
 @app.post("/debug/reset_counts")
@@ -1731,7 +2140,7 @@ async def _auto_sort_loop():
             # Step 1: Capture snapshot with OCR and card identification
             LOG.info("Auto-sort: Capturing snapshot...")
             try:
-                snapshot_data = await camera_snapshot(quality=80, max_age=0.0, offset_mm=40.0)
+                snapshot_data = await camera_snapshot(quality=80, max_age=0.0)
             except Exception as snap_exc:
                 LOG.error("Auto-sort: Camera snapshot failed: %s", snap_exc, exc_info=True)
                 AUTO_SORT_STATS["errors"] += 1

@@ -5,11 +5,76 @@ import time
 from typing import Any, Dict, Optional, Tuple
 import glob
 import os
+import random
 
 import cv2  # type: ignore
 import numpy as np  # type: ignore[import-not-found]
 
 LOG = logging.getLogger("sort.camera")
+
+
+class FakeCamera:
+    """Fake camera that returns random images from the Photos directory.
+    
+    Used for testing without real camera hardware.
+    """
+    
+    def __init__(self, photos_dir: str = "Photos"):
+        self.photos_dir = photos_dir
+        self._image_files: list = []
+        self._current_image: Optional[np.ndarray] = None
+        self._scan_photos()
+        
+    def _scan_photos(self) -> None:
+        """Scan the Photos directory for image files."""
+        if not os.path.exists(self.photos_dir):
+            LOG.warning(f"Photos directory '{self.photos_dir}' does not exist. Creating fake image.")
+            return
+            
+        patterns = ['*.jpg', '*.jpeg', '*.png', '*.bmp']
+        self._image_files = []
+        for pattern in patterns:
+            path_pattern = os.path.join(self.photos_dir, pattern)
+            self._image_files.extend(glob.glob(path_pattern))
+            
+        if self._image_files:
+            LOG.info(f"FakeCamera: Found {len(self._image_files)} images in {self.photos_dir}")
+        else:
+            LOG.warning(f"FakeCamera: No images found in {self.photos_dir}")
+    
+    def _get_fake_image(self) -> np.ndarray:
+        """Get a random image from Photos directory or create a fake one."""
+        if self._image_files:
+            # Pick a random image from the Photos directory
+            image_path = random.choice(self._image_files)
+            LOG.debug(f"FakeCamera: Loading image {os.path.basename(image_path)}")
+            img = cv2.imread(image_path)
+            if img is not None:
+                return img
+            LOG.warning(f"FakeCamera: Failed to load {image_path}, generating fake image")
+        
+        # Fallback: create a simple test pattern
+        img = np.zeros((720, 1280, 3), dtype=np.uint8)
+        # Add some pattern so it's not just black
+        cv2.putText(img, "FAKE CAMERA - No Photos", (50, 360), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3)
+        cv2.rectangle(img, (100, 100), (1180, 620), (0, 255, 0), 5)
+        return img
+    
+    def read(self) -> Tuple[bool, Optional[np.ndarray]]:
+        """Simulate cv2.VideoCapture.read() interface."""
+        # Return a new random image each time
+        img = self._get_fake_image()
+        return (True, img)
+    
+    def isOpened(self) -> bool:
+        """Simulate cv2.VideoCapture.isOpened() interface."""
+        return True
+    
+    def release(self) -> None:
+        """Simulate cv2.VideoCapture.release() interface."""
+        self._current_image = None
+        LOG.debug("FakeCamera released")
 
 
 class CameraManager:
@@ -27,6 +92,7 @@ class CameraManager:
             "resolution": (1280, 720),
             "fps": 30,
             "fallback_image": None,
+            "use_fake": False,  # Flag for fake hardware mode
         }
         self._last_frame: Optional[np.ndarray] = None
         self._last_ts: float = 0.0
@@ -43,10 +109,12 @@ class CameraManager:
                 "resolution": tuple(cfg.get("resolution", self._cfg["resolution"])),
                 "fps": cfg.get("fps", self._cfg.get("fps", 30)),
                 "fallback_image": cfg.get("fallback_image"),
+                "use_fake": cfg.get("use_fake", False),
             })
             self._dispose_locked()
             self._last_error = None
-            LOG.info("Camera configured: device=%s resolution=%s fps=%s", self._cfg["device"], self._cfg["resolution"], self._cfg.get("fps"))
+            LOG.info("Camera configured: device=%s resolution=%s fps=%s use_fake=%s", 
+                    self._cfg["device"], self._cfg["resolution"], self._cfg.get("fps"), self._cfg.get("use_fake"))
 
     def _dispose_locked(self) -> None:
         if self._capture is not None:
@@ -100,6 +168,14 @@ class CameraManager:
     def _ensure_capture_locked(self) -> Optional[cv2.VideoCapture]:
         if self._capture is not None and self._capture.isOpened():
             return self._capture
+        
+        # Check if we should use fake camera
+        if self._cfg.get("use_fake", False):
+            LOG.info("Using FakeCamera (fake hardware mode enabled)")
+            self._capture = FakeCamera()  # type: ignore
+            self._last_error = None
+            return self._capture  # type: ignore
+        
         device = self._cfg.get("device", 0)
         # Accept either an integer index or a device path string like '/dev/video0'
         use_device = device

@@ -1,3 +1,6 @@
+# Set to true to use fake hardware for testing without real camera/motion hardware
+use_fake_hardware: true
+
 alpha_exact:
   letter_to_cell:
     A: B1

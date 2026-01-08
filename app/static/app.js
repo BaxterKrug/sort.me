@@ -1085,6 +1085,101 @@ on($('btnEndRun'), 'click', async ()=>{
 
 on($('btnManualDivert'),'click', ()=> api('/run/divert_current',{method:'POST'}).then(()=>toast('Current card diverted to K3')).catch(e=>toast(e.message)));
 on($('btnCameraSnapshot'),'click', ()=> captureSnapshot());
+on($('btnTestPhoto'),'click', async ()=> {
+  const btn = $('btnTestPhoto');
+  const preview = $('testPhotoPreview');
+  const img = $('testPhotoImage');
+  const rotatedImg = $('testPhotoRotated');
+  const borderImg = $('testPhotoBorder');
+  const edgesImg = $('testPhotoEdges');
+  const alignedImg = $('testPhotoAligned');
+  const info = $('testPhotoInfo');
+  
+  btn.disabled = true;
+  btn.textContent = 'Capturing...';
+  
+  try {
+    const resp = await fetch(BASE + '/camera/test_photo');
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    }
+    const data = await resp.json();
+    
+    if (data.image) {
+      // Convert base64 to data URL
+      img.src = `data:${data.mime};base64,${data.image}`;
+      
+      // Show rotated image
+      if (data.rotated_image) {
+        rotatedImg.src = `data:${data.mime};base64,${data.rotated_image}`;
+      }
+      
+      // Show border detection
+      if (data.border_detection_image) {
+        borderImg.src = `data:${data.mime};base64,${data.border_detection_image}`;
+      }
+      
+      // Show edge detection
+      if (data.edges_image) {
+        edgesImg.src = `data:image/png;base64,${data.edges_image}`;
+      }
+      
+      // Show aligned card
+      if (data.aligned_image) {
+        alignedImg.src = `data:${data.mime};base64,${data.aligned_image}`;
+      }
+      
+      preview.style.display = 'block';
+      
+      const shape = data.shape || [];
+      const rotatedShape = data.rotated_shape || [];
+      const alignedShape = data.aligned_shape || [];
+      let infoText = `Original Shape: ${shape.join('x')} | Size: ${data.size_bytes} bytes\n`;
+      infoText += `Rotated Shape: ${rotatedShape.join('x')} | Rotation: ${data.rotation_applied || 'none'}\n`;
+      infoText += `Aligned Shape: ${alignedShape.join('x')}\n`;
+      
+      // Display OCR results by region
+      if (data.ocr_text) {
+        infoText += '\n=== OCR TEXT BY REGION ===\n';
+        
+        const title = data.ocr_text.title || '';
+        const typeLine = data.ocr_text.type_line || '';
+        const rules = data.ocr_text.rules || '';
+        const collector = data.ocr_text.collector || '';
+        
+        if (title) infoText += `\nTITLE:\n${title}\n`;
+        if (typeLine) infoText += `\nTYPE LINE:\n${typeLine}\n`;
+        if (rules) infoText += `\nRULES TEXT:\n${rules}\n`;
+        if (collector) infoText += `\nCOLLECTOR/ARTIST:\n${collector}\n`;
+        
+        // Show engine info
+        if (data.ocr_meta && data.ocr_meta.engine) {
+          infoText += `\nEngine: ${data.ocr_meta.engine}`;
+        }
+        
+        // Show region bounds if available
+        if (data.regions) {
+          infoText += '\n\n=== REGION BOUNDS (pixels) ===\n';
+          for (const [region, bounds] of Object.entries(data.regions)) {
+            infoText += `${region}: [${bounds[0]}, ${bounds[1]}]\n`;
+          }
+        }
+      }
+      
+      info.textContent = infoText;
+      toast('Test photo captured with OCR');
+    } else {
+      throw new Error('No image data in response');
+    }
+  } catch (err) {
+    console.error('Test photo failed:', err);
+    toast('Test photo failed: ' + err.message);
+    preview.style.display = 'none';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Test Photo';
+  }
+});
 on(snapshotDownloadBtn, 'click', ()=>{
   const orderedLabels = ['composite_rotated','composite','composite_aligned','ocr_prepared','top','bottom'];
   const seenAssets = new Set();

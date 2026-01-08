@@ -37,7 +37,7 @@ from . import card_id
 from . import text_clean
 
 LOG = logging.getLogger("sort.ocr_pipeline")
-CARD_BORDER_MARGIN_PX = 20
+CARD_BORDER_MARGIN_PX = 10  # Balanced margin - not too tight, not too loose
 _TESSERACT_PATH = shutil.which("tesseract")
 HAVE_TESSERACT = bool(pytesseract and _TESSERACT_PATH)
 HAVE_EASYOCR = bool(easyocr)
@@ -195,7 +195,7 @@ def _composite_frames(frame_top: np.ndarray, frame_bottom: np.ndarray) -> Tuple[
     alpha = np.linspace(1.0, 0.0, overlap_px, dtype=np.float32).reshape(-1, 1, 1)
     blend = (blend_top.astype(np.float32) * alpha + blend_bottom.astype(np.float32) * (1.0 - alpha)).astype(np.uint8)
 
-    composite = np.vstack([top_crop, blend, bottom_crop])
+    composite = np.vstack([bottom_crop, blend, top_crop])
 
     width = composite.shape[1]
     mask_top = np.zeros((top_crop.shape[0], width), dtype=np.float32)
@@ -277,6 +277,73 @@ def _enhance_for_border_detection(image: np.ndarray) -> np.ndarray:
     return cleaned
 
 
+def _visualize_edge_detection(image: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
+    """Create a visualization of the edge detection process for debugging."""
+    # Enhance for border detection
+    processed = _enhance_for_border_detection(image)
+    
+    # Canny edge detection
+    edges = cv2.Canny(processed, 50, 150)
+    
+    # Use moderate dilation to connect card edges
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    edges_dilated = cv2.dilate(edges, kernel, iterations=2)
+    
+    # Find contours
+    contours, _ = cv2.findContours(edges_dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Create a color visualization
+    vis = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2RGB)
+    
+    meta = {
+        "num_contours": len(contours),
+        "found": False,
+        "area": 0.0,
+    }
+    
+    if contours:
+        # Find the largest contour
+        contour = max(contours, key=cv2.contourArea)
+        area = cv2.contourArea(contour)
+        
+        if area >= 0.2 * image.shape[0] * image.shape[1]:
+            meta["area"] = float(area)
+            meta["found"] = True
+            
+            # Approximate the contour to get main edges
+            epsilon = 0.005 * cv2.arcLength(contour, True)  # Tighter approximation
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+            
+            # Draw the approximated contour in green
+            cv2.drawContours(vis, [approx], -1, (0, 255, 0), 3)
+            
+            # Use the approximated polygon to find the convex hull for a clean rectangle
+            hull = cv2.convexHull(approx)
+            
+            # Get the minimum area rectangle from the convex hull (follows longest edges)
+            rect = cv2.minAreaRect(hull)
+            box = cv2.boxPoints(rect)
+            box = np.array(box, dtype=np.int32)
+            
+            # Alternatively, use straight bounding rect if you want axis-aligned
+            # x, y, w, h = cv2.boundingRect(hull)
+            # box = np.array([[x, y], [x+w, y], [x+w, y+h], [x, y+h]], dtype=np.int32)
+            
+            # Draw the rectangle based on longest edges (red box)
+            cv2.drawContours(vis, [box], -1, (255, 0, 0), 2)
+            
+            # Draw corner points
+            for point in box:
+                cv2.circle(vis, tuple(point), 8, (255, 255, 0), -1)
+                
+            meta["rect_box"] = box.tolist()
+    
+    # Convert back to BGR for consistency
+    vis = cv2.cvtColor(vis, cv2.COLOR_RGB2BGR)
+    
+    return vis, meta
+
+
 def _warp_card_to_bounds(
     image: np.ndarray,
     source_mask: np.ndarray,
@@ -316,10 +383,10 @@ def _warp_card_to_bounds(
     if width == 0 or height == 0:
         return image, source_mask, meta
 
+    # Preserve the original aspect ratio - don't force portrait here
+    # Rotation will be handled separately by _orient_composite
     dest_width = max(width, 1)
     dest_height = max(height, 1)
-    if dest_width > dest_height:
-        dest_width, dest_height = dest_height, dest_width
 
     dst = np.array(
         [
@@ -344,9 +411,7 @@ def _warp_card_to_bounds(
         (dest_width, dest_height),
         borderMode=cv2.BORDER_REPLICATE,
     )
-    if warped.shape[1] > warped.shape[0]:
-        warped = cv2.rotate(warped, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        warped_mask = cv2.rotate(warped_mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    # Don't auto-rotate here - let _orient_composite handle rotation
     meta.update(
         {
             "found": True,
@@ -684,14 +749,18 @@ def _orient_composite(
 
     hint_det = str(meta["hint_determination"] or "").lower()
 
+    # Always rotate 90 degrees counterclockwise first
+    rotated_90 = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    mask_90 = cv2.rotate(source_mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    
     candidates = []
     rotations = {
-        "clockwise": cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE),
-        "counterclockwise": cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE),
+        "90_only": rotated_90,
+        "90_plus_180": cv2.rotate(rotated_90, cv2.ROTATE_180),
     }
     mask_rotations = {
-        "clockwise": cv2.rotate(source_mask, cv2.ROTATE_90_CLOCKWISE),
-        "counterclockwise": cv2.rotate(source_mask, cv2.ROTATE_90_COUNTERCLOCKWISE),
+        "90_only": mask_90,
+        "90_plus_180": cv2.rotate(mask_90, cv2.ROTATE_180),
     }
     for direction, candidate_img in rotations.items():
         metrics = _orientation_candidate_metrics(candidate_img, mask_rotations[direction])
@@ -717,6 +786,8 @@ def _orient_composite(
     best_direction = best_candidate["direction"]
     oriented = rotations[best_direction]
     meta["rotation_direction"] = best_direction
+    meta["rotated_90"] = True  # Always rotate 90 degrees
+    meta["rotated_180"] = best_direction == "90_plus_180"
     meta["header_activity_initial"] = candidates[0]["header"]
     meta["density_upper_initial"] = candidates[0]["density_upper"]
     meta["density_lower_initial"] = candidates[0]["density_lower"]
@@ -817,6 +888,7 @@ def _segment_ocr_regions(
         "full": (0, height),
         "name": (0, max(int(height * 0.20), 1)),
         "oracle": (max(int(height * 0.20) - 5, 0), max(int(height * 0.78), int(height * 0.20) + 1)),
+        "set_symbol": (max(int(height * 0.45), 1), max(int(height * 0.62), int(height * 0.45) + 1)),
         "collector": (max(int(height * 0.78) - 5, 0), height),
     }
 
@@ -896,7 +968,7 @@ def _finalize_ocr_map(raw_map: Dict[str, str | None] | Dict[str, str]) -> Dict[s
 
 def _perform_easyocr(ocr_image: np.ndarray, regions: Dict[str, Tuple[int, int]]) -> Tuple[Dict[str, str], Dict[str, Any]]:
     reader = _easyocr_reader()
-    ocr_map = {key: "" for key in ("full", "name", "oracle", "collector")}
+    ocr_map = {key: "" for key in ("full", "name", "oracle", "set_symbol", "collector")}
     meta: Dict[str, Any] = {
         "engine": "easyocr",
         "regions": regions,
@@ -947,7 +1019,7 @@ def _perform_ocr(
     region_hints: Optional[Dict[str, Tuple[int, int]]] = None,
 ) -> Tuple[Dict[str, str], Dict[str, Any]]:
     regions = _segment_ocr_regions(ocr_image, region_hints=region_hints)
-    ocr_map = {key: "" for key in ("full", "name", "oracle", "collector")}
+    ocr_map = {key: "" for key in ("full", "name", "oracle", "set_symbol", "collector")}
     meta: Dict[str, Any] = {
         "engine": "tesseract" if HAVE_TESSERACT else "unavailable",
         "psm": 6,
@@ -1039,6 +1111,301 @@ def _decode_image_bytes(data: bytes, flag: int = cv2.IMREAD_UNCHANGED) -> np.nda
     if image is None:
         raise ValueError("Failed to decode image bytes")
     return image
+
+
+def prepare_single_snapshot_artifacts(
+    frame: np.ndarray,
+    *,
+    timestamp_slug: str,
+    save_dir: Optional[Path] = None,
+    jpeg_quality: int = 90,
+    persist: bool = True,
+    include_bytes: bool = True,
+) -> Dict[str, Any]:
+    """Process a single snapshot frame for OCR without compositing.
+    
+    This is a simplified version for single-frame capture that:
+    1. Warps/aligns the card
+    2. Prepares for OCR
+    3. Extracts text
+    4. Identifies the card using lightweight matching (NO embeddings)
+    5. Saves artifacts if requested
+    """
+    save_dir = Path(save_dir) if save_dir is not None else Path("data") / "snapshots"
+    jpeg_quality = int(max(10, min(jpeg_quality, 100)))
+
+    # Create a dummy mask for single frame processing
+    dummy_mask = np.ones((frame.shape[0], frame.shape[1]), dtype=np.uint8) * 255
+    
+    # Warp and align the card (for actual processing)
+    card_aligned, card_mask, border_meta = _warp_card_to_bounds(frame, dummy_mask)
+    
+    # Ensure portrait orientation (rotate if needed)
+    # Create a simple orientation hint - we don't have dual frames, so no hint
+    card_oriented, orientation_meta = _orient_composite(card_aligned, card_mask, hint=None)
+    
+    # Crop bottom 160 pixels and right 120 pixels from rotated card to remove unnecessary parts
+    crop_bottom_px = 160
+    crop_right_px = 120
+    card_cropped = card_oriented.copy()
+    
+    if card_cropped.shape[0] > crop_bottom_px:
+        card_cropped = card_cropped[:-crop_bottom_px, :]
+        orientation_meta["cropped_bottom_px"] = crop_bottom_px
+    else:
+        orientation_meta["cropped_bottom_px"] = 0
+    
+    if card_cropped.shape[1] > crop_right_px:
+        card_cropped = card_cropped[:, :-crop_right_px]
+        orientation_meta["cropped_right_px"] = crop_right_px
+    else:
+        orientation_meta["cropped_right_px"] = 0
+    
+    # Use the cropped card for the "aligned" section (no edge detection visualization)
+    card_aligned_display = card_cropped.copy()
+    
+    # Extract text from specific zones: top 70px (name) and bottom 90px (collector)
+    name_zone_height = 70
+    collector_zone_height = 90
+    h, w = card_cropped.shape[:2]
+    
+    # Extract zones from normal orientation
+    name_zone = card_cropped[0:name_zone_height, :].copy() if h >= name_zone_height else card_cropped.copy()
+    collector_zone = card_cropped[-collector_zone_height:, :].copy() if h >= collector_zone_height else card_cropped.copy()
+    
+    # Create visualization with zone highlights on normal orientation
+    card_with_zones = card_cropped.copy()
+    if len(card_with_zones.shape) == 2:  # Grayscale to BGR
+        card_with_zones = cv2.cvtColor(card_with_zones, cv2.COLOR_GRAY2BGR)
+    # Draw green rectangles around zones
+    cv2.rectangle(card_with_zones, (0, 0), (w-1, name_zone_height-1), (0, 255, 0), 2)
+    cv2.rectangle(card_with_zones, (0, h-collector_zone_height), (w-1, h-1), (0, 255, 0), 2)
+    # Add labels
+    cv2.putText(card_with_zones, "NAME", (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+    cv2.putText(card_with_zones, "COLLECTOR", (5, h-collector_zone_height+15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+    
+    # Perform OCR on normal orientation zones
+    ocr_text_map_normal = {}
+    if HAVE_TESSERACT and pytesseract is not None:
+        try:
+            # Name zone OCR
+            name_prepared = _prepare_region_slice(name_zone, "name")
+            name_text = pytesseract.image_to_string(name_prepared, config="--psm 7", lang="eng")
+            ocr_text_map_normal["name"] = name_text.strip()
+            
+            # Collector zone OCR
+            collector_prepared = _prepare_region_slice(collector_zone, "collector")
+            collector_text = pytesseract.image_to_string(collector_prepared, config="--psm 7", lang="eng")
+            ocr_text_map_normal["collector"] = collector_text.strip()
+        except Exception as exc:
+            LOG.warning("Zone OCR failed (normal): %s", exc)
+            ocr_text_map_normal = {"name": "", "collector": ""}
+    else:
+        ocr_text_map_normal = {"name": "", "collector": ""}
+    
+    # Rotate 180 degrees and extract zones again
+    card_rotated_180 = cv2.rotate(card_cropped, cv2.ROTATE_180)
+    name_zone_180 = card_rotated_180[0:name_zone_height, :].copy() if h >= name_zone_height else card_rotated_180.copy()
+    collector_zone_180 = card_rotated_180[-collector_zone_height:, :].copy() if h >= collector_zone_height else card_rotated_180.copy()
+    
+    # Create visualization with zone highlights on 180-degree rotation
+    card_with_zones_180 = card_rotated_180.copy()
+    if len(card_with_zones_180.shape) == 2:  # Grayscale to BGR
+        card_with_zones_180 = cv2.cvtColor(card_with_zones_180, cv2.COLOR_GRAY2BGR)
+    # Draw green rectangles around zones
+    cv2.rectangle(card_with_zones_180, (0, 0), (w-1, name_zone_height-1), (0, 255, 0), 2)
+    cv2.rectangle(card_with_zones_180, (0, h-collector_zone_height), (w-1, h-1), (0, 255, 0), 2)
+    # Add labels
+    cv2.putText(card_with_zones_180, "NAME", (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+    cv2.putText(card_with_zones_180, "COLLECTOR", (5, h-collector_zone_height+15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+    
+    # Perform OCR on 180-degree rotated zones
+    ocr_text_map_180 = {}
+    if HAVE_TESSERACT and pytesseract is not None:
+        try:
+            # Name zone OCR (180)
+            name_prepared_180 = _prepare_region_slice(name_zone_180, "name")
+            name_text_180 = pytesseract.image_to_string(name_prepared_180, config="--psm 7", lang="eng")
+            ocr_text_map_180["name"] = name_text_180.strip()
+            
+            # Collector zone OCR (180)
+            collector_prepared_180 = _prepare_region_slice(collector_zone_180, "collector")
+            collector_text_180 = pytesseract.image_to_string(collector_prepared_180, config="--psm 7", lang="eng")
+            ocr_text_map_180["collector"] = collector_text_180.strip()
+        except Exception as exc:
+            LOG.warning("Zone OCR failed (180): %s", exc)
+            ocr_text_map_180 = {"name": "", "collector": ""}
+    else:
+        ocr_text_map_180 = {"name": "", "collector": ""}
+    
+    # Combine results - choose the one with more text
+    ocr_text_map = {}
+    ocr_text_map["name"] = (ocr_text_map_normal["name"] 
+                            if len(ocr_text_map_normal["name"]) >= len(ocr_text_map_180["name"]) 
+                            else ocr_text_map_180["name"])
+    ocr_text_map["collector"] = (ocr_text_map_normal["collector"] 
+                                  if len(ocr_text_map_normal["collector"]) >= len(ocr_text_map_180["collector"]) 
+                                  else ocr_text_map_180["collector"])
+    ocr_text_map["oracle"] = ""  # Not extracting oracle text from zones
+    ocr_text_map["type_line"] = ""
+    
+    ocr_text_meta = {
+        "zone_height": zone_height,
+        "normal": ocr_text_map_normal,
+        "rotated_180": ocr_text_map_180,
+        "selected": ocr_text_map,
+    }
+    
+    # Prepare for OCR display (keep existing for visualization)
+    ocr_ready, ocr_meta = _prepare_for_ocr(card_cropped)
+    ocr_meta.update({
+        "source": "single_frame",
+        "source_shape": list(card_aligned.shape),
+        "portrait_shape": list(card_oriented.shape),
+        "cropped_shape": list(card_cropped.shape),
+        "portrait_rotation": orientation_meta.get("rotation_direction", "none"),
+        "zone_ocr": ocr_text_meta,
+    })
+    
+    # Extract region hints for OCR (legacy, not used for zone extraction)
+    region_hints_payload: Optional[Dict[str, Tuple[int, int]]] = None
+    region_rows_meta = ocr_meta.get("region_rows") if isinstance(ocr_meta, dict) else None
+    if isinstance(region_rows_meta, dict):
+        region_hints_payload = {
+            key: (int(value[0]), int(value[1]))
+            for key, value in region_rows_meta.items()
+            if isinstance(value, (tuple, list)) and len(value) == 2
+        }
+    
+    # OCR already performed above using zone extraction
+    # ocr_text_map and ocr_text_meta are already populated
+    
+    # Use lightweight card identification (NO EMBEDDINGS)
+    fts_db_path = Path("data") / "cards_fts.sqlite"
+    identification_result = None
+    
+    # Prepare OCR map for identification
+    ocr_map_for_id = {
+        'name': ocr_text_map.get('name', ''),
+        'oracle': ocr_text_map.get('oracle', ''),
+        'type_line': ocr_text_map.get('type_line', ''),
+        'collector': ocr_text_map.get('collector', ''),
+    }
+    
+    # Try lightweight identification (FTS + rapidfuzz + TF-IDF)
+    try:
+        if fts_db_path.exists():
+            identification_result = card_id.identify_card_from_ocr(
+                ocr_map_for_id,
+                db_path=str(fts_db_path),
+                top_n=8
+            )
+            if identification_result and identification_result.get('best'):
+                ocr_text_meta["identification"] = identification_result
+                LOG.info("Card identified: %s (score: %.1f)", 
+                        identification_result['best'].get('name', 'Unknown'),
+                        identification_result.get('score', 0.0))
+    except Exception as exc:
+        LOG.warning("Card identification failed: %s", exc, exc_info=True)
+    
+    # Encode images (order: original, rotated, aligned, flipped, zones, ocr)
+    original_bytes = _encode_image(frame, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality])
+    rotated_bytes = _encode_image(card_with_zones, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), max(jpeg_quality, 92)])
+    aligned_bytes = _encode_image(card_aligned_display, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), max(jpeg_quality, 92)])
+    flipped_bytes = _encode_image(card_with_zones_180, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), max(jpeg_quality, 92)])
+    ocr_bytes = _encode_image(ocr_ready, ".png")
+
+    # Save to disk if requested
+    base_name = f"snapshot-{timestamp_slug}"
+    original_path = rotated_path = aligned_path = flipped_path = ocr_path = meta_path = None
+    if persist:
+        save_dir.mkdir(parents=True, exist_ok=True)
+        original_path = save_dir / f"{base_name}-original.jpg"
+        rotated_path = save_dir / f"{base_name}-rotated.jpg"
+        aligned_path = save_dir / f"{base_name}-aligned.jpg"
+        flipped_path = save_dir / f"{base_name}-flipped.jpg"
+        ocr_path = save_dir / f"{base_name}-ocr.png"
+        original_path.write_bytes(original_bytes)
+        rotated_path.write_bytes(rotated_bytes)
+        aligned_path.write_bytes(aligned_bytes)
+        flipped_path.write_bytes(flipped_bytes)
+        ocr_path.write_bytes(ocr_bytes)
+
+        meta_payload = {
+            "timestamp": timestamp_slug,
+            "paths": {
+                "original": str(original_path),
+                "aligned": str(aligned_path),
+                "rotated": str(rotated_path),
+                "ocr_prepared": str(ocr_path),
+            },
+            "ocr_map": ocr_text_map,
+            "ocr_result": ocr_text_meta,
+            "ocr_meta": ocr_meta,
+            "border": border_meta,
+            "orientation": orientation_meta,
+            "embedding": ocr_text_meta.get("embedding", {}),
+            "identification": ocr_text_meta.get("identification", {}),
+        }
+        meta_path = save_dir / f"{base_name}-meta.json"
+        meta_path.write_text(json.dumps(meta_payload, indent=2, sort_keys=True), encoding="utf8")
+
+    # Build assets dictionary (order: original, rotated, aligned, flipped, ocr_prepared)
+    assets: Dict[str, Any] = {
+        "original": {
+            "mime": "image/jpeg",
+            "path": str(original_path) if original_path else "",
+            "shape": list(frame.shape),
+        },
+        "rotated": {
+            "mime": "image/jpeg",
+            "path": str(rotated_path) if rotated_path else "",
+            "shape": list(card_with_zones.shape),
+            "meta": {"border": border_meta, "orientation": orientation_meta},
+        },
+        "aligned": {
+            "mime": "image/jpeg",
+            "path": str(aligned_path) if aligned_path else "",
+            "shape": list(card_aligned_display.shape),
+            "meta": {"border": border_meta},
+        },
+        "flipped": {
+            "mime": "image/jpeg",
+            "path": str(flipped_path) if flipped_path else "",
+            "shape": list(card_with_zones_180.shape),
+            "meta": {"rotation": "180_degrees"},
+        },
+        "ocr_prepared": {
+            "mime": "image/png",
+            "path": str(ocr_path) if ocr_path else "",
+            "shape": list(ocr_ready.shape),
+            "meta": ocr_meta,
+        },
+        "ocr_text": {
+            "mime": "application/json",
+            "path": str(meta_path) if meta_path else "",
+            "text": ocr_text_map,
+            "meta": ocr_text_meta,
+        },
+        "meta": meta_payload if persist else {
+            "ocr_map": ocr_text_map,
+            "ocr_result": ocr_text_meta,
+            "ocr_meta": ocr_meta,
+            "border": border_meta,
+            "embedding": ocr_text_meta.get("embedding", {}),
+            "identification": ocr_text_meta.get("identification", {}),
+        },
+    }
+    
+    # Include bytes if requested
+    if include_bytes:
+        assets["original"]["bytes"] = original_bytes
+        assets["rotated"]["bytes"] = rotated_bytes
+        assets["aligned"]["bytes"] = aligned_bytes
+        assets["flipped"]["bytes"] = flipped_bytes
+        assets["ocr_prepared"]["bytes"] = ocr_bytes
+
+    return assets
 
 
 def prepare_snapshot_artifacts(

@@ -34,6 +34,35 @@
             </div>
             <div class="row">
               <button id="btnCameraSnapshot" class="secondary">Capture Snapshot</button>
+              <button id="btnTestPhoto" class="secondary">Test Photo</button>
+            </div>
+            <div id="testPhotoPreview" class="test-photo-preview" style="display: none;">
+              <h4>Test Photo Debug</h4>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                  <div class="muted">Original</div>
+                  <img id="testPhotoImage" alt="Test photo" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                  <div class="muted">Rotated</div>
+                  <img id="testPhotoRotated" alt="Rotated photo" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                  <div class="muted">Border Detection</div>
+                  <img id="testPhotoBorder" alt="Border detection" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                  <div class="muted">Edge Detection</div>
+                  <img id="testPhotoEdges" alt="Edge detection" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                  <div class="muted">Aligned Card</div>
+                  <img id="testPhotoAligned" alt="Aligned card" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+                </div>
+              </div>
+              <div class="muted tiny" style="margin-top: 10px;">
+                <pre id="testPhotoInfo" style="white-space: pre-wrap; font-family: monospace;">—</pre>
+              </div>
             </div>
             <div id="snapshotPreviewWrap" class="snapshot-preview">
               <div class="snapshot-preview-images single">

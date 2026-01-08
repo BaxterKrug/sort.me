@@ -1176,6 +1176,7 @@ def get_controller() -> MotionController:
     fallback_ports = gcode_opts.get('fallback_ports', []) if isinstance(gcode_opts, dict) else []
 
     force_virtual = str(os.environ.get('SORTME_FORCE_VIRTUAL_DRIVER', '')).lower() in {'1', 'true', 'yes'}
+    use_fake_hardware = config.get('use_fake_hardware', False) if isinstance(config, dict) else False
 
     candidate_ports: List[str] = []
     for base in ['/dev/ttyACM0', '/dev/ttyACM1']:
@@ -1188,7 +1189,12 @@ def get_controller() -> MotionController:
             candidate_ports.append(str(extra))
 
     driver: Optional[MotionDriver] = None
-    if not force_virtual:
+    
+    # Use virtual driver if fake hardware mode is enabled
+    if use_fake_hardware:
+        LOG.info("Using VirtualMotionDriver (fake hardware mode enabled)")
+        driver = VirtualMotionDriver()
+    elif not force_virtual:
         for port in candidate_ports:
             try:
                 if not os.path.exists(port):
