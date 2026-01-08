@@ -830,10 +830,12 @@ def _prepare_for_ocr(image: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
     resized = cv2.resize(gray, (int(width * scale), int(height * scale)), interpolation=cv2.INTER_CUBIC)
 
     text_bands = _detect_text_bands_gray(resized)
-    masked_gray, art_mask_meta = _mask_artwork_rows(resized, text_bands)
+    # Skip artwork masking since we use zone-based OCR now
+    # masked_gray, art_mask_meta = _mask_artwork_rows(resized, text_bands)
+    art_mask_meta = {"masked": False, "source": "disabled"}
 
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    equalized = clahe.apply(masked_gray)
+    equalized = clahe.apply(resized)
     blurred = cv2.GaussianBlur(equalized, (5, 5), 0)
     binary = cv2.adaptiveThreshold(
         blurred,
@@ -1134,39 +1136,52 @@ def prepare_single_snapshot_artifacts(
     save_dir = Path(save_dir) if save_dir is not None else Path("data") / "snapshots"
     jpeg_quality = int(max(10, min(jpeg_quality, 100)))
 
+    # Crop 300 pixels from the left edge of the original frame
+    crop_left_original = 300
+    if frame.shape[1] > crop_left_original:
+        frame = frame[:, crop_left_original:]
+    
     # Create a dummy mask for single frame processing
     dummy_mask = np.ones((frame.shape[0], frame.shape[1]), dtype=np.uint8) * 255
     
     # Warp and align the card (for actual processing)
     card_aligned, card_mask, border_meta = _warp_card_to_bounds(frame, dummy_mask)
     
-    # Ensure portrait orientation (rotate if needed)
+    # Apply minimal crops BEFORE orientation detection
+    # Only crop left/right edges to remove card borders, leave top/bottom intact for text zones
+    crop_top_px = 0  # Don't crop top - card name might be here
+    crop_bottom_px = 0  # Don't crop bottom - collector info might be here
+    crop_left_px = 30
+    crop_right_px = 30
+    
+    card_precropped = card_aligned.copy()
+    mask_precropped = card_mask.copy()
+    
+    h, w = card_precropped.shape[:2]
+    if h > (crop_top_px + crop_bottom_px) and w > (crop_left_px + crop_right_px):
+        card_precropped = card_precropped[crop_top_px:h-crop_bottom_px if crop_bottom_px > 0 else h, 
+                                           crop_left_px:w-crop_right_px if crop_right_px > 0 else w]
+        mask_precropped = mask_precropped[crop_top_px:h-crop_bottom_px if crop_bottom_px > 0 else h, 
+                                          crop_left_px:w-crop_right_px if crop_right_px > 0 else w]
+        border_meta["precrop"] = {
+            "top": crop_top_px,
+            "bottom": crop_bottom_px,
+            "left": crop_left_px,
+            "right": crop_right_px
+        }
+    
+    # Ensure portrait orientation (rotate if needed) - now working on pre-cropped card
     # Create a simple orientation hint - we don't have dual frames, so no hint
-    card_oriented, orientation_meta = _orient_composite(card_aligned, card_mask, hint=None)
+    card_oriented, orientation_meta = _orient_composite(card_precropped, mask_precropped, hint=None)
     
-    # Crop bottom 160 pixels and right 120 pixels from rotated card to remove unnecessary parts
-    crop_bottom_px = 160
-    crop_right_px = 120
+    # Use the oriented card for both processing and display
     card_cropped = card_oriented.copy()
+    card_aligned_display = card_oriented.copy()
     
-    if card_cropped.shape[0] > crop_bottom_px:
-        card_cropped = card_cropped[:-crop_bottom_px, :]
-        orientation_meta["cropped_bottom_px"] = crop_bottom_px
-    else:
-        orientation_meta["cropped_bottom_px"] = 0
-    
-    if card_cropped.shape[1] > crop_right_px:
-        card_cropped = card_cropped[:, :-crop_right_px]
-        orientation_meta["cropped_right_px"] = crop_right_px
-    else:
-        orientation_meta["cropped_right_px"] = 0
-    
-    # Use the cropped card for the "aligned" section (no edge detection visualization)
-    card_aligned_display = card_cropped.copy()
-    
-    # Extract text from specific zones: top 70px (name) and bottom 90px (collector)
-    name_zone_height = 70
-    collector_zone_height = 90
+    # Extract text from specific zones: top 105px (name) and bottom 135px (collector)
+    # Increased by 50% from 70px and 90px to capture more text
+    name_zone_height = 105
+    collector_zone_height = 135
     h, w = card_cropped.shape[:2]
     
     # Extract zones from normal orientation
@@ -1238,23 +1253,120 @@ def prepare_single_snapshot_artifacts(
     else:
         ocr_text_map_180 = {"name": "", "collector": ""}
     
-    # Combine results - choose the one with more text
-    ocr_text_map = {}
-    ocr_text_map["name"] = (ocr_text_map_normal["name"] 
-                            if len(ocr_text_map_normal["name"]) >= len(ocr_text_map_180["name"]) 
-                            else ocr_text_map_180["name"])
-    ocr_text_map["collector"] = (ocr_text_map_normal["collector"] 
-                                  if len(ocr_text_map_normal["collector"]) >= len(ocr_text_map_180["collector"]) 
-                                  else ocr_text_map_180["collector"])
-    ocr_text_map["oracle"] = ""  # Not extracting oracle text from zones
-    ocr_text_map["type_line"] = ""
+    # Use lightweight card identification (NO EMBEDDINGS) - Do this BEFORE ocr_meta update
+    # Look for the JSON database file
+    data_dir = Path("data")
+    db_path = None
+    for json_file in data_dir.glob("oracle-cards-*.json"):
+        db_path = json_file
+        break
     
+    # Perform card identification on BOTH orientations
+    identification_normal = None
+    identification_180 = None
+    identification_result = None
+    
+    try:
+        if db_path and db_path.exists():
+            # Clean OCR text to remove common noise patterns
+            name_normal_clean = text_clean.normalize_card_name(ocr_text_map_normal.get('name', ''))
+            name_180_clean = text_clean.normalize_card_name(ocr_text_map_180.get('name', ''))
+            
+            LOG.debug("OCR name cleaning: normal '%s' -> '%s', 180° '%s' -> '%s'",
+                     ocr_text_map_normal.get('name', ''), name_normal_clean,
+                     ocr_text_map_180.get('name', ''), name_180_clean)
+            
+            # Identify using normal orientation OCR
+            ocr_map_normal = {
+                'name': name_normal_clean,
+                'oracle': '',
+                'type_line': '',
+                'collector': ocr_text_map_normal.get('collector', ''),
+            }
+            identification_normal = card_id.identify_card_from_ocr(
+                ocr_map_normal,
+                db_path=str(db_path),
+                top_n=8
+            )
+            
+            # Identify using 180-degree rotated orientation OCR
+            ocr_map_180 = {
+                'name': name_180_clean,
+                'oracle': '',
+                'type_line': '',
+                'collector': ocr_text_map_180.get('collector', ''),
+            }
+            identification_180 = card_id.identify_card_from_ocr(
+                ocr_map_180,
+                db_path=str(db_path),
+                top_n=8
+            )
+            
+            # Compare scores and select the better match
+            score_normal = identification_normal.get('score', 0.0) if identification_normal else 0.0
+            score_180 = identification_180.get('score', 0.0) if identification_180 else 0.0
+            
+            if score_normal >= score_180:
+                identification_result = identification_normal
+                selected_orientation = "normal"
+                ocr_text_map = ocr_text_map_normal.copy()
+            else:
+                identification_result = identification_180
+                selected_orientation = "rotated_180"
+                ocr_text_map = ocr_text_map_180.copy()
+            
+            # Add oracle and type_line (empty for zone-based extraction)
+            ocr_text_map["oracle"] = ""
+            ocr_text_map["type_line"] = ""
+            
+            if identification_result and identification_result.get('best'):
+                LOG.info("Card identified (%s): %s (score: %.1f vs %.1f)", 
+                        selected_orientation,
+                        identification_result['best'].get('name', 'Unknown'),
+                        score_normal if selected_orientation == "normal" else score_180,
+                        score_180 if selected_orientation == "normal" else score_normal)
+        else:
+            LOG.warning("No card database found in data/ directory")
+            # Fallback: use text length comparison
+            ocr_text_map = {}
+            ocr_text_map["name"] = (ocr_text_map_normal["name"] 
+                                    if len(ocr_text_map_normal["name"]) >= len(ocr_text_map_180["name"]) 
+                                    else ocr_text_map_180["name"])
+            ocr_text_map["collector"] = (ocr_text_map_normal["collector"] 
+                                          if len(ocr_text_map_normal["collector"]) >= len(ocr_text_map_180["collector"]) 
+                                          else ocr_text_map_180["collector"])
+            ocr_text_map["oracle"] = ""
+            ocr_text_map["type_line"] = ""
+            selected_orientation = "text_length_fallback"
+    except Exception as exc:
+        LOG.warning("Card identification failed: %s", exc, exc_info=True)
+        # Fallback: use text length comparison
+        ocr_text_map = {}
+        ocr_text_map["name"] = (ocr_text_map_normal["name"] 
+                                if len(ocr_text_map_normal["name"]) >= len(ocr_text_map_180["name"]) 
+                                else ocr_text_map_180["name"])
+        ocr_text_map["collector"] = (ocr_text_map_normal["collector"] 
+                                      if len(ocr_text_map_normal["collector"]) >= len(ocr_text_map_180["collector"]) 
+                                      else ocr_text_map_180["collector"])
+        ocr_text_map["oracle"] = ""
+        ocr_text_map["type_line"] = ""
+        selected_orientation = "error_fallback"
+    
+    # Update metadata with identification results from both orientations
     ocr_text_meta = {
-        "zone_height": zone_height,
+        "name_zone_height": name_zone_height,
+        "collector_zone_height": collector_zone_height,
         "normal": ocr_text_map_normal,
         "rotated_180": ocr_text_map_180,
         "selected": ocr_text_map,
+        "selected_orientation": selected_orientation,
+        "identification_normal": identification_normal,
+        "identification_180": identification_180,
     }
+    
+    # Add the best identification result to the metadata
+    if identification_result and identification_result.get('best'):
+        ocr_text_meta["identification"] = identification_result
     
     # Prepare for OCR display (keep existing for visualization)
     ocr_ready, ocr_meta = _prepare_for_ocr(card_cropped)
@@ -1276,37 +1388,6 @@ def prepare_single_snapshot_artifacts(
             for key, value in region_rows_meta.items()
             if isinstance(value, (tuple, list)) and len(value) == 2
         }
-    
-    # OCR already performed above using zone extraction
-    # ocr_text_map and ocr_text_meta are already populated
-    
-    # Use lightweight card identification (NO EMBEDDINGS)
-    fts_db_path = Path("data") / "cards_fts.sqlite"
-    identification_result = None
-    
-    # Prepare OCR map for identification
-    ocr_map_for_id = {
-        'name': ocr_text_map.get('name', ''),
-        'oracle': ocr_text_map.get('oracle', ''),
-        'type_line': ocr_text_map.get('type_line', ''),
-        'collector': ocr_text_map.get('collector', ''),
-    }
-    
-    # Try lightweight identification (FTS + rapidfuzz + TF-IDF)
-    try:
-        if fts_db_path.exists():
-            identification_result = card_id.identify_card_from_ocr(
-                ocr_map_for_id,
-                db_path=str(fts_db_path),
-                top_n=8
-            )
-            if identification_result and identification_result.get('best'):
-                ocr_text_meta["identification"] = identification_result
-                LOG.info("Card identified: %s (score: %.1f)", 
-                        identification_result['best'].get('name', 'Unknown'),
-                        identification_result.get('score', 0.0))
-    except Exception as exc:
-        LOG.warning("Card identification failed: %s", exc, exc_info=True)
     
     # Encode images (order: original, rotated, aligned, flipped, zones, ocr)
     original_bytes = _encode_image(frame, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality])

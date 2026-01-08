@@ -194,7 +194,7 @@ overflow:
   - ERR1
 sorting:
   default_mode: alpha_exact
-  low_confidence_threshold: 0.8
+  low_confidence_threshold: 0.7
   near_full_threshold: 0.9
   modes:
     alpha_exact:

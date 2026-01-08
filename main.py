@@ -1604,11 +1604,30 @@ async def camera_snapshot(
         # Use lightweight identification instead of embeddings
         identification_info = artifacts.get("meta", {}).get("identification") if isinstance(artifacts.get("meta", {}), dict) else None
         scry_id = None
+        assigned_cell = None
+        assignment_reason = None
+        
         if isinstance(identification_info, dict):
             best = identification_info.get("best")
             if isinstance(best, dict):
                 # FTS identification stores scryfall_id directly in best
                 scry_id = best.get("scryfall_id")
+                
+                # Create a Card object and get cell assignment
+                try:
+                    card = Card(
+                        game="magic",
+                        scryfall_id=scry_id or "",
+                        name=best.get("name", ""),
+                        set_code=best.get("set", ""),
+                        collector_number=best.get("collector_number", ""),
+                        confidence=identification_info.get("score", 0.0) / 100.0,  # Convert score to 0-1 confidence
+                    )
+                    assigned_cell, assignment_reason = assign_card(card, CFG, STATE)
+                    LOG.info("Card %s assigned to cell %s (%s)", card.name, assigned_cell, assignment_reason)
+                except Exception as exc:
+                    LOG.warning("Failed to assign card to cell: %s", exc, exc_info=True)
+                    
         last_path = snapshot_dir / "last_snapshot.json"
         # Write just the scryfall id as a JSON string (or null)
         last_path.write_text(json.dumps(scry_id), encoding="utf8")
@@ -1621,6 +1640,10 @@ async def camera_snapshot(
         "images": frame_map,
         "saved": saved_paths,
         "processing": processing_meta,
+        "assignment": {
+            "cell": assigned_cell,
+            "reason": assignment_reason,
+        } if assigned_cell else None,
     }
 
 
@@ -1749,6 +1772,75 @@ async def debug_preview():
             color: #888;
             margin-top: 10px;
             padding: 10px;
+            background: #1e1e1e;
+            border-radius: 4px;
+        }
+        .card-match-banner {
+            background: linear-gradient(135deg, #1a3a1a 0%, #2a4a2a 100%);
+            border: 3px solid #4aff4a;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+        }
+        .card-match-banner h2 {
+            margin: 0 0 15px 0;
+            color: #4aff4a;
+            font-size: 28px;
+            text-align: center;
+        }
+        .card-match-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .card-match-info {
+            flex: 1;
+        }
+        .card-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .card-details {
+            font-size: 16px;
+            color: #ccc;
+            margin: 5px 0;
+        }
+        .match-score {
+            font-size: 20px;
+            color: #4aff4a;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .cell-assignment {
+            font-size: 20px;
+            color: #ff9944;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 153, 68, 0.1);
+            border-left: 4px solid #ff9944;
+            border-radius: 4px;
+        }
+        .orientation-badge {
+            display: inline-block;
+            background: #4a9eff;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .no-match-banner {
+            background: linear-gradient(135deg, #3a1a1a 0%, #4a2a2a 100%);
+            border: 3px solid #ff4a4a;
+        }
+        .no-match-banner h2 {
+            color: #ff4a4a;
+        }
+            padding: 10px;
             background: #1a1a1a;
             border-radius: 4px;
         }
@@ -1785,6 +1877,83 @@ async def debug_preview():
                 const data = await response.json();
                 
                 status.textContent = `Captured at ${data.timestamp}`;
+                
+                // Display card identification banner at the top
+                const ocrTextFrame = data.frames.find(f => f.label === 'ocr_text');
+                if (ocrTextFrame && ocrTextFrame.meta) {
+                    const identification = ocrTextFrame.meta.identification;
+                    const selectedOrientation = ocrTextFrame.meta.selected_orientation;
+                    
+                    if (identification && identification.best) {
+                        const banner = document.createElement('div');
+                        banner.className = 'card-match-banner';
+                        
+                        const title = document.createElement('h2');
+                        title.innerHTML = '✓ Card Identified';
+                        if (selectedOrientation) {
+                            const badge = document.createElement('span');
+                            badge.className = 'orientation-badge';
+                            badge.textContent = selectedOrientation === 'normal' ? 'Normal Orientation' : '180° Rotated';
+                            title.appendChild(badge);
+                        }
+                        banner.appendChild(title);
+                        
+                        const content = document.createElement('div');
+                        content.className = 'card-match-content';
+                        
+                        const info = document.createElement('div');
+                        info.className = 'card-match-info';
+                        
+                        const cardName = document.createElement('div');
+                        cardName.className = 'card-name';
+                        cardName.textContent = identification.best.name || 'Unknown Card';
+                        info.appendChild(cardName);
+                        
+                        if (identification.best.set_name || identification.best.set) {
+                            const setInfo = document.createElement('div');
+                            setInfo.className = 'card-details';
+                            setInfo.textContent = `Set: ${identification.best.set_name || identification.best.set || 'Unknown'}`;
+                            if (identification.best.collector_number) {
+                                setInfo.textContent += ` (#${identification.best.collector_number})`;
+                            }
+                            info.appendChild(setInfo);
+                        }
+                        
+                        if (identification.best.type_line) {
+                            const typeInfo = document.createElement('div');
+                            typeInfo.className = 'card-details';
+                            typeInfo.textContent = identification.best.type_line;
+                            info.appendChild(typeInfo);
+                        }
+                        
+                        const scoreDiv = document.createElement('div');
+                        scoreDiv.className = 'match-score';
+                        scoreDiv.textContent = `Match Score: ${identification.score.toFixed(1)}%`;
+                        info.appendChild(scoreDiv);
+                        
+                        // Display cell assignment if available
+                        if (data.assignment && data.assignment.cell) {
+                            const cellDiv = document.createElement('div');
+                            cellDiv.className = 'cell-assignment';
+                            cellDiv.innerHTML = `<strong>📦 Destination:</strong> Cell ${data.assignment.cell}`;
+                            if (data.assignment.reason) {
+                                cellDiv.innerHTML += ` <span style="color: #888;">(${data.assignment.reason})</span>`;
+                            }
+                            info.appendChild(cellDiv);
+                        }
+                        
+                        content.appendChild(info);
+                        banner.appendChild(content);
+                        results.appendChild(banner);
+                    } else {
+                        const banner = document.createElement('div');
+                        banner.className = 'card-match-banner no-match-banner';
+                        const title = document.createElement('h2');
+                        title.textContent = '✗ No Card Match Found';
+                        banner.appendChild(title);
+                        results.appendChild(banner);
+                    }
+                }
                 
                 // Display frames in order
                 const frameOrder = ['original', 'rotated', 'aligned', 'flipped', 'ocr_prepared', 'ocr_text'];

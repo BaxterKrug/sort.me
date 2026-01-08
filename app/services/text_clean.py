@@ -18,6 +18,11 @@ _LIGATURE_MAP = {
     "ß": "ss",
 }
 
+# Common OCR noise patterns at start/end of card names
+_NAME_NOISE_START = re.compile(r"^[^a-zA-Z0-9]+")  # Remove leading non-alphanumeric
+_NAME_NOISE_END = re.compile(r"[^a-zA-Z0-9]+$")    # Remove trailing non-alphanumeric
+_NAME_PIPE_FIX = re.compile(r"\s*\|\s*")           # Remove pipe symbols and surrounding spaces
+
 
 def _strip_diacritics(text: str) -> str:
     base = "".join(_LIGATURE_MAP.get(ch, ch) for ch in text)
@@ -45,6 +50,57 @@ def normalize_collector(value: str | None) -> str:
     if matches:
         text = max(matches, key=len)
     return text[:16]
+
+
+def normalize_card_name(value: str | None) -> str:
+    """
+    Clean OCR noise from card names.
+    Handles common OCR errors like:
+    - "ff Wrath of Skies" -> "Wrath of Skies"
+    - "Card Name | xX" -> "Card Name"
+    - "  Name  " -> "Name"
+    """
+    if not value:
+        return ""
+    text = str(value)
+    
+    # Remove pipe symbols and surrounding spaces
+    text = _NAME_PIPE_FIX.sub(" ", text)
+    
+    # Remove leading noise (non-alphanumeric characters)
+    text = _NAME_NOISE_START.sub("", text)
+    
+    # Remove trailing noise (non-alphanumeric characters)
+    text = _NAME_NOISE_END.sub("", text)
+    
+    # Strip and split into words
+    text = text.strip()
+    if not text:
+        return ""
+    
+    words = text.split()
+    if not words:
+        return ""
+    
+    # Remove common OCR noise patterns:
+    # - Leading 1-2 letter words that are likely noise (ff, aa, xx, etc.)
+    # - Trailing 1-2 letter words (xX, aa, etc.)
+    # But keep single letters if they're the only word (like "X" the card)
+    
+    if len(words) > 1:
+        # Remove leading noise: 1-2 lowercase letters or mixed case junk
+        while words and len(words[0]) <= 2 and not words[0][0].isupper():
+            words.pop(0)
+        
+        # Remove trailing noise: 1-2 letter words at the end
+        while len(words) > 1 and len(words[-1]) <= 2:
+            words.pop()
+    
+    # Rejoin and collapse spaces
+    text = " ".join(words)
+    text = _WHITESPACE_RE.sub(" ", text)
+    
+    return text.strip()
 
 
 def normalize_ocr_text(

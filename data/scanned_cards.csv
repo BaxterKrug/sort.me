@@ -36,3 +36,7 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2025-12-04T01:02:00,Pal) oi). ORB OU ET OT a a AE Cee,,G1,alpha_exact:P:Pal) oi). ORB OU ET OT a a AE Cee
 2025-12-04T01:03:02Z,f259bc90-463d-4ad5-b803-c478ef6b3172,“?¢ —_ om A an red,B1,alpha_exact:A:“?¢ —_ om A an red,0.800
 2025-12-04T01:03:02,“?¢ —_ om A an red,,B1,alpha_exact:A:“?¢ —_ om A an red
+2026-01-08T22:46:16Z,,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000
+2026-01-08T22:49:21Z,,Expressive Iteration,ERR1,divert:low_confidence,0.713
+2026-01-08T22:51:22Z,,Expressive Iteration,C2,alpha_exact:E:Expressive Iteration,0.713
+2026-01-08T22:53:03Z,,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000

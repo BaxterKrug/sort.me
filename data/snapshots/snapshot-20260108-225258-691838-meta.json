@@ -1,0 +1,2415 @@
+{
+  "border": {
+    "area": 646483.5,
+    "box": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        979.0,
+        0.0
+      ],
+      [
+        979.0,
+        799.0
+      ],
+      [
+        0.0,
+        799.0
+      ]
+    ],
+    "dest_height": 799,
+    "dest_width": 979,
+    "found": true,
+    "margin_px": 10,
+    "precrop": {
+      "bottom": 0,
+      "left": 30,
+      "right": 30,
+      "top": 0
+    }
+  },
+  "embedding": {},
+  "identification": {
+    "best": {
+      "artist": "Igor Kieryluk",
+      "artist_ids": [
+        "9c3e9d17-509f-485c-9360-46d897ce716b"
+      ],
+      "booster": true,
+      "border_color": "black",
+      "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+      "cardmarket_id": 511210,
+      "cmc": 5.0,
+      "collector_number": "212",
+      "color_identity": [
+        "R"
+      ],
+      "colors": [
+        "R"
+      ],
+      "digital": false,
+      "edhrec_rank": 19936,
+      "finishes": [
+        "nonfoil",
+        "foil"
+      ],
+      "flavor_text": "\"You can tell something's really valuable by the sound it makes when you slam your staff into it.\"",
+      "foil": true,
+      "frame": "2015",
+      "full_art": false,
+      "game_changer": false,
+      "games": [
+        "paper",
+        "mtgo"
+      ],
+      "highres_image": true,
+      "id": "6b9e72f4-0087-4a79-b9af-296c8b930a25",
+      "illustration_id": "992e834c-2b60-45cc-9936-729730778352",
+      "image_status": "highres_scan",
+      "image_uris": {
+        "art_crop": "https://cards.scryfall.io/art_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+        "border_crop": "https://cards.scryfall.io/border_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+        "large": "https://cards.scryfall.io/large/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+        "normal": "https://cards.scryfall.io/normal/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+        "png": "https://cards.scryfall.io/png/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.png?1608910510",
+        "small": "https://cards.scryfall.io/small/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510"
+      },
+      "keywords": [],
+      "lang": "en",
+      "layout": "normal",
+      "legalities": {
+        "alchemy": "not_legal",
+        "brawl": "not_legal",
+        "commander": "legal",
+        "duel": "legal",
+        "future": "not_legal",
+        "gladiator": "not_legal",
+        "historic": "not_legal",
+        "legacy": "legal",
+        "modern": "legal",
+        "oathbreaker": "legal",
+        "oldschool": "not_legal",
+        "pauper": "legal",
+        "paupercommander": "legal",
+        "penny": "legal",
+        "pioneer": "legal",
+        "predh": "not_legal",
+        "premodern": "not_legal",
+        "standard": "not_legal",
+        "standardbrawl": "not_legal",
+        "timeless": "not_legal",
+        "vintage": "legal"
+      },
+      "mana_cost": "{3}{R}{R}",
+      "mtgo_id": 85206,
+      "multiverse_ids": [
+        497732
+      ],
+      "name": "Wild Celebrants",
+      "nonfoil": true,
+      "object": "card",
+      "oracle_id": "695661ac-6f50-4a0e-9831-a0e285bab4bf",
+      "oracle_text": "When this creature enters, you may destroy target artifact.",
+      "oversized": false,
+      "power": "5",
+      "preview": {
+        "previewed_at": "2020-10-31",
+        "source": "/r/magicTCG",
+        "source_uri": "https://www.reddit.com/r/magicTCG/comments/jlm4u1/hans_eriksson_rootweaver_druid_and_wild_celebrant/"
+      },
+      "prices": {
+        "eur": "0.04",
+        "eur_foil": "0.07",
+        "tix": "0.05",
+        "usd": "0.01",
+        "usd_etched": null,
+        "usd_foil": "0.02"
+      },
+      "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A695661ac-6f50-4a0e-9831-a0e285bab4bf&unique=prints",
+      "promo": false,
+      "purchase_uris": {
+        "cardhoarder": "https://www.cardhoarder.com/cards/85206?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall",
+        "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=511210&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+        "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F226879%3Fpage%3D1"
+      },
+      "rarity": "common",
+      "related_uris": {
+        "edhrec": "https://edhrec.com/route/?cc=Wild+Celebrants",
+        "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=497732&printed=false",
+        "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants",
+        "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants"
+      },
+      "released_at": "2020-11-20",
+      "reprint": true,
+      "reserved": false,
+      "rulings_uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25/rulings",
+      "scryfall_set_uri": "https://scryfall.com/sets/cmr?utm_source=api",
+      "scryfall_uri": "https://scryfall.com/card/cmr/212/wild-celebrants?utm_source=api",
+      "set": "cmr",
+      "set_id": "39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+      "set_name": "Commander Legends",
+      "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acmr&unique=prints",
+      "set_type": "draft_innovation",
+      "set_uri": "https://api.scryfall.com/sets/39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+      "story_spotlight": false,
+      "tcgplayer_id": 226879,
+      "textless": false,
+      "toughness": "3",
+      "type_line": "Creature \u2014 Satyr",
+      "uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25",
+      "variation": false
+    },
+    "candidates": [
+      {
+        "card": {
+          "artist": "Igor Kieryluk",
+          "artist_ids": [
+            "9c3e9d17-509f-485c-9360-46d897ce716b"
+          ],
+          "booster": true,
+          "border_color": "black",
+          "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+          "cardmarket_id": 511210,
+          "cmc": 5.0,
+          "collector_number": "212",
+          "color_identity": [
+            "R"
+          ],
+          "colors": [
+            "R"
+          ],
+          "digital": false,
+          "edhrec_rank": 19936,
+          "finishes": [
+            "nonfoil",
+            "foil"
+          ],
+          "flavor_text": "\"You can tell something's really valuable by the sound it makes when you slam your staff into it.\"",
+          "foil": true,
+          "frame": "2015",
+          "full_art": false,
+          "game_changer": false,
+          "games": [
+            "paper",
+            "mtgo"
+          ],
+          "highres_image": true,
+          "id": "6b9e72f4-0087-4a79-b9af-296c8b930a25",
+          "illustration_id": "992e834c-2b60-45cc-9936-729730778352",
+          "image_status": "highres_scan",
+          "image_uris": {
+            "art_crop": "https://cards.scryfall.io/art_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "border_crop": "https://cards.scryfall.io/border_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "large": "https://cards.scryfall.io/large/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "normal": "https://cards.scryfall.io/normal/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "png": "https://cards.scryfall.io/png/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.png?1608910510",
+            "small": "https://cards.scryfall.io/small/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510"
+          },
+          "keywords": [],
+          "lang": "en",
+          "layout": "normal",
+          "legalities": {
+            "alchemy": "not_legal",
+            "brawl": "not_legal",
+            "commander": "legal",
+            "duel": "legal",
+            "future": "not_legal",
+            "gladiator": "not_legal",
+            "historic": "not_legal",
+            "legacy": "legal",
+            "modern": "legal",
+            "oathbreaker": "legal",
+            "oldschool": "not_legal",
+            "pauper": "legal",
+            "paupercommander": "legal",
+            "penny": "legal",
+            "pioneer": "legal",
+            "predh": "not_legal",
+            "premodern": "not_legal",
+            "standard": "not_legal",
+            "standardbrawl": "not_legal",
+            "timeless": "not_legal",
+            "vintage": "legal"
+          },
+          "mana_cost": "{3}{R}{R}",
+          "mtgo_id": 85206,
+          "multiverse_ids": [
+            497732
+          ],
+          "name": "Wild Celebrants",
+          "nonfoil": true,
+          "object": "card",
+          "oracle_id": "695661ac-6f50-4a0e-9831-a0e285bab4bf",
+          "oracle_text": "When this creature enters, you may destroy target artifact.",
+          "oversized": false,
+          "power": "5",
+          "preview": {
+            "previewed_at": "2020-10-31",
+            "source": "/r/magicTCG",
+            "source_uri": "https://www.reddit.com/r/magicTCG/comments/jlm4u1/hans_eriksson_rootweaver_druid_and_wild_celebrant/"
+          },
+          "prices": {
+            "eur": "0.04",
+            "eur_foil": "0.07",
+            "tix": "0.05",
+            "usd": "0.01",
+            "usd_etched": null,
+            "usd_foil": "0.02"
+          },
+          "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A695661ac-6f50-4a0e-9831-a0e285bab4bf&unique=prints",
+          "promo": false,
+          "purchase_uris": {
+            "cardhoarder": "https://www.cardhoarder.com/cards/85206?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall",
+            "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=511210&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+            "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F226879%3Fpage%3D1"
+          },
+          "rarity": "common",
+          "related_uris": {
+            "edhrec": "https://edhrec.com/route/?cc=Wild+Celebrants",
+            "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=497732&printed=false",
+            "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants",
+            "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants"
+          },
+          "released_at": "2020-11-20",
+          "reprint": true,
+          "reserved": false,
+          "rulings_uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25/rulings",
+          "scryfall_set_uri": "https://scryfall.com/sets/cmr?utm_source=api",
+          "scryfall_uri": "https://scryfall.com/card/cmr/212/wild-celebrants?utm_source=api",
+          "set": "cmr",
+          "set_id": "39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+          "set_name": "Commander Legends",
+          "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acmr&unique=prints",
+          "set_type": "draft_innovation",
+          "set_uri": "https://api.scryfall.com/sets/39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+          "story_spotlight": false,
+          "tcgplayer_id": 226879,
+          "textless": false,
+          "toughness": "3",
+          "type_line": "Creature \u2014 Satyr",
+          "uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25",
+          "variation": false
+        },
+        "collector_score": 1.0,
+        "name_score": 100.0,
+        "oracle_score": 1.0,
+        "total_score": 100.0
+      }
+    ],
+    "debug": {
+      "num_cards_in_db": 36181,
+      "ocr_collector": "",
+      "ocr_name": "Wild Celebrants",
+      "ocr_oracle": "",
+      "ocr_query": "Wild Celebrants"
+    },
+    "score": 100.0
+  },
+  "ocr_map": {
+    "collector": "",
+    "name": "Wild Celebrants : 32)",
+    "oracle": "",
+    "type_line": ""
+  },
+  "ocr_meta": {
+    "art_mask": {
+      "masked": false,
+      "source": "disabled"
+    },
+    "block_size": 31,
+    "clip_limit": 2.0,
+    "constant": 7,
+    "cropped_shape": [
+      919,
+      799,
+      3
+    ],
+    "input_shape": [
+      919,
+      799,
+      3
+    ],
+    "median_kernel": 3,
+    "method": "adaptive_gaussian",
+    "output_height": 1400,
+    "output_width": 1217,
+    "portrait_rotated": false,
+    "portrait_rotation": "90_plus_180",
+    "portrait_shape": [
+      919,
+      799,
+      3
+    ],
+    "region_rows": {
+      "collector": [
+        1336,
+        1394
+      ],
+      "full": [
+        0,
+        1400
+      ],
+      "name": [
+        0,
+        35
+      ],
+      "oracle": [
+        1322,
+        1357
+      ]
+    },
+    "region_rows_source": "text_bands",
+    "scale": 1.523,
+    "source": "single_frame",
+    "source_shape": [
+      799,
+      979,
+      3
+    ],
+    "text_band_features": {
+      "gap_rows": 1329,
+      "height": 1400,
+      "inactive_segments": [
+        {
+          "end": 29,
+          "end_norm": 0.020729092208720514,
+          "length": 8,
+          "start": 22,
+          "start_norm": 0.015725518227305217
+        },
+        {
+          "end": 85,
+          "end_norm": 0.06075768406004289,
+          "length": 3,
+          "start": 83,
+          "start_norm": 0.059328091493924234
+        },
+        {
+          "end": 139,
+          "end_norm": 0.09935668334524661,
+          "length": 51,
+          "start": 89,
+          "start_norm": 0.0636168691922802
+        },
+        {
+          "end": 190,
+          "end_norm": 0.13581129378127232,
+          "length": 22,
+          "start": 169,
+          "start_norm": 0.12080057183702644
+        },
+        {
+          "end": 240,
+          "end_norm": 0.17155110793423875,
+          "length": 13,
+          "start": 228,
+          "start_norm": 0.1629735525375268
+        },
+        {
+          "end": 319,
+          "end_norm": 0.22802001429592567,
+          "length": 38,
+          "start": 282,
+          "start_norm": 0.2015725518227305
+        },
+        {
+          "end": 367,
+          "end_norm": 0.26233023588277343,
+          "length": 25,
+          "start": 343,
+          "start_norm": 0.24517512508934952
+        },
+        {
+          "end": 418,
+          "end_norm": 0.29878484631879915,
+          "length": 15,
+          "start": 404,
+          "start_norm": 0.28877769835596856
+        },
+        {
+          "end": 534,
+          "end_norm": 0.3817012151536812,
+          "length": 79,
+          "start": 456,
+          "start_norm": 0.3259471050750536
+        },
+        {
+          "end": 701,
+          "end_norm": 0.501072194424589,
+          "length": 135,
+          "start": 567,
+          "start_norm": 0.405289492494639
+        },
+        {
+          "end": 740,
+          "end_norm": 0.5289492494639028,
+          "length": 10,
+          "start": 731,
+          "start_norm": 0.5225160829163689
+        },
+        {
+          "end": 874,
+          "end_norm": 0.6247319513938527,
+          "length": 10,
+          "start": 865,
+          "start_norm": 0.6182987848463188
+        },
+        {
+          "end": 957,
+          "end_norm": 0.684060042887777,
+          "length": 72,
+          "start": 886,
+          "start_norm": 0.6333095067905646
+        },
+        {
+          "end": 1275,
+          "end_norm": 0.9113652609006433,
+          "length": 293,
+          "start": 983,
+          "start_norm": 0.7026447462473195
+        },
+        {
+          "end": 1349,
+          "end_norm": 0.9642601858470335,
+          "length": 33,
+          "start": 1317,
+          "start_norm": 0.9413867047891351
+        },
+        {
+          "end": 1399,
+          "end_norm": 1.0,
+          "length": 33,
+          "start": 1367,
+          "start_norm": 0.9771265189421015
+        }
+      ],
+      "name_band": {
+        "end": 21,
+        "end_norm": 0.01501072194424589,
+        "length": 22,
+        "start": 0,
+        "start_norm": 0.0
+      },
+      "rules_band": {
+        "end": 1366,
+        "end_norm": 0.9764117226590422,
+        "length": 17,
+        "start": 1350,
+        "start_norm": 0.9649749821300929
+      },
+      "segments": [
+        {
+          "end": 21,
+          "end_norm": 0.01501072194424589,
+          "length": 22,
+          "start": 0,
+          "start_norm": 0.0
+        },
+        {
+          "end": 82,
+          "end_norm": 0.058613295210864905,
+          "length": 53,
+          "start": 30,
+          "start_norm": 0.021443888491779844
+        },
+        {
+          "end": 88,
+          "end_norm": 0.06290207290922087,
+          "length": 3,
+          "start": 86,
+          "start_norm": 0.061472480343102216
+        },
+        {
+          "end": 168,
+          "end_norm": 0.12008577555396711,
+          "length": 29,
+          "start": 140,
+          "start_norm": 0.10007147962830593
+        },
+        {
+          "end": 227,
+          "end_norm": 0.16225875625446748,
+          "length": 37,
+          "start": 191,
+          "start_norm": 0.13652609006433167
+        },
+        {
+          "end": 281,
+          "end_norm": 0.2008577555396712,
+          "length": 41,
+          "start": 241,
+          "start_norm": 0.17226590421729807
+        },
+        {
+          "end": 342,
+          "end_norm": 0.2444603288062902,
+          "length": 23,
+          "start": 320,
+          "start_norm": 0.22873481057898498
+        },
+        {
+          "end": 403,
+          "end_norm": 0.28806290207290924,
+          "length": 36,
+          "start": 368,
+          "start_norm": 0.26304503216583275
+        },
+        {
+          "end": 455,
+          "end_norm": 0.3252323087919943,
+          "length": 37,
+          "start": 419,
+          "start_norm": 0.29949964260185846
+        },
+        {
+          "end": 566,
+          "end_norm": 0.4045746962115797,
+          "length": 32,
+          "start": 535,
+          "start_norm": 0.38241601143674053
+        },
+        {
+          "end": 730,
+          "end_norm": 0.5218012866333095,
+          "length": 29,
+          "start": 702,
+          "start_norm": 0.5017869907076483
+        },
+        {
+          "end": 864,
+          "end_norm": 0.6175839885632595,
+          "length": 124,
+          "start": 741,
+          "start_norm": 0.5296640457469621
+        },
+        {
+          "end": 885,
+          "end_norm": 0.6325947105075054,
+          "length": 11,
+          "start": 875,
+          "start_norm": 0.6254467476769121
+        },
+        {
+          "end": 982,
+          "end_norm": 0.7019299499642602,
+          "length": 25,
+          "start": 958,
+          "start_norm": 0.6847748391708363
+        },
+        {
+          "end": 1316,
+          "end_norm": 0.9406719085060757,
+          "length": 41,
+          "start": 1276,
+          "start_norm": 0.9120800571837027
+        },
+        {
+          "end": 1366,
+          "end_norm": 0.9764117226590422,
+          "length": 17,
+          "start": 1350,
+          "start_norm": 0.9649749821300929
+        }
+      ]
+    },
+    "zone_ocr": {
+      "collector_zone_height": 135,
+      "identification": {
+        "best": {
+          "artist": "Igor Kieryluk",
+          "artist_ids": [
+            "9c3e9d17-509f-485c-9360-46d897ce716b"
+          ],
+          "booster": true,
+          "border_color": "black",
+          "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+          "cardmarket_id": 511210,
+          "cmc": 5.0,
+          "collector_number": "212",
+          "color_identity": [
+            "R"
+          ],
+          "colors": [
+            "R"
+          ],
+          "digital": false,
+          "edhrec_rank": 19936,
+          "finishes": [
+            "nonfoil",
+            "foil"
+          ],
+          "flavor_text": "\"You can tell something's really valuable by the sound it makes when you slam your staff into it.\"",
+          "foil": true,
+          "frame": "2015",
+          "full_art": false,
+          "game_changer": false,
+          "games": [
+            "paper",
+            "mtgo"
+          ],
+          "highres_image": true,
+          "id": "6b9e72f4-0087-4a79-b9af-296c8b930a25",
+          "illustration_id": "992e834c-2b60-45cc-9936-729730778352",
+          "image_status": "highres_scan",
+          "image_uris": {
+            "art_crop": "https://cards.scryfall.io/art_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "border_crop": "https://cards.scryfall.io/border_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "large": "https://cards.scryfall.io/large/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "normal": "https://cards.scryfall.io/normal/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "png": "https://cards.scryfall.io/png/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.png?1608910510",
+            "small": "https://cards.scryfall.io/small/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510"
+          },
+          "keywords": [],
+          "lang": "en",
+          "layout": "normal",
+          "legalities": {
+            "alchemy": "not_legal",
+            "brawl": "not_legal",
+            "commander": "legal",
+            "duel": "legal",
+            "future": "not_legal",
+            "gladiator": "not_legal",
+            "historic": "not_legal",
+            "legacy": "legal",
+            "modern": "legal",
+            "oathbreaker": "legal",
+            "oldschool": "not_legal",
+            "pauper": "legal",
+            "paupercommander": "legal",
+            "penny": "legal",
+            "pioneer": "legal",
+            "predh": "not_legal",
+            "premodern": "not_legal",
+            "standard": "not_legal",
+            "standardbrawl": "not_legal",
+            "timeless": "not_legal",
+            "vintage": "legal"
+          },
+          "mana_cost": "{3}{R}{R}",
+          "mtgo_id": 85206,
+          "multiverse_ids": [
+            497732
+          ],
+          "name": "Wild Celebrants",
+          "nonfoil": true,
+          "object": "card",
+          "oracle_id": "695661ac-6f50-4a0e-9831-a0e285bab4bf",
+          "oracle_text": "When this creature enters, you may destroy target artifact.",
+          "oversized": false,
+          "power": "5",
+          "preview": {
+            "previewed_at": "2020-10-31",
+            "source": "/r/magicTCG",
+            "source_uri": "https://www.reddit.com/r/magicTCG/comments/jlm4u1/hans_eriksson_rootweaver_druid_and_wild_celebrant/"
+          },
+          "prices": {
+            "eur": "0.04",
+            "eur_foil": "0.07",
+            "tix": "0.05",
+            "usd": "0.01",
+            "usd_etched": null,
+            "usd_foil": "0.02"
+          },
+          "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A695661ac-6f50-4a0e-9831-a0e285bab4bf&unique=prints",
+          "promo": false,
+          "purchase_uris": {
+            "cardhoarder": "https://www.cardhoarder.com/cards/85206?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall",
+            "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=511210&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+            "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F226879%3Fpage%3D1"
+          },
+          "rarity": "common",
+          "related_uris": {
+            "edhrec": "https://edhrec.com/route/?cc=Wild+Celebrants",
+            "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=497732&printed=false",
+            "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants",
+            "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants"
+          },
+          "released_at": "2020-11-20",
+          "reprint": true,
+          "reserved": false,
+          "rulings_uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25/rulings",
+          "scryfall_set_uri": "https://scryfall.com/sets/cmr?utm_source=api",
+          "scryfall_uri": "https://scryfall.com/card/cmr/212/wild-celebrants?utm_source=api",
+          "set": "cmr",
+          "set_id": "39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+          "set_name": "Commander Legends",
+          "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acmr&unique=prints",
+          "set_type": "draft_innovation",
+          "set_uri": "https://api.scryfall.com/sets/39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+          "story_spotlight": false,
+          "tcgplayer_id": 226879,
+          "textless": false,
+          "toughness": "3",
+          "type_line": "Creature \u2014 Satyr",
+          "uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25",
+          "variation": false
+        },
+        "candidates": [
+          {
+            "card": {
+              "artist": "Igor Kieryluk",
+              "artist_ids": [
+                "9c3e9d17-509f-485c-9360-46d897ce716b"
+              ],
+              "booster": true,
+              "border_color": "black",
+              "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+              "cardmarket_id": 511210,
+              "cmc": 5.0,
+              "collector_number": "212",
+              "color_identity": [
+                "R"
+              ],
+              "colors": [
+                "R"
+              ],
+              "digital": false,
+              "edhrec_rank": 19936,
+              "finishes": [
+                "nonfoil",
+                "foil"
+              ],
+              "flavor_text": "\"You can tell something's really valuable by the sound it makes when you slam your staff into it.\"",
+              "foil": true,
+              "frame": "2015",
+              "full_art": false,
+              "game_changer": false,
+              "games": [
+                "paper",
+                "mtgo"
+              ],
+              "highres_image": true,
+              "id": "6b9e72f4-0087-4a79-b9af-296c8b930a25",
+              "illustration_id": "992e834c-2b60-45cc-9936-729730778352",
+              "image_status": "highres_scan",
+              "image_uris": {
+                "art_crop": "https://cards.scryfall.io/art_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+                "border_crop": "https://cards.scryfall.io/border_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+                "large": "https://cards.scryfall.io/large/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+                "normal": "https://cards.scryfall.io/normal/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+                "png": "https://cards.scryfall.io/png/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.png?1608910510",
+                "small": "https://cards.scryfall.io/small/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510"
+              },
+              "keywords": [],
+              "lang": "en",
+              "layout": "normal",
+              "legalities": {
+                "alchemy": "not_legal",
+                "brawl": "not_legal",
+                "commander": "legal",
+                "duel": "legal",
+                "future": "not_legal",
+                "gladiator": "not_legal",
+                "historic": "not_legal",
+                "legacy": "legal",
+                "modern": "legal",
+                "oathbreaker": "legal",
+                "oldschool": "not_legal",
+                "pauper": "legal",
+                "paupercommander": "legal",
+                "penny": "legal",
+                "pioneer": "legal",
+                "predh": "not_legal",
+                "premodern": "not_legal",
+                "standard": "not_legal",
+                "standardbrawl": "not_legal",
+                "timeless": "not_legal",
+                "vintage": "legal"
+              },
+              "mana_cost": "{3}{R}{R}",
+              "mtgo_id": 85206,
+              "multiverse_ids": [
+                497732
+              ],
+              "name": "Wild Celebrants",
+              "nonfoil": true,
+              "object": "card",
+              "oracle_id": "695661ac-6f50-4a0e-9831-a0e285bab4bf",
+              "oracle_text": "When this creature enters, you may destroy target artifact.",
+              "oversized": false,
+              "power": "5",
+              "preview": {
+                "previewed_at": "2020-10-31",
+                "source": "/r/magicTCG",
+                "source_uri": "https://www.reddit.com/r/magicTCG/comments/jlm4u1/hans_eriksson_rootweaver_druid_and_wild_celebrant/"
+              },
+              "prices": {
+                "eur": "0.04",
+                "eur_foil": "0.07",
+                "tix": "0.05",
+                "usd": "0.01",
+                "usd_etched": null,
+                "usd_foil": "0.02"
+              },
+              "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A695661ac-6f50-4a0e-9831-a0e285bab4bf&unique=prints",
+              "promo": false,
+              "purchase_uris": {
+                "cardhoarder": "https://www.cardhoarder.com/cards/85206?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall",
+                "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=511210&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+                "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F226879%3Fpage%3D1"
+              },
+              "rarity": "common",
+              "related_uris": {
+                "edhrec": "https://edhrec.com/route/?cc=Wild+Celebrants",
+                "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=497732&printed=false",
+                "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants",
+                "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants"
+              },
+              "released_at": "2020-11-20",
+              "reprint": true,
+              "reserved": false,
+              "rulings_uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25/rulings",
+              "scryfall_set_uri": "https://scryfall.com/sets/cmr?utm_source=api",
+              "scryfall_uri": "https://scryfall.com/card/cmr/212/wild-celebrants?utm_source=api",
+              "set": "cmr",
+              "set_id": "39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+              "set_name": "Commander Legends",
+              "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acmr&unique=prints",
+              "set_type": "draft_innovation",
+              "set_uri": "https://api.scryfall.com/sets/39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+              "story_spotlight": false,
+              "tcgplayer_id": 226879,
+              "textless": false,
+              "toughness": "3",
+              "type_line": "Creature \u2014 Satyr",
+              "uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25",
+              "variation": false
+            },
+            "collector_score": 1.0,
+            "name_score": 100.0,
+            "oracle_score": 1.0,
+            "total_score": 100.0
+          }
+        ],
+        "debug": {
+          "num_cards_in_db": 36181,
+          "ocr_collector": "",
+          "ocr_name": "Wild Celebrants",
+          "ocr_oracle": "",
+          "ocr_query": "Wild Celebrants"
+        },
+        "score": 100.0
+      },
+      "identification_180": {
+        "best": {
+          "artist": "Igor Kieryluk",
+          "artist_ids": [
+            "9c3e9d17-509f-485c-9360-46d897ce716b"
+          ],
+          "booster": true,
+          "border_color": "black",
+          "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+          "cardmarket_id": 511210,
+          "cmc": 5.0,
+          "collector_number": "212",
+          "color_identity": [
+            "R"
+          ],
+          "colors": [
+            "R"
+          ],
+          "digital": false,
+          "edhrec_rank": 19936,
+          "finishes": [
+            "nonfoil",
+            "foil"
+          ],
+          "flavor_text": "\"You can tell something's really valuable by the sound it makes when you slam your staff into it.\"",
+          "foil": true,
+          "frame": "2015",
+          "full_art": false,
+          "game_changer": false,
+          "games": [
+            "paper",
+            "mtgo"
+          ],
+          "highres_image": true,
+          "id": "6b9e72f4-0087-4a79-b9af-296c8b930a25",
+          "illustration_id": "992e834c-2b60-45cc-9936-729730778352",
+          "image_status": "highres_scan",
+          "image_uris": {
+            "art_crop": "https://cards.scryfall.io/art_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "border_crop": "https://cards.scryfall.io/border_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "large": "https://cards.scryfall.io/large/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "normal": "https://cards.scryfall.io/normal/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+            "png": "https://cards.scryfall.io/png/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.png?1608910510",
+            "small": "https://cards.scryfall.io/small/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510"
+          },
+          "keywords": [],
+          "lang": "en",
+          "layout": "normal",
+          "legalities": {
+            "alchemy": "not_legal",
+            "brawl": "not_legal",
+            "commander": "legal",
+            "duel": "legal",
+            "future": "not_legal",
+            "gladiator": "not_legal",
+            "historic": "not_legal",
+            "legacy": "legal",
+            "modern": "legal",
+            "oathbreaker": "legal",
+            "oldschool": "not_legal",
+            "pauper": "legal",
+            "paupercommander": "legal",
+            "penny": "legal",
+            "pioneer": "legal",
+            "predh": "not_legal",
+            "premodern": "not_legal",
+            "standard": "not_legal",
+            "standardbrawl": "not_legal",
+            "timeless": "not_legal",
+            "vintage": "legal"
+          },
+          "mana_cost": "{3}{R}{R}",
+          "mtgo_id": 85206,
+          "multiverse_ids": [
+            497732
+          ],
+          "name": "Wild Celebrants",
+          "nonfoil": true,
+          "object": "card",
+          "oracle_id": "695661ac-6f50-4a0e-9831-a0e285bab4bf",
+          "oracle_text": "When this creature enters, you may destroy target artifact.",
+          "oversized": false,
+          "power": "5",
+          "preview": {
+            "previewed_at": "2020-10-31",
+            "source": "/r/magicTCG",
+            "source_uri": "https://www.reddit.com/r/magicTCG/comments/jlm4u1/hans_eriksson_rootweaver_druid_and_wild_celebrant/"
+          },
+          "prices": {
+            "eur": "0.04",
+            "eur_foil": "0.07",
+            "tix": "0.05",
+            "usd": "0.01",
+            "usd_etched": null,
+            "usd_foil": "0.02"
+          },
+          "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A695661ac-6f50-4a0e-9831-a0e285bab4bf&unique=prints",
+          "promo": false,
+          "purchase_uris": {
+            "cardhoarder": "https://www.cardhoarder.com/cards/85206?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall",
+            "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=511210&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+            "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F226879%3Fpage%3D1"
+          },
+          "rarity": "common",
+          "related_uris": {
+            "edhrec": "https://edhrec.com/route/?cc=Wild+Celebrants",
+            "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=497732&printed=false",
+            "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants",
+            "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants"
+          },
+          "released_at": "2020-11-20",
+          "reprint": true,
+          "reserved": false,
+          "rulings_uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25/rulings",
+          "scryfall_set_uri": "https://scryfall.com/sets/cmr?utm_source=api",
+          "scryfall_uri": "https://scryfall.com/card/cmr/212/wild-celebrants?utm_source=api",
+          "set": "cmr",
+          "set_id": "39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+          "set_name": "Commander Legends",
+          "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acmr&unique=prints",
+          "set_type": "draft_innovation",
+          "set_uri": "https://api.scryfall.com/sets/39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+          "story_spotlight": false,
+          "tcgplayer_id": 226879,
+          "textless": false,
+          "toughness": "3",
+          "type_line": "Creature \u2014 Satyr",
+          "uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25",
+          "variation": false
+        },
+        "candidates": [
+          {
+            "card": {
+              "artist": "Igor Kieryluk",
+              "artist_ids": [
+                "9c3e9d17-509f-485c-9360-46d897ce716b"
+              ],
+              "booster": true,
+              "border_color": "black",
+              "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+              "cardmarket_id": 511210,
+              "cmc": 5.0,
+              "collector_number": "212",
+              "color_identity": [
+                "R"
+              ],
+              "colors": [
+                "R"
+              ],
+              "digital": false,
+              "edhrec_rank": 19936,
+              "finishes": [
+                "nonfoil",
+                "foil"
+              ],
+              "flavor_text": "\"You can tell something's really valuable by the sound it makes when you slam your staff into it.\"",
+              "foil": true,
+              "frame": "2015",
+              "full_art": false,
+              "game_changer": false,
+              "games": [
+                "paper",
+                "mtgo"
+              ],
+              "highres_image": true,
+              "id": "6b9e72f4-0087-4a79-b9af-296c8b930a25",
+              "illustration_id": "992e834c-2b60-45cc-9936-729730778352",
+              "image_status": "highres_scan",
+              "image_uris": {
+                "art_crop": "https://cards.scryfall.io/art_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+                "border_crop": "https://cards.scryfall.io/border_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+                "large": "https://cards.scryfall.io/large/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+                "normal": "https://cards.scryfall.io/normal/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+                "png": "https://cards.scryfall.io/png/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.png?1608910510",
+                "small": "https://cards.scryfall.io/small/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510"
+              },
+              "keywords": [],
+              "lang": "en",
+              "layout": "normal",
+              "legalities": {
+                "alchemy": "not_legal",
+                "brawl": "not_legal",
+                "commander": "legal",
+                "duel": "legal",
+                "future": "not_legal",
+                "gladiator": "not_legal",
+                "historic": "not_legal",
+                "legacy": "legal",
+                "modern": "legal",
+                "oathbreaker": "legal",
+                "oldschool": "not_legal",
+                "pauper": "legal",
+                "paupercommander": "legal",
+                "penny": "legal",
+                "pioneer": "legal",
+                "predh": "not_legal",
+                "premodern": "not_legal",
+                "standard": "not_legal",
+                "standardbrawl": "not_legal",
+                "timeless": "not_legal",
+                "vintage": "legal"
+              },
+              "mana_cost": "{3}{R}{R}",
+              "mtgo_id": 85206,
+              "multiverse_ids": [
+                497732
+              ],
+              "name": "Wild Celebrants",
+              "nonfoil": true,
+              "object": "card",
+              "oracle_id": "695661ac-6f50-4a0e-9831-a0e285bab4bf",
+              "oracle_text": "When this creature enters, you may destroy target artifact.",
+              "oversized": false,
+              "power": "5",
+              "preview": {
+                "previewed_at": "2020-10-31",
+                "source": "/r/magicTCG",
+                "source_uri": "https://www.reddit.com/r/magicTCG/comments/jlm4u1/hans_eriksson_rootweaver_druid_and_wild_celebrant/"
+              },
+              "prices": {
+                "eur": "0.04",
+                "eur_foil": "0.07",
+                "tix": "0.05",
+                "usd": "0.01",
+                "usd_etched": null,
+                "usd_foil": "0.02"
+              },
+              "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A695661ac-6f50-4a0e-9831-a0e285bab4bf&unique=prints",
+              "promo": false,
+              "purchase_uris": {
+                "cardhoarder": "https://www.cardhoarder.com/cards/85206?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall",
+                "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=511210&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+                "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F226879%3Fpage%3D1"
+              },
+              "rarity": "common",
+              "related_uris": {
+                "edhrec": "https://edhrec.com/route/?cc=Wild+Celebrants",
+                "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=497732&printed=false",
+                "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants",
+                "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants"
+              },
+              "released_at": "2020-11-20",
+              "reprint": true,
+              "reserved": false,
+              "rulings_uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25/rulings",
+              "scryfall_set_uri": "https://scryfall.com/sets/cmr?utm_source=api",
+              "scryfall_uri": "https://scryfall.com/card/cmr/212/wild-celebrants?utm_source=api",
+              "set": "cmr",
+              "set_id": "39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+              "set_name": "Commander Legends",
+              "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acmr&unique=prints",
+              "set_type": "draft_innovation",
+              "set_uri": "https://api.scryfall.com/sets/39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+              "story_spotlight": false,
+              "tcgplayer_id": 226879,
+              "textless": false,
+              "toughness": "3",
+              "type_line": "Creature \u2014 Satyr",
+              "uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25",
+              "variation": false
+            },
+            "collector_score": 1.0,
+            "name_score": 100.0,
+            "oracle_score": 1.0,
+            "total_score": 100.0
+          }
+        ],
+        "debug": {
+          "num_cards_in_db": 36181,
+          "ocr_collector": "",
+          "ocr_name": "Wild Celebrants",
+          "ocr_oracle": "",
+          "ocr_query": "Wild Celebrants"
+        },
+        "score": 100.0
+      },
+      "identification_normal": {
+        "best": null,
+        "candidates": [],
+        "debug": {
+          "num_cards_in_db": 36181,
+          "ocr_collector": "",
+          "ocr_name": "",
+          "ocr_oracle": "",
+          "ocr_query": ""
+        },
+        "score": 0.0
+      },
+      "name_zone_height": 105,
+      "normal": {
+        "collector": "",
+        "name": ""
+      },
+      "rotated_180": {
+        "collector": "",
+        "name": "Wild Celebrants : 32)"
+      },
+      "selected": {
+        "collector": "",
+        "name": "Wild Celebrants : 32)",
+        "oracle": "",
+        "type_line": ""
+      },
+      "selected_orientation": "rotated_180"
+    }
+  },
+  "ocr_result": {
+    "collector_zone_height": 135,
+    "identification": {
+      "best": {
+        "artist": "Igor Kieryluk",
+        "artist_ids": [
+          "9c3e9d17-509f-485c-9360-46d897ce716b"
+        ],
+        "booster": true,
+        "border_color": "black",
+        "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+        "cardmarket_id": 511210,
+        "cmc": 5.0,
+        "collector_number": "212",
+        "color_identity": [
+          "R"
+        ],
+        "colors": [
+          "R"
+        ],
+        "digital": false,
+        "edhrec_rank": 19936,
+        "finishes": [
+          "nonfoil",
+          "foil"
+        ],
+        "flavor_text": "\"You can tell something's really valuable by the sound it makes when you slam your staff into it.\"",
+        "foil": true,
+        "frame": "2015",
+        "full_art": false,
+        "game_changer": false,
+        "games": [
+          "paper",
+          "mtgo"
+        ],
+        "highres_image": true,
+        "id": "6b9e72f4-0087-4a79-b9af-296c8b930a25",
+        "illustration_id": "992e834c-2b60-45cc-9936-729730778352",
+        "image_status": "highres_scan",
+        "image_uris": {
+          "art_crop": "https://cards.scryfall.io/art_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+          "border_crop": "https://cards.scryfall.io/border_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+          "large": "https://cards.scryfall.io/large/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+          "normal": "https://cards.scryfall.io/normal/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+          "png": "https://cards.scryfall.io/png/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.png?1608910510",
+          "small": "https://cards.scryfall.io/small/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510"
+        },
+        "keywords": [],
+        "lang": "en",
+        "layout": "normal",
+        "legalities": {
+          "alchemy": "not_legal",
+          "brawl": "not_legal",
+          "commander": "legal",
+          "duel": "legal",
+          "future": "not_legal",
+          "gladiator": "not_legal",
+          "historic": "not_legal",
+          "legacy": "legal",
+          "modern": "legal",
+          "oathbreaker": "legal",
+          "oldschool": "not_legal",
+          "pauper": "legal",
+          "paupercommander": "legal",
+          "penny": "legal",
+          "pioneer": "legal",
+          "predh": "not_legal",
+          "premodern": "not_legal",
+          "standard": "not_legal",
+          "standardbrawl": "not_legal",
+          "timeless": "not_legal",
+          "vintage": "legal"
+        },
+        "mana_cost": "{3}{R}{R}",
+        "mtgo_id": 85206,
+        "multiverse_ids": [
+          497732
+        ],
+        "name": "Wild Celebrants",
+        "nonfoil": true,
+        "object": "card",
+        "oracle_id": "695661ac-6f50-4a0e-9831-a0e285bab4bf",
+        "oracle_text": "When this creature enters, you may destroy target artifact.",
+        "oversized": false,
+        "power": "5",
+        "preview": {
+          "previewed_at": "2020-10-31",
+          "source": "/r/magicTCG",
+          "source_uri": "https://www.reddit.com/r/magicTCG/comments/jlm4u1/hans_eriksson_rootweaver_druid_and_wild_celebrant/"
+        },
+        "prices": {
+          "eur": "0.04",
+          "eur_foil": "0.07",
+          "tix": "0.05",
+          "usd": "0.01",
+          "usd_etched": null,
+          "usd_foil": "0.02"
+        },
+        "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A695661ac-6f50-4a0e-9831-a0e285bab4bf&unique=prints",
+        "promo": false,
+        "purchase_uris": {
+          "cardhoarder": "https://www.cardhoarder.com/cards/85206?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall",
+          "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=511210&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+          "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F226879%3Fpage%3D1"
+        },
+        "rarity": "common",
+        "related_uris": {
+          "edhrec": "https://edhrec.com/route/?cc=Wild+Celebrants",
+          "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=497732&printed=false",
+          "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants",
+          "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants"
+        },
+        "released_at": "2020-11-20",
+        "reprint": true,
+        "reserved": false,
+        "rulings_uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25/rulings",
+        "scryfall_set_uri": "https://scryfall.com/sets/cmr?utm_source=api",
+        "scryfall_uri": "https://scryfall.com/card/cmr/212/wild-celebrants?utm_source=api",
+        "set": "cmr",
+        "set_id": "39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+        "set_name": "Commander Legends",
+        "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acmr&unique=prints",
+        "set_type": "draft_innovation",
+        "set_uri": "https://api.scryfall.com/sets/39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+        "story_spotlight": false,
+        "tcgplayer_id": 226879,
+        "textless": false,
+        "toughness": "3",
+        "type_line": "Creature \u2014 Satyr",
+        "uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25",
+        "variation": false
+      },
+      "candidates": [
+        {
+          "card": {
+            "artist": "Igor Kieryluk",
+            "artist_ids": [
+              "9c3e9d17-509f-485c-9360-46d897ce716b"
+            ],
+            "booster": true,
+            "border_color": "black",
+            "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+            "cardmarket_id": 511210,
+            "cmc": 5.0,
+            "collector_number": "212",
+            "color_identity": [
+              "R"
+            ],
+            "colors": [
+              "R"
+            ],
+            "digital": false,
+            "edhrec_rank": 19936,
+            "finishes": [
+              "nonfoil",
+              "foil"
+            ],
+            "flavor_text": "\"You can tell something's really valuable by the sound it makes when you slam your staff into it.\"",
+            "foil": true,
+            "frame": "2015",
+            "full_art": false,
+            "game_changer": false,
+            "games": [
+              "paper",
+              "mtgo"
+            ],
+            "highres_image": true,
+            "id": "6b9e72f4-0087-4a79-b9af-296c8b930a25",
+            "illustration_id": "992e834c-2b60-45cc-9936-729730778352",
+            "image_status": "highres_scan",
+            "image_uris": {
+              "art_crop": "https://cards.scryfall.io/art_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+              "border_crop": "https://cards.scryfall.io/border_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+              "large": "https://cards.scryfall.io/large/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+              "normal": "https://cards.scryfall.io/normal/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+              "png": "https://cards.scryfall.io/png/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.png?1608910510",
+              "small": "https://cards.scryfall.io/small/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510"
+            },
+            "keywords": [],
+            "lang": "en",
+            "layout": "normal",
+            "legalities": {
+              "alchemy": "not_legal",
+              "brawl": "not_legal",
+              "commander": "legal",
+              "duel": "legal",
+              "future": "not_legal",
+              "gladiator": "not_legal",
+              "historic": "not_legal",
+              "legacy": "legal",
+              "modern": "legal",
+              "oathbreaker": "legal",
+              "oldschool": "not_legal",
+              "pauper": "legal",
+              "paupercommander": "legal",
+              "penny": "legal",
+              "pioneer": "legal",
+              "predh": "not_legal",
+              "premodern": "not_legal",
+              "standard": "not_legal",
+              "standardbrawl": "not_legal",
+              "timeless": "not_legal",
+              "vintage": "legal"
+            },
+            "mana_cost": "{3}{R}{R}",
+            "mtgo_id": 85206,
+            "multiverse_ids": [
+              497732
+            ],
+            "name": "Wild Celebrants",
+            "nonfoil": true,
+            "object": "card",
+            "oracle_id": "695661ac-6f50-4a0e-9831-a0e285bab4bf",
+            "oracle_text": "When this creature enters, you may destroy target artifact.",
+            "oversized": false,
+            "power": "5",
+            "preview": {
+              "previewed_at": "2020-10-31",
+              "source": "/r/magicTCG",
+              "source_uri": "https://www.reddit.com/r/magicTCG/comments/jlm4u1/hans_eriksson_rootweaver_druid_and_wild_celebrant/"
+            },
+            "prices": {
+              "eur": "0.04",
+              "eur_foil": "0.07",
+              "tix": "0.05",
+              "usd": "0.01",
+              "usd_etched": null,
+              "usd_foil": "0.02"
+            },
+            "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A695661ac-6f50-4a0e-9831-a0e285bab4bf&unique=prints",
+            "promo": false,
+            "purchase_uris": {
+              "cardhoarder": "https://www.cardhoarder.com/cards/85206?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall",
+              "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=511210&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+              "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F226879%3Fpage%3D1"
+            },
+            "rarity": "common",
+            "related_uris": {
+              "edhrec": "https://edhrec.com/route/?cc=Wild+Celebrants",
+              "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=497732&printed=false",
+              "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants",
+              "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants"
+            },
+            "released_at": "2020-11-20",
+            "reprint": true,
+            "reserved": false,
+            "rulings_uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25/rulings",
+            "scryfall_set_uri": "https://scryfall.com/sets/cmr?utm_source=api",
+            "scryfall_uri": "https://scryfall.com/card/cmr/212/wild-celebrants?utm_source=api",
+            "set": "cmr",
+            "set_id": "39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+            "set_name": "Commander Legends",
+            "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acmr&unique=prints",
+            "set_type": "draft_innovation",
+            "set_uri": "https://api.scryfall.com/sets/39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+            "story_spotlight": false,
+            "tcgplayer_id": 226879,
+            "textless": false,
+            "toughness": "3",
+            "type_line": "Creature \u2014 Satyr",
+            "uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25",
+            "variation": false
+          },
+          "collector_score": 1.0,
+          "name_score": 100.0,
+          "oracle_score": 1.0,
+          "total_score": 100.0
+        }
+      ],
+      "debug": {
+        "num_cards_in_db": 36181,
+        "ocr_collector": "",
+        "ocr_name": "Wild Celebrants",
+        "ocr_oracle": "",
+        "ocr_query": "Wild Celebrants"
+      },
+      "score": 100.0
+    },
+    "identification_180": {
+      "best": {
+        "artist": "Igor Kieryluk",
+        "artist_ids": [
+          "9c3e9d17-509f-485c-9360-46d897ce716b"
+        ],
+        "booster": true,
+        "border_color": "black",
+        "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+        "cardmarket_id": 511210,
+        "cmc": 5.0,
+        "collector_number": "212",
+        "color_identity": [
+          "R"
+        ],
+        "colors": [
+          "R"
+        ],
+        "digital": false,
+        "edhrec_rank": 19936,
+        "finishes": [
+          "nonfoil",
+          "foil"
+        ],
+        "flavor_text": "\"You can tell something's really valuable by the sound it makes when you slam your staff into it.\"",
+        "foil": true,
+        "frame": "2015",
+        "full_art": false,
+        "game_changer": false,
+        "games": [
+          "paper",
+          "mtgo"
+        ],
+        "highres_image": true,
+        "id": "6b9e72f4-0087-4a79-b9af-296c8b930a25",
+        "illustration_id": "992e834c-2b60-45cc-9936-729730778352",
+        "image_status": "highres_scan",
+        "image_uris": {
+          "art_crop": "https://cards.scryfall.io/art_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+          "border_crop": "https://cards.scryfall.io/border_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+          "large": "https://cards.scryfall.io/large/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+          "normal": "https://cards.scryfall.io/normal/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+          "png": "https://cards.scryfall.io/png/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.png?1608910510",
+          "small": "https://cards.scryfall.io/small/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510"
+        },
+        "keywords": [],
+        "lang": "en",
+        "layout": "normal",
+        "legalities": {
+          "alchemy": "not_legal",
+          "brawl": "not_legal",
+          "commander": "legal",
+          "duel": "legal",
+          "future": "not_legal",
+          "gladiator": "not_legal",
+          "historic": "not_legal",
+          "legacy": "legal",
+          "modern": "legal",
+          "oathbreaker": "legal",
+          "oldschool": "not_legal",
+          "pauper": "legal",
+          "paupercommander": "legal",
+          "penny": "legal",
+          "pioneer": "legal",
+          "predh": "not_legal",
+          "premodern": "not_legal",
+          "standard": "not_legal",
+          "standardbrawl": "not_legal",
+          "timeless": "not_legal",
+          "vintage": "legal"
+        },
+        "mana_cost": "{3}{R}{R}",
+        "mtgo_id": 85206,
+        "multiverse_ids": [
+          497732
+        ],
+        "name": "Wild Celebrants",
+        "nonfoil": true,
+        "object": "card",
+        "oracle_id": "695661ac-6f50-4a0e-9831-a0e285bab4bf",
+        "oracle_text": "When this creature enters, you may destroy target artifact.",
+        "oversized": false,
+        "power": "5",
+        "preview": {
+          "previewed_at": "2020-10-31",
+          "source": "/r/magicTCG",
+          "source_uri": "https://www.reddit.com/r/magicTCG/comments/jlm4u1/hans_eriksson_rootweaver_druid_and_wild_celebrant/"
+        },
+        "prices": {
+          "eur": "0.04",
+          "eur_foil": "0.07",
+          "tix": "0.05",
+          "usd": "0.01",
+          "usd_etched": null,
+          "usd_foil": "0.02"
+        },
+        "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A695661ac-6f50-4a0e-9831-a0e285bab4bf&unique=prints",
+        "promo": false,
+        "purchase_uris": {
+          "cardhoarder": "https://www.cardhoarder.com/cards/85206?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall",
+          "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=511210&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+          "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F226879%3Fpage%3D1"
+        },
+        "rarity": "common",
+        "related_uris": {
+          "edhrec": "https://edhrec.com/route/?cc=Wild+Celebrants",
+          "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=497732&printed=false",
+          "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants",
+          "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants"
+        },
+        "released_at": "2020-11-20",
+        "reprint": true,
+        "reserved": false,
+        "rulings_uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25/rulings",
+        "scryfall_set_uri": "https://scryfall.com/sets/cmr?utm_source=api",
+        "scryfall_uri": "https://scryfall.com/card/cmr/212/wild-celebrants?utm_source=api",
+        "set": "cmr",
+        "set_id": "39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+        "set_name": "Commander Legends",
+        "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acmr&unique=prints",
+        "set_type": "draft_innovation",
+        "set_uri": "https://api.scryfall.com/sets/39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+        "story_spotlight": false,
+        "tcgplayer_id": 226879,
+        "textless": false,
+        "toughness": "3",
+        "type_line": "Creature \u2014 Satyr",
+        "uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25",
+        "variation": false
+      },
+      "candidates": [
+        {
+          "card": {
+            "artist": "Igor Kieryluk",
+            "artist_ids": [
+              "9c3e9d17-509f-485c-9360-46d897ce716b"
+            ],
+            "booster": true,
+            "border_color": "black",
+            "card_back_id": "0aeebaf5-8c7d-4636-9e82-8c27447861f7",
+            "cardmarket_id": 511210,
+            "cmc": 5.0,
+            "collector_number": "212",
+            "color_identity": [
+              "R"
+            ],
+            "colors": [
+              "R"
+            ],
+            "digital": false,
+            "edhrec_rank": 19936,
+            "finishes": [
+              "nonfoil",
+              "foil"
+            ],
+            "flavor_text": "\"You can tell something's really valuable by the sound it makes when you slam your staff into it.\"",
+            "foil": true,
+            "frame": "2015",
+            "full_art": false,
+            "game_changer": false,
+            "games": [
+              "paper",
+              "mtgo"
+            ],
+            "highres_image": true,
+            "id": "6b9e72f4-0087-4a79-b9af-296c8b930a25",
+            "illustration_id": "992e834c-2b60-45cc-9936-729730778352",
+            "image_status": "highres_scan",
+            "image_uris": {
+              "art_crop": "https://cards.scryfall.io/art_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+              "border_crop": "https://cards.scryfall.io/border_crop/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+              "large": "https://cards.scryfall.io/large/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+              "normal": "https://cards.scryfall.io/normal/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510",
+              "png": "https://cards.scryfall.io/png/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.png?1608910510",
+              "small": "https://cards.scryfall.io/small/front/6/b/6b9e72f4-0087-4a79-b9af-296c8b930a25.jpg?1608910510"
+            },
+            "keywords": [],
+            "lang": "en",
+            "layout": "normal",
+            "legalities": {
+              "alchemy": "not_legal",
+              "brawl": "not_legal",
+              "commander": "legal",
+              "duel": "legal",
+              "future": "not_legal",
+              "gladiator": "not_legal",
+              "historic": "not_legal",
+              "legacy": "legal",
+              "modern": "legal",
+              "oathbreaker": "legal",
+              "oldschool": "not_legal",
+              "pauper": "legal",
+              "paupercommander": "legal",
+              "penny": "legal",
+              "pioneer": "legal",
+              "predh": "not_legal",
+              "premodern": "not_legal",
+              "standard": "not_legal",
+              "standardbrawl": "not_legal",
+              "timeless": "not_legal",
+              "vintage": "legal"
+            },
+            "mana_cost": "{3}{R}{R}",
+            "mtgo_id": 85206,
+            "multiverse_ids": [
+              497732
+            ],
+            "name": "Wild Celebrants",
+            "nonfoil": true,
+            "object": "card",
+            "oracle_id": "695661ac-6f50-4a0e-9831-a0e285bab4bf",
+            "oracle_text": "When this creature enters, you may destroy target artifact.",
+            "oversized": false,
+            "power": "5",
+            "preview": {
+              "previewed_at": "2020-10-31",
+              "source": "/r/magicTCG",
+              "source_uri": "https://www.reddit.com/r/magicTCG/comments/jlm4u1/hans_eriksson_rootweaver_druid_and_wild_celebrant/"
+            },
+            "prices": {
+              "eur": "0.04",
+              "eur_foil": "0.07",
+              "tix": "0.05",
+              "usd": "0.01",
+              "usd_etched": null,
+              "usd_foil": "0.02"
+            },
+            "prints_search_uri": "https://api.scryfall.com/cards/search?order=released&q=oracleid%3A695661ac-6f50-4a0e-9831-a0e285bab4bf&unique=prints",
+            "promo": false,
+            "purchase_uris": {
+              "cardhoarder": "https://www.cardhoarder.com/cards/85206?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall",
+              "cardmarket": "https://www.cardmarket.com/en/Magic/Products?idProduct=511210&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall",
+              "tcgplayer": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F226879%3Fpage%3D1"
+            },
+            "rarity": "common",
+            "related_uris": {
+              "edhrec": "https://edhrec.com/route/?cc=Wild+Celebrants",
+              "gatherer": "https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=497732&printed=false",
+              "tcgplayer_infinite_articles": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants",
+              "tcgplayer_infinite_decks": "https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DWild%2BCelebrants"
+            },
+            "released_at": "2020-11-20",
+            "reprint": true,
+            "reserved": false,
+            "rulings_uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25/rulings",
+            "scryfall_set_uri": "https://scryfall.com/sets/cmr?utm_source=api",
+            "scryfall_uri": "https://scryfall.com/card/cmr/212/wild-celebrants?utm_source=api",
+            "set": "cmr",
+            "set_id": "39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+            "set_name": "Commander Legends",
+            "set_search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acmr&unique=prints",
+            "set_type": "draft_innovation",
+            "set_uri": "https://api.scryfall.com/sets/39de6fbf-1f11-48d0-8f04-f0407f6a0732",
+            "story_spotlight": false,
+            "tcgplayer_id": 226879,
+            "textless": false,
+            "toughness": "3",
+            "type_line": "Creature \u2014 Satyr",
+            "uri": "https://api.scryfall.com/cards/6b9e72f4-0087-4a79-b9af-296c8b930a25",
+            "variation": false
+          },
+          "collector_score": 1.0,
+          "name_score": 100.0,
+          "oracle_score": 1.0,
+          "total_score": 100.0
+        }
+      ],
+      "debug": {
+        "num_cards_in_db": 36181,
+        "ocr_collector": "",
+        "ocr_name": "Wild Celebrants",
+        "ocr_oracle": "",
+        "ocr_query": "Wild Celebrants"
+      },
+      "score": 100.0
+    },
+    "identification_normal": {
+      "best": null,
+      "candidates": [],
+      "debug": {
+        "num_cards_in_db": 36181,
+        "ocr_collector": "",
+        "ocr_name": "",
+        "ocr_oracle": "",
+        "ocr_query": ""
+      },
+      "score": 0.0
+    },
+    "name_zone_height": 105,
+    "normal": {
+      "collector": "",
+      "name": ""
+    },
+    "rotated_180": {
+      "collector": "",
+      "name": "Wild Celebrants : 32)"
+    },
+    "selected": {
+      "collector": "",
+      "name": "Wild Celebrants : 32)",
+      "oracle": "",
+      "type_line": ""
+    },
+    "selected_orientation": "rotated_180"
+  },
+  "orientation": {
+    "density_lower_final": 4.131046960875007,
+    "density_lower_initial": 6.151594384284704,
+    "density_upper_final": 6.1578498177187715,
+    "density_upper_initial": 4.133339332117216,
+    "header_activity_final": {
+      "band_height": 202,
+      "bottom_brightness": 81.02821350097656,
+      "bottom_contrast": 72.24190521240234,
+      "bottom_energy": 32.662628173828125,
+      "bottom_score": 45.0487018585205,
+      "top_brightness": 163.51593017578125,
+      "top_contrast": 73.8711929321289,
+      "top_energy": 37.9145393371582,
+      "top_score": 53.63358993530274
+    },
+    "header_activity_initial": {
+      "band_height": 202,
+      "bottom_brightness": 163.51589965820312,
+      "bottom_contrast": 73.8711929321289,
+      "bottom_energy": 37.9145393371582,
+      "bottom_score": 49.1323600769043,
+      "top_brightness": 81.02821350097656,
+      "top_contrast": 72.24191284179688,
+      "top_energy": 32.662628173828125,
+      "top_score": 49.549933624267574
+    },
+    "hint_determination": null,
+    "mask_stats": {
+      "bonus": 0.0,
+      "bottom_mean": 255.0,
+      "score": 0.0,
+      "top_mean": 255.0
+    },
+    "orientation_candidates": [
+      {
+        "bias": 0.0,
+        "density_lower": 6.151594384284704,
+        "density_upper": 4.133339332117216,
+        "direction": "90_only",
+        "energy_ratio": 0.8614839389035653,
+        "header": {
+          "band_height": 202,
+          "bottom_brightness": 163.51589965820312,
+          "bottom_contrast": 73.8711929321289,
+          "bottom_energy": 37.9145393371582,
+          "bottom_score": 49.1323600769043,
+          "top_brightness": 81.02821350097656,
+          "top_contrast": 72.24191284179688,
+          "top_energy": 32.662628173828125,
+          "top_score": 49.549933624267574
+        },
+        "mask_bonus": 0.0,
+        "mask_bottom_mean": 255.0,
+        "mask_score": 0.0,
+        "mask_top_mean": 255.0,
+        "ratio_density": 0.671966827957548,
+        "ratio_header": 1.0084987785632753,
+        "score": 0.9096643069458725,
+        "score_raw": 0.9096643069458725,
+        "text_bonus": 0.45,
+        "text_features": {
+          "gap_ok": true,
+          "name_band": {
+            "center_norm": 0.02886710239651416,
+            "end": 31,
+            "end_norm": 0.03376906318082789,
+            "length": 10,
+            "start": 22,
+            "start_norm": 0.023965141612200435
+          },
+          "rules_band": {
+            "center_norm": 0.9934640522875817,
+            "end": 918,
+            "end_norm": 1.0,
+            "length": 13,
+            "start": 906,
+            "start_norm": 0.9869281045751634
+          },
+          "score": 0.45,
+          "segments": [
+            {
+              "center_norm": 0.02886710239651416,
+              "end": 31,
+              "end_norm": 0.03376906318082789,
+              "length": 10,
+              "start": 22,
+              "start_norm": 0.023965141612200435
+            },
+            {
+              "center_norm": 0.07352941176470588,
+              "end": 80,
+              "end_norm": 0.08714596949891068,
+              "length": 26,
+              "start": 55,
+              "start_norm": 0.05991285403050109
+            },
+            {
+              "center_norm": 0.3066448801742919,
+              "end": 288,
+              "end_norm": 0.3137254901960784,
+              "length": 14,
+              "start": 275,
+              "start_norm": 0.2995642701525055
+            },
+            {
+              "center_norm": 0.37037037037037035,
+              "end": 342,
+              "end_norm": 0.37254901960784315,
+              "length": 5,
+              "start": 338,
+              "start_norm": 0.3681917211328976
+            },
+            {
+              "center_norm": 0.38562091503267976,
+              "end": 356,
+              "end_norm": 0.3877995642701525,
+              "length": 5,
+              "start": 352,
+              "start_norm": 0.38344226579520696
+            },
+            {
+              "center_norm": 0.409041394335512,
+              "end": 390,
+              "end_norm": 0.42483660130718953,
+              "length": 30,
+              "start": 361,
+              "start_norm": 0.39324618736383443
+            },
+            {
+              "center_norm": 0.43300653594771243,
+              "end": 401,
+              "end_norm": 0.43681917211328974,
+              "length": 8,
+              "start": 394,
+              "start_norm": 0.42919389978213507
+            },
+            {
+              "center_norm": 0.45588235294117646,
+              "end": 431,
+              "end_norm": 0.46949891067538124,
+              "length": 26,
+              "start": 406,
+              "start_norm": 0.4422657952069717
+            },
+            {
+              "center_norm": 0.4863834422657952,
+              "end": 448,
+              "end_norm": 0.4880174291938998,
+              "length": 4,
+              "start": 445,
+              "start_norm": 0.48474945533769065
+            },
+            {
+              "center_norm": 0.49455337690631807,
+              "end": 455,
+              "end_norm": 0.49564270152505446,
+              "length": 3,
+              "start": 453,
+              "start_norm": 0.4934640522875817
+            },
+            {
+              "center_norm": 0.6067538126361656,
+              "end": 566,
+              "end_norm": 0.616557734204793,
+              "length": 19,
+              "start": 548,
+              "start_norm": 0.5969498910675382
+            },
+            {
+              "center_norm": 0.6879084967320261,
+              "end": 643,
+              "end_norm": 0.7004357298474946,
+              "length": 24,
+              "start": 620,
+              "start_norm": 0.6753812636165577
+            },
+            {
+              "center_norm": 0.724400871459695,
+              "end": 676,
+              "end_norm": 0.7363834422657952,
+              "length": 23,
+              "start": 654,
+              "start_norm": 0.7124183006535948
+            },
+            {
+              "center_norm": 0.7636165577342048,
+              "end": 707,
+              "end_norm": 0.7701525054466231,
+              "length": 13,
+              "start": 695,
+              "start_norm": 0.7570806100217865
+            },
+            {
+              "center_norm": 0.8137254901960784,
+              "end": 760,
+              "end_norm": 0.8278867102396514,
+              "length": 27,
+              "start": 734,
+              "start_norm": 0.7995642701525054
+            },
+            {
+              "center_norm": 0.8507625272331155,
+              "end": 792,
+              "end_norm": 0.8627450980392157,
+              "length": 23,
+              "start": 770,
+              "start_norm": 0.8387799564270153
+            },
+            {
+              "center_norm": 0.8905228758169934,
+              "end": 826,
+              "end_norm": 0.8997821350762527,
+              "length": 18,
+              "start": 809,
+              "start_norm": 0.8812636165577342
+            },
+            {
+              "center_norm": 0.9596949891067538,
+              "end": 896,
+              "end_norm": 0.9760348583877996,
+              "length": 31,
+              "start": 866,
+              "start_norm": 0.9433551198257081
+            },
+            {
+              "center_norm": 0.9934640522875817,
+              "end": 918,
+              "end_norm": 1.0,
+              "length": 13,
+              "start": 906,
+              "start_norm": 0.9869281045751634
+            }
+          ]
+        }
+      },
+      {
+        "bias": 0.0,
+        "density_lower": 4.131046960875007,
+        "density_upper": 6.1578498177187715,
+        "direction": "90_plus_180",
+        "energy_ratio": 1.160787746400389,
+        "header": {
+          "band_height": 202,
+          "bottom_brightness": 81.02821350097656,
+          "bottom_contrast": 72.24190521240234,
+          "bottom_energy": 32.662628173828125,
+          "bottom_score": 45.0487018585205,
+          "top_brightness": 163.51593017578125,
+          "top_contrast": 73.8711929321289,
+          "top_energy": 37.9145393371582,
+          "top_score": 53.63358993530274
+        },
+        "mask_bonus": 0.0,
+        "mask_bottom_mean": 255.0,
+        "mask_score": 0.0,
+        "mask_top_mean": 255.0,
+        "ratio_density": 1.490508185418727,
+        "ratio_header": 1.1905648144740946,
+        "score": 1.2625729504028822,
+        "score_raw": 1.2625729504028822,
+        "text_bonus": 0.45,
+        "text_features": {
+          "gap_ok": true,
+          "name_band": {
+            "center_norm": 0.006535947712418301,
+            "end": 12,
+            "end_norm": 0.013071895424836602,
+            "length": 13,
+            "start": 0,
+            "start_norm": 0.0
+          },
+          "rules_band": {
+            "center_norm": 0.9711328976034859,
+            "end": 896,
+            "end_norm": 0.9760348583877996,
+            "length": 10,
+            "start": 887,
+            "start_norm": 0.9662309368191722
+          },
+          "score": 0.45,
+          "segments": [
+            {
+              "center_norm": 0.006535947712418301,
+              "end": 12,
+              "end_norm": 0.013071895424836602,
+              "length": 13,
+              "start": 0,
+              "start_norm": 0.0
+            },
+            {
+              "center_norm": 0.04030501089324619,
+              "end": 52,
+              "end_norm": 0.05664488017429194,
+              "length": 31,
+              "start": 22,
+              "start_norm": 0.023965141612200435
+            },
+            {
+              "center_norm": 0.10947712418300654,
+              "end": 109,
+              "end_norm": 0.1187363834422658,
+              "length": 18,
+              "start": 92,
+              "start_norm": 0.10021786492374728
+            },
+            {
+              "center_norm": 0.14923747276688454,
+              "end": 148,
+              "end_norm": 0.16122004357298475,
+              "length": 23,
+              "start": 126,
+              "start_norm": 0.13725490196078433
+            },
+            {
+              "center_norm": 0.18627450980392157,
+              "end": 184,
+              "end_norm": 0.20043572984749455,
+              "length": 27,
+              "start": 158,
+              "start_norm": 0.1721132897603486
+            },
+            {
+              "center_norm": 0.23638344226579522,
+              "end": 223,
+              "end_norm": 0.2429193899782135,
+              "length": 13,
+              "start": 211,
+              "start_norm": 0.2298474945533769
+            },
+            {
+              "center_norm": 0.275599128540305,
+              "end": 264,
+              "end_norm": 0.2875816993464052,
+              "length": 23,
+              "start": 242,
+              "start_norm": 0.2636165577342048
+            },
+            {
+              "center_norm": 0.31209150326797386,
+              "end": 298,
+              "end_norm": 0.32461873638344224,
+              "length": 24,
+              "start": 275,
+              "start_norm": 0.2995642701525055
+            },
+            {
+              "center_norm": 0.39324618736383443,
+              "end": 370,
+              "end_norm": 0.40305010893246185,
+              "length": 19,
+              "start": 352,
+              "start_norm": 0.38344226579520696
+            },
+            {
+              "center_norm": 0.5054466230936819,
+              "end": 465,
+              "end_norm": 0.5065359477124183,
+              "length": 3,
+              "start": 463,
+              "start_norm": 0.5043572984749455
+            },
+            {
+              "center_norm": 0.5136165577342048,
+              "end": 473,
+              "end_norm": 0.5152505446623094,
+              "length": 4,
+              "start": 470,
+              "start_norm": 0.5119825708061002
+            },
+            {
+              "center_norm": 0.5441176470588235,
+              "end": 512,
+              "end_norm": 0.5577342047930284,
+              "length": 26,
+              "start": 487,
+              "start_norm": 0.5305010893246187
+            },
+            {
+              "center_norm": 0.5669934640522876,
+              "end": 524,
+              "end_norm": 0.5708061002178649,
+              "length": 8,
+              "start": 517,
+              "start_norm": 0.5631808278867102
+            },
+            {
+              "center_norm": 0.590958605664488,
+              "end": 557,
+              "end_norm": 0.6067538126361656,
+              "length": 30,
+              "start": 528,
+              "start_norm": 0.5751633986928104
+            },
+            {
+              "center_norm": 0.6143790849673203,
+              "end": 566,
+              "end_norm": 0.616557734204793,
+              "length": 5,
+              "start": 562,
+              "start_norm": 0.6122004357298475
+            },
+            {
+              "center_norm": 0.6296296296296297,
+              "end": 580,
+              "end_norm": 0.6318082788671024,
+              "length": 5,
+              "start": 576,
+              "start_norm": 0.6274509803921569
+            },
+            {
+              "center_norm": 0.6933551198257081,
+              "end": 643,
+              "end_norm": 0.7004357298474946,
+              "length": 14,
+              "start": 630,
+              "start_norm": 0.6862745098039216
+            },
+            {
+              "center_norm": 0.9264705882352942,
+              "end": 863,
+              "end_norm": 0.9400871459694989,
+              "length": 26,
+              "start": 838,
+              "start_norm": 0.9128540305010894
+            },
+            {
+              "center_norm": 0.9711328976034859,
+              "end": 896,
+              "end_norm": 0.9760348583877996,
+              "length": 10,
+              "start": 887,
+              "start_norm": 0.9662309368191722
+            }
+          ]
+        }
+      }
+    ],
+    "rotated": {
+      "direction": "90_plus_180",
+      "scores": {
+        "90_only": 0.9096643069458725,
+        "90_plus_180": 1.2625729504028822
+      },
+      "selected_score": 1.2625729504028822
+    },
+    "rotated_180": true,
+    "rotated_90": true,
+    "rotation_direction": "90_plus_180",
+    "text_band": {
+      "gap_ok": true,
+      "name_band": {
+        "center_norm": 0.006535947712418301,
+        "end": 12,
+        "end_norm": 0.013071895424836602,
+        "length": 13,
+        "start": 0,
+        "start_norm": 0.0
+      },
+      "rules_band": {
+        "center_norm": 0.9711328976034859,
+        "end": 896,
+        "end_norm": 0.9760348583877996,
+        "length": 10,
+        "start": 887,
+        "start_norm": 0.9662309368191722
+      },
+      "score": 0.45,
+      "segments": [
+        {
+          "center_norm": 0.006535947712418301,
+          "end": 12,
+          "end_norm": 0.013071895424836602,
+          "length": 13,
+          "start": 0,
+          "start_norm": 0.0
+        },
+        {
+          "center_norm": 0.04030501089324619,
+          "end": 52,
+          "end_norm": 0.05664488017429194,
+          "length": 31,
+          "start": 22,
+          "start_norm": 0.023965141612200435
+        },
+        {
+          "center_norm": 0.10947712418300654,
+          "end": 109,
+          "end_norm": 0.1187363834422658,
+          "length": 18,
+          "start": 92,
+          "start_norm": 0.10021786492374728
+        },
+        {
+          "center_norm": 0.14923747276688454,
+          "end": 148,
+          "end_norm": 0.16122004357298475,
+          "length": 23,
+          "start": 126,
+          "start_norm": 0.13725490196078433
+        },
+        {
+          "center_norm": 0.18627450980392157,
+          "end": 184,
+          "end_norm": 0.20043572984749455,
+          "length": 27,
+          "start": 158,
+          "start_norm": 0.1721132897603486
+        },
+        {
+          "center_norm": 0.23638344226579522,
+          "end": 223,
+          "end_norm": 0.2429193899782135,
+          "length": 13,
+          "start": 211,
+          "start_norm": 0.2298474945533769
+        },
+        {
+          "center_norm": 0.275599128540305,
+          "end": 264,
+          "end_norm": 0.2875816993464052,
+          "length": 23,
+          "start": 242,
+          "start_norm": 0.2636165577342048
+        },
+        {
+          "center_norm": 0.31209150326797386,
+          "end": 298,
+          "end_norm": 0.32461873638344224,
+          "length": 24,
+          "start": 275,
+          "start_norm": 0.2995642701525055
+        },
+        {
+          "center_norm": 0.39324618736383443,
+          "end": 370,
+          "end_norm": 0.40305010893246185,
+          "length": 19,
+          "start": 352,
+          "start_norm": 0.38344226579520696
+        },
+        {
+          "center_norm": 0.5054466230936819,
+          "end": 465,
+          "end_norm": 0.5065359477124183,
+          "length": 3,
+          "start": 463,
+          "start_norm": 0.5043572984749455
+        },
+        {
+          "center_norm": 0.5136165577342048,
+          "end": 473,
+          "end_norm": 0.5152505446623094,
+          "length": 4,
+          "start": 470,
+          "start_norm": 0.5119825708061002
+        },
+        {
+          "center_norm": 0.5441176470588235,
+          "end": 512,
+          "end_norm": 0.5577342047930284,
+          "length": 26,
+          "start": 487,
+          "start_norm": 0.5305010893246187
+        },
+        {
+          "center_norm": 0.5669934640522876,
+          "end": 524,
+          "end_norm": 0.5708061002178649,
+          "length": 8,
+          "start": 517,
+          "start_norm": 0.5631808278867102
+        },
+        {
+          "center_norm": 0.590958605664488,
+          "end": 557,
+          "end_norm": 0.6067538126361656,
+          "length": 30,
+          "start": 528,
+          "start_norm": 0.5751633986928104
+        },
+        {
+          "center_norm": 0.6143790849673203,
+          "end": 566,
+          "end_norm": 0.616557734204793,
+          "length": 5,
+          "start": 562,
+          "start_norm": 0.6122004357298475
+        },
+        {
+          "center_norm": 0.6296296296296297,
+          "end": 580,
+          "end_norm": 0.6318082788671024,
+          "length": 5,
+          "start": 576,
+          "start_norm": 0.6274509803921569
+        },
+        {
+          "center_norm": 0.6933551198257081,
+          "end": 643,
+          "end_norm": 0.7004357298474946,
+          "length": 14,
+          "start": 630,
+          "start_norm": 0.6862745098039216
+        },
+        {
+          "center_norm": 0.9264705882352942,
+          "end": 863,
+          "end_norm": 0.9400871459694989,
+          "length": 26,
+          "start": 838,
+          "start_norm": 0.9128540305010894
+        },
+        {
+          "center_norm": 0.9711328976034859,
+          "end": 896,
+          "end_norm": 0.9760348583877996,
+          "length": 10,
+          "start": 887,
+          "start_norm": 0.9662309368191722
+        }
+      ]
+    }
+  },
+  "paths": {
+    "aligned": "data/snapshots/snapshot-20260108-225258-691838-aligned.jpg",
+    "ocr_prepared": "data/snapshots/snapshot-20260108-225258-691838-ocr.png",
+    "original": "data/snapshots/snapshot-20260108-225258-691838-original.jpg",
+    "rotated": "data/snapshots/snapshot-20260108-225258-691838-rotated.jpg"
+  },
+  "timestamp": "20260108-225258-691838"
+}
