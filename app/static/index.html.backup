@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>sort.me — Card Sorter</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="dot"></span>
+      <span class="wordmark">sort.me</span>
+    </div>
+    <nav class="right">
+      <button id="btnEStop" class="danger">E-STOP</button>
+      <span id="motionStatus" class="chip muted">Motion: -</span>
+      <span id="cameraStatus" class="chip muted">Camera: unknown</span>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Step 1: Onboarding & Calibration -->
+    <section id="panelCalibrate" class="panel">
+      <h2>Onboarding & Calibration</h2>
+      <p class="muted">Quick, safe checks you can run anytime.</p>
+
+      <div class="calibration-layout">
+        <div class="calibration-left">
+          <div class="card camera-card">
+            <h3>Live Camera</h3>
+            <div class="camera large">
+              <img id="cameraLive" alt="Live stream" />
+            </div>
+            <div class="row">
+              <button id="btnCameraSnapshot" class="secondary">Capture Snapshot</button>
+              <button id="btnTestPhoto" class="secondary">Test Photo</button>
+            </div>
+            <div id="testPhotoPreview" class="test-photo-preview" style="display: none;">
+              <h4>Test Photo Debug</h4>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                  <div class="muted">Original</div>
+                  <img id="testPhotoImage" alt="Test photo" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                  <div class="muted">Rotated</div>
+                  <img id="testPhotoRotated" alt="Rotated photo" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                  <div class="muted">Border Detection</div>
+                  <img id="testPhotoBorder" alt="Border detection" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                  <div class="muted">Edge Detection</div>
+                  <img id="testPhotoEdges" alt="Edge detection" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                  <div class="muted">Aligned Card</div>
+                  <img id="testPhotoAligned" alt="Aligned card" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+                </div>
+              </div>
+              <div class="muted tiny" style="margin-top: 10px;">
+                <pre id="testPhotoInfo" style="white-space: pre-wrap; font-family: monospace;">—</pre>
+              </div>
+            </div>
+            <div id="snapshotPreviewWrap" class="snapshot-preview">
+              <div class="snapshot-preview-images single">
+                <div class="snapshot-image-block primary">
+                  <span class="muted">OCR Prep Composite</span>
+                  <img id="snapshotPreviewOcr" alt="OCR ready snapshot" />
+                </div>
+              </div>
+              <div class="snapshot-meta">
+                <span id="snapshotTimestamp" class="muted">No snapshot yet</span>
+                <span id="snapshotLocation" class="muted">Not saved yet</span>
+              </div>
+              <div class="row end">
+                <button id="btnDownloadSnapshot" class="secondary" disabled>Download Snapshot</button>
+              </div>
+            </div>
+            <div class="snapshot-ocr-panel">
+              <div class="row between align-center">
+                <span class="muted">OCR Output</span>
+                <button id="btnCopyOcrText" class="ghost" type="button" disabled>Copy Full Text</button>
+              </div>
+              <pre id="snapshotOcrFull" class="ocr-output muted">No OCR text yet</pre>
+              <div class="ocr-field-grid">
+               
+              </div>
+              <div class="ocr-scryfall-id">
+                <span class="label muted">Scryfall ID</span>
+                <code id="snapshotOcrScryfallId">—</code>
+              </div>
+              <div id="snapshotOcrMeta" class="muted tiny">Engine: —</div>
+              <div id="snapshotNeighborCard" class="nearest-card muted">
+                <div class="row between align-center">
+                  <span class="muted">Nearest Card (Embeddings)</span>
+                  <span id="snapshotNeighborScore" class="tiny score-chip">—</span>
+                </div>
+                <div class="neighbor-main">
+                  <div>
+                    <strong id="snapshotNeighborName">Waiting for OCR…</strong>
+                    <div id="snapshotNeighborSet" class="muted tiny">—</div>
+                  </div>
+                </div>
+                <div class="neighbor-id">
+                  <span class="label muted">Scryfall ID</span>
+                  <code id="snapshotNeighborId">—</code>
+                </div>
+                <div id="snapshotNeighborStatus" class="tiny muted">Embedding match unavailable.</div>
+              </div>
+              <div id="snapshotCardDetails" class="lookup-summary compact">
+                <div><span class="muted">Name:</span> <strong id="snapshotCardName">—</strong></div>
+                <div><span class="muted">Printed:</span> <strong id="snapshotCardPrinted">—</strong></div>
+                <div><span class="muted">Set:</span> <strong id="snapshotCardSet">—</strong></div>
+                <div><span class="muted">Released:</span> <strong id="snapshotCardYear">—</strong></div>
+                <div><span class="muted">Value (USD):</span> <strong id="snapshotCardValue">—</strong></div>
+                <div><span class="muted">Mode:</span> <strong id="snapshotCardMode">—</strong></div>
+                <div><span class="muted">Match:</span> <strong id="snapshotCardMatch">—</strong></div>
+                <div><span class="muted">Target:</span> <strong id="snapshotCardCell">—</strong></div>
+                <div><span class="muted">Reason:</span> <strong id="snapshotCardReason">—</strong></div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="muted">Current Card:</span>
+              <span id="currentCard" class="chip">—</span>
+            </div>
+            <div class="row">
+              <button id="btnManualDivert" class="secondary">Divert This Card</button>
+            </div>
+          </div>
+        </div>
+        <div class="calibration-right">
+          <div class="card">
+            <h3>Grid &amp; Cells</h3>
+            <p class="muted">Excel-style grid: <strong>Columns = letters</strong>, <strong>Rows = numbers</strong>. A-row is feeders; <strong>K3 is the error cell.</strong></p>
+            <div id="gridPreview" class="grid-preview"></div>
+            <div class="row">
+              <button id="btnReloadGrid" class="secondary">Reload Grid</button>
+              <button id="btnTestCellMoves" class="secondary">Test Moves…</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Jog Controls</h3>
+            <p class="muted">Manual axis movement for positioning, testing, and homing.</p>
+            <div class="jog-controls">
+              <div class="jog-section">
+                <label>X Axis</label>
+                <div class="jog-buttons">
+                  <button id="btnJogXMinus" class="jog-btn">X-</button>
+                  <button id="btnJogXPlus" class="jog-btn">X+</button>
+                </div>
+              </div>
+              <div class="jog-section">
+                <label>Y Axis</label>
+                <div class="jog-buttons">
+                  <button id="btnJogYMinus" class="jog-btn">Y-</button>
+                  <button id="btnJogYPlus" class="jog-btn">Y+</button>
+                </div>
+              </div>
+              <div class="jog-section">
+                <label>Z Axis</label>
+                <div class="jog-buttons">
+                  <button id="btnJogZMinus" class="jog-btn">Z-</button>
+                  <button id="btnJogZPlus" class="jog-btn">Z+</button>
+                </div>
+              </div>
+              <div class="jog-section">
+                <label>Extruder Control</label>
+                <div class="jog-buttons">
+                  <button id="btnExtrude" class="jog-btn warning">Extrude (E+0.2)</button>
+                  <button id="btnZDropExtrude" class="jog-btn primary">Z Drop + Extrude</button>
+                  <button id="btnRetract" class="jog-btn secondary">Retract (E-0.2)</button>
+                </div>
+              </div>
+              <div class="jog-section">
+                <label>Homing</label>
+                <div class="jog-buttons">
+                  <button id="btnHomeX" class="jog-btn secondary">Home X</button>
+                  <button id="btnHomeY" class="jog-btn secondary">Home Y</button>
+                  <button id="btnHomeZ" class="jog-btn secondary">Home Z</button>
+                </div>
+              </div>
+              <div class="jog-section">
+                <label for="jogDistance">Distance (mm)</label>
+                <select id="jogDistance">
+                  <option value="0.1">0.1mm</option>
+                  <option value="1" selected>1mm</option>
+                  <option value="5">5mm</option>
+                  <option value="10">10mm</option>
+                  <option value="25">25mm</option>
+                  <option value="100">100mm</option>
+                </select>
+                <div class="jog-buttons compact">
+                  <button id="btnSetJog100" class="jog-btn secondary" type="button">Set 100mm Step</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row end">
+  <button id="btnToSetup" class="primary">Jump to Sorting Setup</button>
+      </div>
+    </section>
+
+    <!-- Step 2: Sorting Setup -->
+  <section id="panelSetup" class="panel">
+      <h2>Sorting Setup</h2>
+      <div class="card">
+        <h3>Parameters</h3>
+        <div class="form">
+          <label for="gameSelect">Card Game</label>
+          <select id="gameSelect" required>
+            <option value="" disabled selected>Select a game</option>
+            <option value="mtg">Magic: The Gathering</option>
+            <option value="ygo">Yu-Gi-Oh!</option>
+          </select>
+
+          <label for="sortSelect">Sorting Type</label>
+          <select id="sortSelect" required>
+            <option value="" disabled selected>Loading modes…</option>
+          </select>
+
+          <label for="feederCapacity">Feeder Count (est.)</label>
+          <input id="feederCapacity" type="number" min="1" max="500" placeholder="e.g., 100" />
+
+          <label class="checkbox">
+            <input type="checkbox" id="divertUncertain" checked />
+            <span>Divert low-confidence OCR to error cell (K3)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row between">
+        <div class="row">
+          <button id="btnBackToCal" class="ghost">Scroll to Calibration</button>
+        </div>
+        <div class="row">
+          <button id="btnStartRun" class="primary">Start Sorting</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 3: Run View -->
+    <section id="panelRun" class="panel">
+      <h2>Run</h2>
+      
+      <div class="card">
+        <h3>Automatic Sorting</h3>
+        <p class="muted">Start the automated card sorting loop. The system will continuously capture, identify, and sort cards.</p>
+        
+        <div class="auto-sort-status">
+          <div class="row between align-center">
+            <div>
+              <span class="label">Status:</span>
+              <span id="autoSortStatus" class="chip muted">Stopped</span>
+            </div>
+            <div class="auto-sort-stats">
+              <span class="muted">Cards: <strong id="autoSortCount">0</strong></span>
+              <span class="muted">Errors: <strong id="autoSortErrors">0</strong></span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row" style="margin-top: 1rem;">
+          <button id="btnAutoSortStart" class="primary">Start Auto-Sort</button>
+          <button id="btnAutoSortStop" class="secondary" disabled>Stop Auto-Sort</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Test Moves -->
+  <dialog id="dlgTestMoves" class="modal">
+    <div class="modal-card">
+      <h3>Test Cell Moves</h3>
+      <p class="muted">Click any cell to jog there (non-destructive). Useful for validating YAML coordinates.</p>
+      <div id="testGrid" class="grid-preview tall"></div>
+      <div class="row end">
+        <button id="btnCloseTestMoves" class="primary">Done</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal: Logs -->
+  <dialog id="dlgLogs" class="modal">
+    <div class="modal-card">
+      <h3>System Logs</h3>
+      <pre id="logOutput" class="logs"></pre>
+      <div class="row end">
+        <button id="btnCloseLogs" class="primary">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal: Device Selection -->
+  <dialog id="dlgDevice" class="modal">
+    <div class="modal-card">
+      <h3>Detected Serial Devices</h3>
+      <p class="muted">Select the controller device you want to adopt as the G-code port.</p>
+      <div class="form">
+        <div id="deviceListWrap">
+          <ul id="deviceList" style="list-style:none;padding:0;margin:0;max-height:240px;overflow:auto"></ul>
+        </div>
+        <label for="deviceBaud">Baud rate</label>
+        <input id="deviceBaud" type="number" value="115200" />
+        <div style="margin-top:8px">
+          <label><input id="devicePersist" type="checkbox" /> Persist to config.yaml</label>
+        </div>
+      </div>
+      <div class="row end">
+        <button id="btnAdoptPort" class="primary">Adopt as G-code port</button>
+        <button id="btnCloseDevice" class="ghost">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal: Camera Selection -->
+  <dialog id="dlgCamera" class="modal">
+    <div class="modal-card">
+      <h3>Camera Devices</h3>
+      <p class="muted">Select which camera to use for feeder detection and preview.</p>
+      <div class="form">
+        <div id="camListWrap">
+          <ul id="camList" style="list-style:none;padding:0;margin:0;max-height:240px;overflow:auto"></ul>
+        </div>
+        <div style="margin-top:8px">
+          <label><input id="camPersist" type="checkbox" /> Persist to config.yaml</label>
+        </div>
+      </div>
+      <div class="row end">
+        <button id="btnSelectCam" class="primary">Select Camera</button>
+        <button id="btnCloseCam" class="ghost">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toasts -->
+  <div id="toasts" class="toasts"></div>
+
+  <!-- Cache-busting query param to ensure clients pick up JS changes during development -->
+  <script src="/static/app.js?v=11"></script>
+</body>
+</html>

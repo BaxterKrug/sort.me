@@ -1147,22 +1147,25 @@ def prepare_single_snapshot_artifacts(
     # Warp and align the card (for actual processing)
     card_aligned, card_mask, border_meta = _warp_card_to_bounds(frame, dummy_mask)
     
-    # Apply minimal crops BEFORE orientation detection
-    # Only crop left/right edges to remove card borders, leave top/bottom intact for text zones
-    crop_top_px = 0  # Don't crop top - card name might be here
-    crop_bottom_px = 0  # Don't crop bottom - collector info might be here
-    crop_left_px = 30
-    crop_right_px = 30
+    # Ensure portrait orientation (rotate if needed) FIRST, before any cropping
+    # Create a simple orientation hint - we don't have dual frames, so no hint
+    card_oriented, orientation_meta = _orient_composite(card_aligned, card_mask, hint=None)
     
-    card_precropped = card_aligned.copy()
-    mask_precropped = card_mask.copy()
+    # Apply minimal crops AFTER orientation detection
+    # This way, left/right crops stay as left/right regardless of rotation
+    # Cropping disabled for camera position adjustment - user will reconfigure
+    crop_top_px = 0
+    crop_bottom_px = 0
+    crop_left_px = 0
+    crop_right_px = 0
+    
+    card_precropped = card_oriented.copy()
+    mask_precropped = card_mask.copy()  # Use original mask, not rotated
     
     h, w = card_precropped.shape[:2]
     if h > (crop_top_px + crop_bottom_px) and w > (crop_left_px + crop_right_px):
         card_precropped = card_precropped[crop_top_px:h-crop_bottom_px if crop_bottom_px > 0 else h, 
                                            crop_left_px:w-crop_right_px if crop_right_px > 0 else w]
-        mask_precropped = mask_precropped[crop_top_px:h-crop_bottom_px if crop_bottom_px > 0 else h, 
-                                          crop_left_px:w-crop_right_px if crop_right_px > 0 else w]
         border_meta["precrop"] = {
             "top": crop_top_px,
             "bottom": crop_bottom_px,
@@ -1170,13 +1173,9 @@ def prepare_single_snapshot_artifacts(
             "right": crop_right_px
         }
     
-    # Ensure portrait orientation (rotate if needed) - now working on pre-cropped card
-    # Create a simple orientation hint - we don't have dual frames, so no hint
-    card_oriented, orientation_meta = _orient_composite(card_precropped, mask_precropped, hint=None)
-    
-    # Use the oriented card for both processing and display
-    card_cropped = card_oriented.copy()
-    card_aligned_display = card_oriented.copy()
+    # Use the oriented and cropped card for both processing and display
+    card_cropped = card_precropped.copy()
+    card_aligned_display = card_precropped.copy()
     
     # Extract text from specific zones: top 105px (name) and bottom 135px (collector)
     # Increased by 50% from 70px and 90px to capture more text

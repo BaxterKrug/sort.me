@@ -84,10 +84,11 @@ class Config:
 @dataclass
 class SortMode:
     id: str
-    type: str  # 'alpha', 'year', 'set'
+    type: str  # 'alpha', 'year', 'set', 'price'
     label: str
     mapping: Dict[str, str]
     default_cell: Optional[str] = None
+    price_thresholds: Optional[List[Dict[str, Any]]] = None  # For price mode
 
 
 _DETAIL_PROVIDER: Optional[Callable[[Optional[str]], Dict[str, Any]]] = None
@@ -335,17 +336,43 @@ def _build_sort_modes(
             raw_map = mode_cfg.get("year_to_cell")
         elif mode_type == "set" and not raw_map:
             raw_map = mode_cfg.get("set_to_cell")
+        elif mode_type == "price":
+            # Price mode uses thresholds instead of mapping
+            raw_map = None
 
-        if not isinstance(raw_map, dict) or not raw_map:
+        price_thresholds = None
+        if mode_type == "price":
+            price_thresholds = mode_cfg.get("thresholds")
+            if not isinstance(price_thresholds, list) or not price_thresholds:
+                LOG.warning("Sort mode '%s' of type 'price' missing thresholds; skipping", mode_id)
+                continue
+            # Validate threshold entries
+            for i, threshold in enumerate(price_thresholds):
+                if not isinstance(threshold, dict):
+                    LOG.warning("Sort mode '%s' threshold %d is not a dict; skipping mode", mode_id, i)
+                    break
+                cell_id = threshold.get("cell")
+                if not cell_id:
+                    LOG.warning("Sort mode '%s' threshold %d missing 'cell'; skipping mode", mode_id, i)
+                    break
+                # Ensure cell exists
+                _ensure_cell(cell_id, cell_map, feeder_re, f"sorting.modes.{mode_id}", f"threshold[{i}].cell")
+            else:
+                # All thresholds validated successfully
+                mapping = {}  # Price mode doesn't use traditional mapping
+        elif not isinstance(raw_map, dict) or not raw_map:
             LOG.warning("Sort mode '%s' missing mapping; skipping", mode_id)
             continue
 
-        if mode_type == "alpha":
+        if mode_type == "alpha" and raw_map:
             mapping = _prepare_alpha_mapping(raw_map, cell_map, feeder_re, f"sorting.modes.{mode_id}")
-        elif mode_type == "year":
+        elif mode_type == "year" and raw_map:
             mapping = _prepare_year_mapping(raw_map, cell_map, feeder_re, f"sorting.modes.{mode_id}")
-        elif mode_type == "set":
+        elif mode_type == "set" and raw_map:
             mapping = _prepare_set_mapping(raw_map, cell_map, feeder_re, f"sorting.modes.{mode_id}")
+        elif mode_type == "price":
+            # Already validated above, mapping is empty dict
+            pass
         else:
             LOG.warning("Sort mode '%s' has unknown type '%s'; skipping", mode_id, mode_type)
             continue
@@ -356,6 +383,7 @@ def _build_sort_modes(
             label=label,
             mapping=mapping,
             default_cell=default_cell,
+            price_thresholds=price_thresholds,
         )
 
     return sort_modes
@@ -640,6 +668,98 @@ def _assign_set_mode(
     return _apply_target_cell(cell_id, mode, display_key or key, reason_name, cfg, state)
 
 
+def _assign_price_mode(
+    card: Card,
+    mode: SortMode,
+    reason_name: str,
+    cfg: Config,
+    state: SystemState,
+) -> Optional[Tuple[str, str]]:
+    """Assign card based on price thresholds.
+    
+    Thresholds define price ranges and their target cells.
+    Cards with no price or N/A prices go to the lowest threshold cell (default_cell or first threshold).
+    """
+    # Get price from card
+    price_str = (card.price_usd or "").strip().lower()
+    LOG.debug("Price mode: Initial price_str for %s: %r", card.name, price_str)
+    
+    if not price_str or price_str in ("", "null", "none", "n/a", "na"):
+        # No price available, try to populate
+        LOG.debug("Price mode: No initial price, calling _populate_card_details for %s (scryfall_id=%s)", card.name, card.scryfall_id)
+        _populate_card_details(card)
+        price_str = (card.price_usd or "").strip().lower()
+        LOG.debug("Price mode: After populate, price_str for %s: %r", card.name, price_str)
+    
+    # Parse price
+    price_value: Optional[float] = None
+    if price_str and price_str not in ("", "null", "none", "n/a", "na"):
+        try:
+            price_value = float(price_str)
+            LOG.debug("Price mode: Parsed price for %s: $%.2f", card.name, price_value)
+        except (ValueError, TypeError) as e:
+            LOG.debug("Price mode: Failed to parse price %r for %s: %s", price_str, card.name, e)
+    
+    # If no valid price, use default cell or first threshold
+    if price_value is None:
+        LOG.info("Price mode: No valid price for %s, using default/first threshold cell", card.name)
+        if mode.default_cell:
+            return _apply_target_cell(mode.default_cell, mode, "no_price", reason_name, cfg, state)
+        # Fall back to first threshold's cell
+        if mode.price_thresholds and len(mode.price_thresholds) > 0:
+            first_cell = mode.price_thresholds[0].get("cell")
+            if first_cell:
+                return _apply_target_cell(first_cell, mode, "no_price", reason_name, cfg, state)
+        return None
+    
+    # Find matching threshold
+    if not mode.price_thresholds:
+        LOG.warning("Price mode: No thresholds configured!")
+        return None
+    
+    LOG.debug("Price mode: Checking %d thresholds for %s ($%.2f)", len(mode.price_thresholds), card.name, price_value)
+    
+    for i, threshold in enumerate(mode.price_thresholds):
+        min_price = threshold.get("min")
+        max_price = threshold.get("max")
+        cell_id = threshold.get("cell")
+        
+        LOG.debug("Price mode: Threshold %d: min=%s, max=%s, cell=%s", i, min_price, max_price, cell_id)
+        
+        if not cell_id:
+            continue
+        
+        # Check if price falls within this threshold
+        matches = True
+        if min_price is not None:
+            try:
+                if price_value < float(min_price):
+                    matches = False
+                    LOG.debug("Price mode: Price $%.2f < min $%.2f, no match", price_value, float(min_price))
+            except (ValueError, TypeError):
+                matches = False
+        
+        if max_price is not None and matches:
+            try:
+                if price_value > float(max_price):
+                    matches = False
+                    LOG.debug("Price mode: Price $%.2f > max $%.2f, no match", price_value, float(max_price))
+            except (ValueError, TypeError):
+                matches = False
+        
+        if matches:
+            price_label = f"${price_value:.2f}"
+            LOG.info("Price mode: %s ($%.2f) matches threshold %d -> cell %s", card.name, price_value, i, cell_id)
+            return _apply_target_cell(cell_id, mode, price_label, reason_name, cfg, state)
+    
+    # No threshold matched, use default
+    LOG.warning("Price mode: No threshold matched for %s ($%.2f), using default", card.name, price_value)
+    if mode.default_cell:
+        return _apply_target_cell(mode.default_cell, mode, f"${price_value:.2f}", reason_name, cfg, state)
+    
+    return None
+
+
 def _resolve_mode_target(
     card: Card,
     cfg: Config,
@@ -653,6 +773,8 @@ def _resolve_mode_target(
         return _assign_year_mode(card, mode, reason_name, cfg, state)
     if mode.type == "set":
         return _assign_set_mode(card, mode, reason_name, cfg, state)
+    if mode.type == "price":
+        return _assign_price_mode(card, mode, reason_name, cfg, state)
     return None
 
 # ---------- Core assignment ----------

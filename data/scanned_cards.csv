@@ -40,3 +40,73 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-01-08T22:49:21Z,,Expressive Iteration,ERR1,divert:low_confidence,0.713
 2026-01-08T22:51:22Z,,Expressive Iteration,C2,alpha_exact:E:Expressive Iteration,0.713
 2026-01-08T22:53:03Z,,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000
+2026-01-13T06:41:56Z,,Expressive Iteration,C2,alpha_exact:E:Expressive Iteration,0.713
+2026-01-13T16:08:54Z,,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000
+2026-01-13T16:51:01Z,,Expressive Iteration,C2,alpha_exact:E:Expressive Iteration,0.713
+2026-01-13T16:53:01Z,,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000
+2026-01-13T16:53:12Z,,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000
+2026-01-13T16:53:23Z,,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000
+2026-01-13T17:01:59Z,,Expressive Iteration,C2,alpha_exact:E:Expressive Iteration,0.713
+2026-01-13T17:02:38Z,,Wild Celebrants,B1,price:no_price:Wild Celebrants,1.000
+2026-01-13T17:02:59Z,,Wild Celebrants,B1,price:no_price:Wild Celebrants,1.000
+2026-01-13T17:21:31Z,,Expressive Iteration,C2,alpha_exact:E:Expressive Iteration,0.713
+2026-01-13T17:21:47Z,,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000
+2026-01-13T17:22:04Z,,Wild Celebrants,B1,price:no_price:Wild Celebrants,1.000
+2026-01-13T17:22:40Z,,Expressive Iteration,B1,price:no_price:Expressive Iteration,0.713
+2026-01-13T17:22:47Z,,Wild Celebrants,B1,price:no_price:Wild Celebrants,1.000
+2026-01-13T17:22:53Z,,Wild Celebrants,B1,price:no_price:Wild Celebrants,1.000
+2026-01-13T17:22:59Z,,Wild Celebrants,B1,price:no_price:Wild Celebrants,1.000
+2026-01-13T17:23:40Z,,Expressive Iteration,B1,price:no_price:Expressive Iteration,0.713
+2026-01-13T17:38:29Z,,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000
+2026-01-13T17:38:42Z,,Wild Celebrants,B1,price:no_price:Wild Celebrants,1.000
+2026-01-13T17:38:51Z,,Wild Celebrants,B1,price:no_price:Wild Celebrants,1.000
+2026-01-13T17:39:01Z,,Expressive Iteration,B1,price:no_price:Expressive Iteration,0.713
+2026-01-13T17:41:01Z,6b9e72f4-0087-4a79-b9af-296c8b930a25,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000
+2026-01-13T17:41:14Z,6b9e72f4-0087-4a79-b9af-296c8b930a25,Wild Celebrants,B1,price:$0.02:Wild Celebrants,1.000
+2026-01-13T17:41:31Z,45e92d69-0684-4a57-8c1c-bbf742bd8a23,Expressive Iteration,B3,price:$0.28:Expressive Iteration,0.713
+2026-01-13T17:41:48Z,6b9e72f4-0087-4a79-b9af-296c8b930a25,Wild Celebrants,I2,alpha_exact:W:Wild Celebrants,1.000
+2026-01-13T17:49:54Z,6b9e72f4-0087-4a79-b9af-296c8b930a25,Wild Celebrants,B1,price:$0.02:Wild Celebrants,1.000
+2026-01-13T17:50:01Z,45e92d69-0684-4a57-8c1c-bbf742bd8a23,Expressive Iteration,B3,price:$0.28:Expressive Iteration,0.713
+2026-01-13T17:50:08Z,6b9e72f4-0087-4a79-b9af-296c8b930a25,Wild Celebrants,B1,price:$0.02:Wild Celebrants,1.000
+2026-01-13T17:50:14Z,6b9e72f4-0087-4a79-b9af-296c8b930a25,Wild Celebrants,B1,price:$0.02:Wild Celebrants,1.000
+2026-01-13T17:50:22Z,45e92d69-0684-4a57-8c1c-bbf742bd8a23,Expressive Iteration,B3,price:$0.28:Expressive Iteration,0.713
+2026-01-13T17:50:29Z,45e92d69-0684-4a57-8c1c-bbf742bd8a23,Expressive Iteration,B3,price:$0.28:Expressive Iteration,0.713
+2026-01-13T17:50:36Z,6b9e72f4-0087-4a79-b9af-296c8b930a25,Wild Celebrants,B1,price:$0.02:Wild Celebrants,1.000
+2026-01-13T17:50:42Z,6b9e72f4-0087-4a79-b9af-296c8b930a25,Wild Celebrants,B1,price:$0.02:Wild Celebrants,1.000
+2026-01-13T17:50:50Z,45e92d69-0684-4a57-8c1c-bbf742bd8a23,Expressive Iteration,B3,price:$0.28:Expressive Iteration,0.713
+2026-01-13T22:16:57Z,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,Chthonian Nightmare,B3,alpha_exact:C:Chthonian Nightmare,1.000
+2026-01-13T22:34:21Z,461d9f1c-53a4-48a6-bafb-0e70099f276c,Molten Echoes,K3,divert:low_confidence,0.675
+2026-01-13T22:45:10Z,052022ff-795f-4f50-a45c-91cf8be9fbe9,Nightmare,K3,divert:low_confidence,0.675
+2026-01-13T22:46:52Z,aeec04b1-475c-4e55-b72f-327ea5258146,Ninja,K3,divert:low_confidence,0.675
+2026-01-13T22:47:11Z,de07e21e-c12a-47a6-ad2c-ef6fed343407,Feast of Dreams,K3,divert:low_confidence,0.675
+2026-01-13T22:48:10Z,46f1179d-6e48-46ed-ab41-abddace7b5d4,Snort,K3,divert:low_confidence,0.540
+2026-01-14T21:02:23Z,ce82b316-8982-41bf-a990-6b776a9e83ac,Copy Enchantment,B3,alpha_exact:C:Copy Enchantment,0.713
+2026-01-14T21:03:33Z,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,Chthonian Nightmare,B3,alpha_exact:C:Chthonian Nightmare,1.000
+2026-01-14T21:05:19Z,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,Chthonian Nightmare,B3,alpha_exact:C:Chthonian Nightmare,1.000
+2026-01-14T21:05:59Z,5753d235-24d6-47a9-aed8-b3e13211c222,A-Stitched Assistant,K3,divert:low_confidence,0.641
+2026-01-14T21:06:14Z,118253e9-f33a-455d-b785-dd9df657e7cf,Glass Asp,K3,divert:low_confidence,0.641
+2026-01-14T21:06:29Z,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,Chthonian Nightmare,B3,alpha_exact:C:Chthonian Nightmare,1.000
+2026-01-14T21:06:46Z,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,Chthonian Nightmare,B3,alpha_exact:C:Chthonian Nightmare,0.713
+2026-01-14T21:11:51Z,7b9bb2c6-f1a6-42c3-a7cb-3a1a46854c9b,Magnify,K3,divert:low_confidence,0.675
+2026-01-14T21:13:21Z,89dbe086-4c03-448f-a346-49bc08d02705,Bandage,K3,divert:low_confidence,0.675
+2026-01-14T21:13:49Z,a906a775-7c2d-47b7-a20e-a325dd28d0bd,Martyrs' Tomb,K3,divert:low_confidence,0.675
+2026-01-14T21:16:10Z,c958257e-fa70-4fa3-90a1-0497967abef3,Farsight Ritual,K3,divert:low_confidence,0.675
+2026-01-14T21:19:50Z,64c3c972-82f6-46ea-8f9f-090c65c22e44,Rhox Maulers,K3,divert:low_confidence,0.675
+2026-01-14T21:25:10Z,ff89ad3b-b154-49e2-a0fd-135279512250,Heirs of Stromkirk,K3,divert:low_confidence,0.675
+2026-01-14T21:30:30Z,3ac23896-d4c9-4543-9edc-1d1bb5c74611,Salt Marsh,K3,divert:low_confidence,0.675
+2026-01-14T22:01:26Z,747ff5d4-69cd-447e-a18d-edcf583d0539,Miss Demeanor,K3,divert:low_confidence,0.675
+2026-01-14T22:02:23Z,1287d422-d6b0-43eb-8e89-3d6a0201100d,Inspiring Roar,K3,divert:low_confidence,0.563
+2026-01-14T22:03:15Z,fdaa3c6e-1f8a-4580-8e03-e670f50ab958,Hypervolt Grasp,K3,divert:low_confidence,0.450
+2026-01-14T22:04:15Z,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,Chthonian Nightmare,B3,alpha_exact:C:Chthonian Nightmare,0.713
+2026-01-14T22:04:44Z,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,Chthonian Nightmare,B3,alpha_exact:C:Chthonian Nightmare,1.000
+2026-01-14T22:05:04Z,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,Chthonian Nightmare,B3,price:$0.66:Chthonian Nightmare,1.000
+2026-01-14T22:05:24Z,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,Chthonian Nightmare,B3,price:$0.66:Chthonian Nightmare,0.713
+2026-01-14T22:05:50Z,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,Chthonian Nightmare,B3,price:$0.66:Chthonian Nightmare,1.000
+2026-01-14T22:06:03Z,f30ca928-4fc2-41ae-a26a-e0abb4973fb3,Pinchy McStingbutt,K3,divert:low_confidence,0.675
+2026-01-14T22:08:38Z,c75b81b5-5c84-45d4-832a-20c038372bc6,Wasp,K3,divert:low_confidence,0.550
+2026-01-14T22:08:56Z,cfa51783-9ef8-4e51-ba0d-ce8439d83bdf,Bind,K3,divert:low_confidence,0.506
+2026-01-14T22:10:32Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-14T22:10:50Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T22:11:19Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T22:11:40Z,616d1b20-61c1-4d39-a9b5-ad9fd61699e4,Stifle,K3,divert:low_confidence,0.675
+2026-01-14T22:11:57Z,56125660-2307-4270-a947-f1f4ad63841c,Leery Fogbeast,K3,divert:low_confidence,0.675

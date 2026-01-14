@@ -1,5 +1,5 @@
 # Set to true to use fake hardware for testing without real camera/motion hardware
-use_fake_hardware: true
+use_fake_hardware: false
 
 alpha_exact:
   letter_to_cell:
@@ -182,7 +182,7 @@ feeder:
   reserve_pattern: ^A\d+$
 gcode:
   baud: 115200
-  port: /dev/ttyACM1
+  port: /dev/ttyACM0
   mcodes:
   # Vacuum/extruder test commands removed. Use plunger or raw gcode send if needed.
 motion:
@@ -191,7 +191,7 @@ motion:
   homing_speed: 800.0       # Speed for homing operations (doubled from 400)
 overflow:
   cells:
-  - ERR1
+  - K3
 sorting:
   default_mode: alpha_exact
   low_confidence_threshold: 0.7
@@ -201,6 +201,21 @@ sorting:
       label: Alphabetical (A–Z)
       type: alpha
       fallback: J3
+    price:
+      label: Price Ranges
+      type: price
+      fallback: B1
+      thresholds:
+        - max: 0.10
+          cell: B1
+        - min: 0.11
+          max: 0.25
+          cell: B2
+        - min: 0.26
+          max: 1.00
+          cell: B3
+        - min: 1.01
+          cell: C1
     release_year:
       label: Release Year
       type: year
@@ -243,7 +258,7 @@ sorting:
         kaldheim: E3
         "*": K2
 camera:
-  device: 1
+  device: 0
   resolution:
   - 1280
   - 720

@@ -466,15 +466,21 @@ async def _motion_status_payload() -> Dict[str, Any]:
         ctrl.current = pos
     except Exception:
         pass
+    
+    # In demo mode (fake hardware), the virtual driver is always "connected"
+    # In real mode, check if the serial connection exists
+    is_demo = is_demo_mode()
+    connected = is_demo or hasattr(driver, "_serial")
+    
     payload = {
         "driver": driver_name,
         "pos": (float(pos[0]), float(pos[1]), float(pos[2])),
         "homed": bool(ctrl.homed),
         "cells_configured": len(ctrl.cells),
         "port": port,
-        "demo": is_demo_mode(),
-        "virtual": is_demo_mode(),
-        "connected": not is_demo_mode() or hasattr(driver, "_serial"),
+        "demo": is_demo,
+        "virtual": is_demo,
+        "connected": connected,
         "ok": True,
     }
     return payload
@@ -504,6 +510,28 @@ def read_index() -> Response:
         resp.headers["Cache-Control"] = "no-store, must-revalidate"
         return resp
     raise HTTPException(status_code=404, detail="Web UI not found. Ensure app/static/index.html exists.")
+
+
+@app.get("/status")
+async def get_status() -> Dict[str, Any]:
+    """Combined status endpoint for motion and camera."""
+    motion_status = await _motion_status_payload()
+    camera_mgr = camera_svc.get_manager()
+    
+    return {
+        "ok": True,
+        "motion": {
+            "status": "Connected" if motion_status.get("connected") else "Disconnected",
+            "driver": motion_status.get("driver"),
+            "pos": motion_status.get("pos"),
+            "homed": motion_status.get("homed"),
+            "demo": motion_status.get("demo"),
+        },
+        "camera": {
+            "status": "Ready" if camera_mgr else "Not Available",
+            "device": getattr(camera_mgr, "device_id", None) if camera_mgr else None,
+        }
+    }
 
 
 @app.middleware("http")
@@ -636,6 +664,28 @@ def sorting_set_operation(payload: Optional[Dict[str, Any]] = None) -> Dict[str,
 # ---------------------------------------------------------------------------
 
 
+@app.post("/motion/goto/{cell_id}")
+async def motion_goto_cell(cell_id: str) -> Dict[str, Any]:
+    """Move to a specific cell by ID (e.g., A1, B2, C3)."""
+    cell = cell_id.strip().upper()
+    if not cell:
+        raise HTTPException(status_code=400, detail="Missing cell ID")
+
+    ctrl = MOTION
+    if cell == "A1":
+        await ctrl.home_x()
+        await ctrl.home_y()
+        return {"ok": True, "cell": cell, "pos": ctrl.current, "action": "homed_to_A1"}
+
+    try:
+        await ctrl.move_to_cell_xy(cell)
+        return {"ok": True, "cell": cell, "pos": ctrl.current}
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"Unknown cell: {cell}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
 @app.post("/motion/move")
 async def motion_move(payload: Dict[str, Any]) -> Dict[str, Any]:
     cell = str(payload.get("cell", "")).strip().upper()
@@ -659,6 +709,13 @@ async def motion_move(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 @app.post("/motion/home_all")
 async def motion_home_all() -> Dict[str, Any]:
+    await MOTION.home_all()
+    return {"ok": True, "pos": MOTION.current}
+
+
+@app.post("/motion/home")
+async def motion_home() -> Dict[str, Any]:
+    """Home all axes (alias for home_all)."""
     await MOTION.home_all()
     return {"ok": True, "pos": MOTION.current}
 
@@ -1498,10 +1555,28 @@ async def camera_snapshot(
 
         try:
             await ctrl.driver.set_speed(ctrl.default_speed)
-            await asyncio.sleep(0.3)
-            # Capture single frame
+            
+            # Move Y-axis by 50mm for photo capture
+            photo_y = measured_start[1] + 50.0
+            await ctrl.driver.move_absolute(measured_start[0], photo_y, measured_start[2], ctrl.default_speed)
+            ctrl.current = (measured_start[0], photo_y, measured_start[2])
+            
+            # Wait for motion to complete and camera to stabilize
+            await asyncio.sleep(2.0)
+            
+            # Capture single frame at offset position
             frame = await _capture_fresh_frame(max_age_override=0.0, discard=5, settle=0.05)
+            
+            # Return to original position
+            await ctrl.driver.move_absolute(measured_start[0], measured_start[1], measured_start[2], ctrl.default_speed)
+            ctrl.current = measured_start
         except Exception as exc:
+            # Ensure we return to original position even on error
+            try:
+                await ctrl.driver.move_absolute(measured_start[0], measured_start[1], measured_start[2], ctrl.default_speed)
+                ctrl.current = measured_start
+            except Exception:
+                pass
             raise HTTPException(status_code=503, detail=f"Camera snapshot failed: {exc}")
 
     if frame is None:
@@ -1610,8 +1685,8 @@ async def camera_snapshot(
         if isinstance(identification_info, dict):
             best = identification_info.get("best")
             if isinstance(best, dict):
-                # FTS identification stores scryfall_id directly in best
-                scry_id = best.get("scryfall_id")
+                # FTS identification stores id or scryfall_id in best
+                scry_id = best.get("id") or best.get("scryfall_id")
                 
                 # Create a Card object and get cell assignment
                 try:
