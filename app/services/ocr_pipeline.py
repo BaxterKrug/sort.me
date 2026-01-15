@@ -75,16 +75,27 @@ def _region_config(region: str) -> str:
 
 
 def _prepare_region_slice(slice_img: np.ndarray, region: str) -> np.ndarray:
+    """Prepare image region for OCR - minimal preprocessing."""
     if slice_img.size == 0:
         return slice_img
+    
+    # Convert to grayscale
     if slice_img.ndim == 3:
-        slice_img = cv2.cvtColor(slice_img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(slice_img, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = slice_img.copy()
+    
+    # Ensure minimum height for OCR accuracy - scale up small images
     min_height = _REGION_SLICE_MIN_HEIGHT.get(region, 160)
-    if slice_img.shape[0] < min_height:
-        scale = float(min_height) / max(float(slice_img.shape[0]), 1.0)
-        width = max(1, int(round(slice_img.shape[1] * scale)))
-        slice_img = cv2.resize(slice_img, (width, min_height), interpolation=cv2.INTER_CUBIC)
-    return np.ascontiguousarray(slice_img)
+    if gray.shape[0] < min_height:
+        scale = float(min_height) / max(float(gray.shape[0]), 1.0)
+        width = max(1, int(round(gray.shape[1] * scale)))
+        # Use INTER_LANCZOS4 for best quality when upscaling
+        gray = cv2.resize(gray, (width, min_height), interpolation=cv2.INTER_LANCZOS4)
+    
+    # MINIMAL processing - just return clean grayscale
+    # Let Tesseract's internal binarization do the work
+    return np.ascontiguousarray(gray)
 
 
 def _split_frame(frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -1124,677 +1135,386 @@ def prepare_single_snapshot_artifacts(
     persist: bool = True,
     include_bytes: bool = True,
 ) -> Dict[str, Any]:
-    """Process a single snapshot frame for OCR without compositing.
-    
-    This is a simplified version for single-frame capture that:
-    1. Warps/aligns the card
-    2. Prepares for OCR
-    3. Extracts text
-    4. Identifies the card using lightweight matching (NO embeddings)
-    5. Saves artifacts if requested
-    """
+    """Process a single snapshot frame for OCR without compositing."""
     save_dir = Path(save_dir) if save_dir is not None else Path("data") / "snapshots"
     jpeg_quality = int(max(10, min(jpeg_quality, 100)))
 
-    # Crop 300 pixels from the left edge of the original frame
+    # Crop 300 pixels from the left edge
     crop_left_original = 300
     if frame.shape[1] > crop_left_original:
         frame = frame[:, crop_left_original:]
     
-    # Create a dummy mask for single frame processing
+    # Create dummy mask for single frame processing
     dummy_mask = np.ones((frame.shape[0], frame.shape[1]), dtype=np.uint8) * 255
     
-    # Warp and align the card (for actual processing)
+    # Warp and align the card
     card_aligned, card_mask, border_meta = _warp_card_to_bounds(frame, dummy_mask)
     
-    # Ensure portrait orientation (rotate if needed) FIRST, before any cropping
-    # Create a simple orientation hint - we don't have dual frames, so no hint
-    card_oriented, orientation_meta = _orient_composite(card_aligned, card_mask, hint=None)
+    # STEP 1: Always rotate 90° counterclockwise to get portrait orientation
+    card_portrait = cv2.rotate(card_aligned, cv2.ROTATE_90_COUNTERCLOCKWISE)
     
-    # Apply minimal crops AFTER orientation detection
-    # This way, left/right crops stay as left/right regardless of rotation
-    # Cropping disabled for camera position adjustment - user will reconfigure
-    crop_top_px = 0
-    crop_bottom_px = 0
-    crop_left_px = 0
-    crop_right_px = 0
+    # STEP 2: Extract zones from BOTH orientations
+    h, w = card_portrait.shape[:2]
+    name_zone_height = 120
+    collector_zone_height = 75
     
-    card_precropped = card_oriented.copy()
-    mask_precropped = card_mask.copy()  # Use original mask, not rotated
+    # Normal orientation zones
+    name_zone_normal = card_portrait[0:name_zone_height, :].copy()
+    collector_zone_normal = card_portrait[-collector_zone_height:, :].copy()
     
-    h, w = card_precropped.shape[:2]
-    if h > (crop_top_px + crop_bottom_px) and w > (crop_left_px + crop_right_px):
-        card_precropped = card_precropped[crop_top_px:h-crop_bottom_px if crop_bottom_px > 0 else h, 
-                                           crop_left_px:w-crop_right_px if crop_right_px > 0 else w]
-        border_meta["precrop"] = {
-            "top": crop_top_px,
-            "bottom": crop_bottom_px,
-            "left": crop_left_px,
-            "right": crop_right_px
-        }
+    # 180° flipped orientation zones
+    card_flipped = cv2.rotate(card_portrait, cv2.ROTATE_180)
+    name_zone_flipped = card_flipped[0:name_zone_height, :].copy()
+    collector_zone_flipped = card_flipped[-collector_zone_height:, :].copy()
     
-    # Use the oriented and cropped card for both processing and display
-    card_cropped = card_precropped.copy()
-    card_aligned_display = card_precropped.copy()
+    # STEP 3: Run OCR on both orientations
+    ocr_normal = _extract_zone_text(name_zone_normal, collector_zone_normal)
+    ocr_flipped = _extract_zone_text(name_zone_flipped, collector_zone_flipped)
     
-    # Extract text from specific zones: top 105px (name) and bottom 135px (collector)
-    # Increased by 50% from 70px and 90px to capture more text
-    name_zone_height = 105
-    collector_zone_height = 135
-    h, w = card_cropped.shape[:2]
+    # Log OCR results for debugging
+    LOG.info("OCR Normal - Name: '%s', Collector: '%s'", 
+             ocr_normal.get('name', ''), ocr_normal.get('collector', ''))
+    LOG.info("OCR Flipped - Name: '%s', Collector: '%s'", 
+             ocr_flipped.get('name', ''), ocr_flipped.get('collector', ''))
     
-    # Extract zones from normal orientation
-    name_zone = card_cropped[0:name_zone_height, :].copy() if h >= name_zone_height else card_cropped.copy()
-    collector_zone = card_cropped[-collector_zone_height:, :].copy() if h >= collector_zone_height else card_cropped.copy()
+    # STEP 4: Identify cards from both OCR results
+    db_path = _find_card_database()
     
-    # Create visualization with zone highlights on normal orientation
-    card_with_zones = card_cropped.copy()
-    if len(card_with_zones.shape) == 2:  # Grayscale to BGR
-        card_with_zones = cv2.cvtColor(card_with_zones, cv2.COLOR_GRAY2BGR)
-    # Draw green rectangles around zones
-    cv2.rectangle(card_with_zones, (0, 0), (w-1, name_zone_height-1), (0, 255, 0), 2)
-    cv2.rectangle(card_with_zones, (0, h-collector_zone_height), (w-1, h-1), (0, 255, 0), 2)
-    # Add labels
-    cv2.putText(card_with_zones, "NAME", (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-    cv2.putText(card_with_zones, "COLLECTOR", (5, h-collector_zone_height+15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-    
-    # Perform OCR on normal orientation zones
-    ocr_text_map_normal = {}
-    if HAVE_TESSERACT and pytesseract is not None:
-        try:
-            # Name zone OCR
-            name_prepared = _prepare_region_slice(name_zone, "name")
-            name_text = pytesseract.image_to_string(name_prepared, config="--psm 7", lang="eng")
-            ocr_text_map_normal["name"] = name_text.strip()
-            
-            # Collector zone OCR
-            collector_prepared = _prepare_region_slice(collector_zone, "collector")
-            collector_text = pytesseract.image_to_string(collector_prepared, config="--psm 7", lang="eng")
-            ocr_text_map_normal["collector"] = collector_text.strip()
-        except Exception as exc:
-            LOG.warning("Zone OCR failed (normal): %s", exc)
-            ocr_text_map_normal = {"name": "", "collector": ""}
-    else:
-        ocr_text_map_normal = {"name": "", "collector": ""}
-    
-    # Rotate 180 degrees and extract zones again
-    card_rotated_180 = cv2.rotate(card_cropped, cv2.ROTATE_180)
-    name_zone_180 = card_rotated_180[0:name_zone_height, :].copy() if h >= name_zone_height else card_rotated_180.copy()
-    collector_zone_180 = card_rotated_180[-collector_zone_height:, :].copy() if h >= collector_zone_height else card_rotated_180.copy()
-    
-    # Create visualization with zone highlights on 180-degree rotation
-    card_with_zones_180 = card_rotated_180.copy()
-    if len(card_with_zones_180.shape) == 2:  # Grayscale to BGR
-        card_with_zones_180 = cv2.cvtColor(card_with_zones_180, cv2.COLOR_GRAY2BGR)
-    # Draw green rectangles around zones
-    cv2.rectangle(card_with_zones_180, (0, 0), (w-1, name_zone_height-1), (0, 255, 0), 2)
-    cv2.rectangle(card_with_zones_180, (0, h-collector_zone_height), (w-1, h-1), (0, 255, 0), 2)
-    # Add labels
-    cv2.putText(card_with_zones_180, "NAME", (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-    cv2.putText(card_with_zones_180, "COLLECTOR", (5, h-collector_zone_height+15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-    
-    # Perform OCR on 180-degree rotated zones
-    ocr_text_map_180 = {}
-    if HAVE_TESSERACT and pytesseract is not None:
-        try:
-            # Name zone OCR (180)
-            name_prepared_180 = _prepare_region_slice(name_zone_180, "name")
-            name_text_180 = pytesseract.image_to_string(name_prepared_180, config="--psm 7", lang="eng")
-            ocr_text_map_180["name"] = name_text_180.strip()
-            
-            # Collector zone OCR (180)
-            collector_prepared_180 = _prepare_region_slice(collector_zone_180, "collector")
-            collector_text_180 = pytesseract.image_to_string(collector_prepared_180, config="--psm 7", lang="eng")
-            ocr_text_map_180["collector"] = collector_text_180.strip()
-        except Exception as exc:
-            LOG.warning("Zone OCR failed (180): %s", exc)
-            ocr_text_map_180 = {"name": "", "collector": ""}
-    else:
-        ocr_text_map_180 = {"name": "", "collector": ""}
-    
-    # Use lightweight card identification (NO EMBEDDINGS) - Do this BEFORE ocr_meta update
-    # Look for the JSON database file
-    data_dir = Path("data")
-    db_path = None
-    for json_file in data_dir.glob("oracle-cards-*.json"):
-        db_path = json_file
-        break
-    
-    # Perform card identification on BOTH orientations
     identification_normal = None
-    identification_180 = None
-    identification_result = None
+    identification_flipped = None
     
-    try:
-        if db_path and db_path.exists():
-            # Clean OCR text to remove common noise patterns
-            name_normal_clean = text_clean.normalize_card_name(ocr_text_map_normal.get('name', ''))
-            name_180_clean = text_clean.normalize_card_name(ocr_text_map_180.get('name', ''))
-            
-            LOG.debug("OCR name cleaning: normal '%s' -> '%s', 180° '%s' -> '%s'",
-                     ocr_text_map_normal.get('name', ''), name_normal_clean,
-                     ocr_text_map_180.get('name', ''), name_180_clean)
-            
-            # Identify using normal orientation OCR
-            ocr_map_normal = {
-                'name': name_normal_clean,
-                'oracle': '',
-                'type_line': '',
-                'collector': ocr_text_map_normal.get('collector', ''),
-            }
+    if db_path:
+        # Clean and identify normal orientation
+        name_normal = text_clean.normalize_card_name(ocr_normal.get('name', ''))
+        LOG.info("OCR Normal - Normalized name: '%s' (length: %d)", name_normal, len(name_normal))
+        if len(name_normal) >= 2:
             identification_normal = card_id.identify_card_from_ocr(
-                ocr_map_normal,
+                {'name': name_normal, 'collector': ocr_normal.get('collector', ''), 
+                 'oracle': '', 'type_line': ''},
                 db_path=str(db_path),
                 top_n=8
             )
-            
-            # Identify using 180-degree rotated orientation OCR
-            ocr_map_180 = {
-                'name': name_180_clean,
-                'oracle': '',
-                'type_line': '',
-                'collector': ocr_text_map_180.get('collector', ''),
-            }
-            identification_180 = card_id.identify_card_from_ocr(
-                ocr_map_180,
-                db_path=str(db_path),
-                top_n=8
-            )
-            
-            # Compare scores and select the better match
-            score_normal = identification_normal.get('score', 0.0) if identification_normal else 0.0
-            score_180 = identification_180.get('score', 0.0) if identification_180 else 0.0
-            
-            if score_normal >= score_180:
-                identification_result = identification_normal
-                selected_orientation = "normal"
-                ocr_text_map = ocr_text_map_normal.copy()
-            else:
-                identification_result = identification_180
-                selected_orientation = "rotated_180"
-                ocr_text_map = ocr_text_map_180.copy()
-            
-            # Add oracle and type_line (empty for zone-based extraction)
-            ocr_text_map["oracle"] = ""
-            ocr_text_map["type_line"] = ""
-            
-            if identification_result and identification_result.get('best'):
-                LOG.info("Card identified (%s): %s (score: %.1f vs %.1f)", 
-                        selected_orientation,
-                        identification_result['best'].get('name', 'Unknown'),
-                        score_normal if selected_orientation == "normal" else score_180,
-                        score_180 if selected_orientation == "normal" else score_normal)
+            if identification_normal:
+                LOG.info("OCR Normal - Best match: '%s' (score: %.1f)", 
+                        identification_normal.get('best', {}).get('name', 'unknown'),
+                        identification_normal.get('score', 0.0))
         else:
-            LOG.warning("No card database found in data/ directory")
-            # Fallback: use text length comparison
-            ocr_text_map = {}
-            ocr_text_map["name"] = (ocr_text_map_normal["name"] 
-                                    if len(ocr_text_map_normal["name"]) >= len(ocr_text_map_180["name"]) 
-                                    else ocr_text_map_180["name"])
-            ocr_text_map["collector"] = (ocr_text_map_normal["collector"] 
-                                          if len(ocr_text_map_normal["collector"]) >= len(ocr_text_map_180["collector"]) 
-                                          else ocr_text_map_180["collector"])
-            ocr_text_map["oracle"] = ""
-            ocr_text_map["type_line"] = ""
-            selected_orientation = "text_length_fallback"
-    except Exception as exc:
-        LOG.warning("Card identification failed: %s", exc, exc_info=True)
-        # Fallback: use text length comparison
-        ocr_text_map = {}
-        ocr_text_map["name"] = (ocr_text_map_normal["name"] 
-                                if len(ocr_text_map_normal["name"]) >= len(ocr_text_map_180["name"]) 
-                                else ocr_text_map_180["name"])
-        ocr_text_map["collector"] = (ocr_text_map_normal["collector"] 
-                                      if len(ocr_text_map_normal["collector"]) >= len(ocr_text_map_180["collector"]) 
-                                      else ocr_text_map_180["collector"])
-        ocr_text_map["oracle"] = ""
-        ocr_text_map["type_line"] = ""
-        selected_orientation = "error_fallback"
+            LOG.warning("OCR Normal - Name too short after normalization, skipping identification")
+        
+        # Clean and identify flipped orientation
+        name_flipped = text_clean.normalize_card_name(ocr_flipped.get('name', ''))
+        LOG.info("OCR Flipped - Normalized name: '%s' (length: %d)", name_flipped, len(name_flipped))
+        if len(name_flipped) >= 2:
+            identification_flipped = card_id.identify_card_from_ocr(
+                {'name': name_flipped, 'collector': ocr_flipped.get('collector', ''), 
+                 'oracle': '', 'type_line': ''},
+                db_path=str(db_path),
+                top_n=8
+            )
+            if identification_flipped:
+                LOG.info("OCR Flipped - Best match: '%s' (score: %.1f)", 
+                        identification_flipped.get('best', {}).get('name', 'unknown'),
+                        identification_flipped.get('score', 0.0))
+        else:
+            LOG.warning("OCR Flipped - Name too short after normalization, skipping identification")
     
-    # Update metadata with identification results from both orientations
-    ocr_text_meta = {
-        "name_zone_height": name_zone_height,
-        "collector_zone_height": collector_zone_height,
-        "normal": ocr_text_map_normal,
-        "rotated_180": ocr_text_map_180,
-        "selected": ocr_text_map,
-        "selected_orientation": selected_orientation,
-        "identification_normal": identification_normal,
-        "identification_180": identification_180,
-    }
+    # STEP 5: Pick the winner based on identification scores
+    score_normal = identification_normal.get('score', 0.0) if identification_normal else 0.0
+    score_flipped = identification_flipped.get('score', 0.0) if identification_flipped else 0.0
     
-    # Add the best identification result to the metadata
-    if identification_result and identification_result.get('best'):
-        ocr_text_meta["identification"] = identification_result
+    MIN_ACCEPTABLE_SCORE = 40.0
+    ORIENTATION_GAP = 8.0
     
-    # Prepare for OCR display (keep existing for visualization)
-    ocr_ready, ocr_meta = _prepare_for_ocr(card_cropped)
-    ocr_meta.update({
-        "source": "single_frame",
-        "source_shape": list(card_aligned.shape),
-        "portrait_shape": list(card_oriented.shape),
-        "cropped_shape": list(card_cropped.shape),
-        "portrait_rotation": orientation_meta.get("rotation_direction", "none"),
-        "zone_ocr": ocr_text_meta,
-    })
-    
-    # Extract region hints for OCR (legacy, not used for zone extraction)
-    region_hints_payload: Optional[Dict[str, Tuple[int, int]]] = None
-    region_rows_meta = ocr_meta.get("region_rows") if isinstance(ocr_meta, dict) else None
-    if isinstance(region_rows_meta, dict):
-        region_hints_payload = {
-            key: (int(value[0]), int(value[1]))
-            for key, value in region_rows_meta.items()
-            if isinstance(value, (tuple, list)) and len(value) == 2
-        }
-    
-    # Encode images (order: original, rotated, aligned, flipped, zones, ocr)
-    original_bytes = _encode_image(frame, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality])
-    rotated_bytes = _encode_image(card_with_zones, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), max(jpeg_quality, 92)])
-    aligned_bytes = _encode_image(card_aligned_display, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), max(jpeg_quality, 92)])
-    flipped_bytes = _encode_image(card_with_zones_180, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), max(jpeg_quality, 92)])
-    ocr_bytes = _encode_image(ocr_ready, ".png")
-
-    # Save to disk if requested
-    base_name = f"snapshot-{timestamp_slug}"
-    original_path = rotated_path = aligned_path = flipped_path = ocr_path = meta_path = None
-    if persist:
-        save_dir.mkdir(parents=True, exist_ok=True)
-        original_path = save_dir / f"{base_name}-original.jpg"
-        rotated_path = save_dir / f"{base_name}-rotated.jpg"
-        aligned_path = save_dir / f"{base_name}-aligned.jpg"
-        flipped_path = save_dir / f"{base_name}-flipped.jpg"
-        ocr_path = save_dir / f"{base_name}-ocr.png"
-        original_path.write_bytes(original_bytes)
-        rotated_path.write_bytes(rotated_bytes)
-        aligned_path.write_bytes(aligned_bytes)
-        flipped_path.write_bytes(flipped_bytes)
-        ocr_path.write_bytes(ocr_bytes)
-
-        meta_payload = {
-            "timestamp": timestamp_slug,
-            "paths": {
-                "original": str(original_path),
-                "aligned": str(aligned_path),
-                "rotated": str(rotated_path),
-                "ocr_prepared": str(ocr_path),
-            },
-            "ocr_map": ocr_text_map,
-            "ocr_result": ocr_text_meta,
-            "ocr_meta": ocr_meta,
-            "border": border_meta,
-            "orientation": orientation_meta,
-            "embedding": ocr_text_meta.get("embedding", {}),
-            "identification": ocr_text_meta.get("identification", {}),
-        }
-        meta_path = save_dir / f"{base_name}-meta.json"
-        meta_path.write_text(json.dumps(meta_payload, indent=2, sort_keys=True), encoding="utf8")
-
-    # Build assets dictionary (order: original, rotated, aligned, flipped, ocr_prepared)
-    assets: Dict[str, Any] = {
-        "original": {
-            "mime": "image/jpeg",
-            "path": str(original_path) if original_path else "",
-            "shape": list(frame.shape),
-        },
-        "rotated": {
-            "mime": "image/jpeg",
-            "path": str(rotated_path) if rotated_path else "",
-            "shape": list(card_with_zones.shape),
-            "meta": {"border": border_meta, "orientation": orientation_meta},
-        },
-        "aligned": {
-            "mime": "image/jpeg",
-            "path": str(aligned_path) if aligned_path else "",
-            "shape": list(card_aligned_display.shape),
-            "meta": {"border": border_meta},
-        },
-        "flipped": {
-            "mime": "image/jpeg",
-            "path": str(flipped_path) if flipped_path else "",
-            "shape": list(card_with_zones_180.shape),
-            "meta": {"rotation": "180_degrees"},
-        },
-        "ocr_prepared": {
-            "mime": "image/png",
-            "path": str(ocr_path) if ocr_path else "",
-            "shape": list(ocr_ready.shape),
-            "meta": ocr_meta,
-        },
-        "ocr_text": {
-            "mime": "application/json",
-            "path": str(meta_path) if meta_path else "",
-            "text": ocr_text_map,
-            "meta": ocr_text_meta,
-        },
-        "meta": meta_payload if persist else {
-            "ocr_map": ocr_text_map,
-            "ocr_result": ocr_text_meta,
-            "ocr_meta": ocr_meta,
-            "border": border_meta,
-            "embedding": ocr_text_meta.get("embedding", {}),
-            "identification": ocr_text_meta.get("identification", {}),
-        },
-    }
-    
-    # Include bytes if requested
-    if include_bytes:
-        assets["original"]["bytes"] = original_bytes
-        assets["rotated"]["bytes"] = rotated_bytes
-        assets["aligned"]["bytes"] = aligned_bytes
-        assets["flipped"]["bytes"] = flipped_bytes
-        assets["ocr_prepared"]["bytes"] = ocr_bytes
-
-    return assets
-
-
-def prepare_snapshot_artifacts(
-    frame_top: np.ndarray,
-    frame_bottom: np.ndarray,
-    *,
-    timestamp_slug: str,
-    save_dir: Optional[Path] = None,
-    jpeg_quality: int = 90,
-    persist: bool = True,
-    include_bytes: bool = True,
-    orientation_hint: Optional[Dict[str, Any]] = None,
-    embeddings_dir: Optional[Path | str] = None,
-) -> Dict[str, Any]:
-    """Build composite + OCR-ready images, optionally persisting them to disk."""
-    save_dir = Path(save_dir) if save_dir is not None else Path("data") / "snapshots"
-    jpeg_quality = int(max(10, min(jpeg_quality, 100)))
-    if embeddings_dir is None:
-        embeddings_dir_path: Optional[Path] = Path("data") / "embeddings"
-    elif isinstance(embeddings_dir, Path):
-        embeddings_dir_path = embeddings_dir
+    # Determine best orientation
+    if score_normal < MIN_ACCEPTABLE_SCORE and score_flipped < MIN_ACCEPTABLE_SCORE:
+        selected_orientation = "low_confidence"
+        selected_card = card_portrait  # Default to normal
+        identification_result = None
+        # Keep OCR text even on failure for debugging
+        ocr_text_map = ocr_normal.copy() if score_normal >= score_flipped else ocr_flipped.copy()
+        ocr_text_map.update({"oracle": "", "type_line": ""})
+    elif abs(score_normal - score_flipped) < ORIENTATION_GAP and max(score_normal, score_flipped) < 70.0:
+        selected_orientation = "orientation_ambiguous"
+        selected_card = card_portrait
+        identification_result = None
+        # Keep OCR text even on ambiguous orientation for debugging
+        ocr_text_map = ocr_normal.copy()
+        ocr_text_map.update({"oracle": "", "type_line": ""})
+    elif score_normal >= score_flipped:
+        selected_orientation = "normal"
+        selected_card = card_portrait
+        identification_result = identification_normal
+        ocr_text_map = ocr_normal.copy()
+        ocr_text_map.update({"oracle": "", "type_line": ""})
     else:
-        embeddings_dir_path = Path(embeddings_dir)
-
-    top_aligned, bottom_aligned = _normalize_frames(frame_top, frame_bottom)
-    composite_raw, source_mask, composite_meta = _composite_frames(top_aligned, bottom_aligned)
-    card_aligned, card_mask, border_meta = _warp_card_to_bounds(composite_raw, source_mask)
-    pair_orientation = orientation_hint or analyze_orientation(frame_top, frame_bottom)
-    composite_oriented, orientation_meta = _orient_composite(card_aligned, card_mask, pair_orientation)
-    aligned_meta = {
-        **composite_meta,
-        "width": int(card_aligned.shape[1]),
-        "height": int(card_aligned.shape[0]),
+        selected_orientation = "rotated_180"
+        selected_card = card_flipped
+        identification_result = identification_flipped
+        ocr_text_map = ocr_flipped.copy()
+        ocr_text_map.update({"oracle": "", "type_line": ""})
+    
+    # Log the decision
+    LOG.info("Orientation selection: %s (normal: %.1f, flipped: %.1f)", 
+             selected_orientation, score_normal, score_flipped)
+    
+    # Create visualizations with zone highlights for both orientations
+    card_vis_normal = _create_zone_visualization(card_portrait, name_zone_height, collector_zone_height)
+    card_vis_flipped = _create_zone_visualization(card_flipped, name_zone_height, collector_zone_height)
+    
+    # Use selected orientation for display
+    card_display = card_vis_normal if selected_orientation in ["normal", "low_confidence", "orientation_ambiguous"] else card_vis_flipped
+    
+    # Build metadata
+    meta = {
+        "timestamp": timestamp_slug,
         "border": border_meta,
+        "orientation": {
+            "method": "ocr_comparison",
+            "selected": selected_orientation,
+            "scores": {
+                "normal": score_normal,
+                "rotated_180": score_flipped,
+            },
+        },
+        "zone_ocr": {
+            "normal": ocr_normal,
+            "rotated_180": ocr_flipped,
+            "selected": ocr_text_map,
+            "selected_orientation": selected_orientation,
+        },
+        "identification": identification_result,
     }
-    rotated_meta = {
-        **aligned_meta,
-        "width": int(composite_oriented.shape[1]),
-        "height": int(composite_oriented.shape[0]),
-        "orientation": orientation_meta,
-    }
-    ocr_ready, ocr_meta = _prepare_for_ocr(composite_oriented)
-    ocr_meta.update(
-        {
-            "source": "composite_rotated",
-            "source_shape": list(composite_oriented.shape),
-            "rotation_direction": orientation_meta.get("rotation_direction"),
-        }
-    )
-    region_hints_payload: Optional[Dict[str, Tuple[int, int]]] = None
-    region_rows_meta = ocr_meta.get("region_rows") if isinstance(ocr_meta, dict) else None
-    if isinstance(region_rows_meta, dict):
-        region_hints_payload = {
-            key: (int(value[0]), int(value[1]))
-            for key, value in region_rows_meta.items()
-            if isinstance(value, (tuple, list)) and len(value) == 2
-        }
-    ocr_text_map, ocr_text_meta = _perform_ocr(ocr_ready, region_hints=region_hints_payload)
-    embedding_dir_str = str(embeddings_dir_path) if embeddings_dir_path else None
-    embedding_info = card_id.embedding_matches_from_ocr(ocr_text_map, embedding_dir_str)
-    ocr_text_meta["embedding"] = embedding_info
-
-    top_bytes = _encode_image(top_aligned, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality])
-    bottom_bytes = _encode_image(bottom_aligned, ".jpg", [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality])
-    composite_raw_bytes = _encode_image(
-        composite_raw,
-        ".jpg",
-        [int(cv2.IMWRITE_JPEG_QUALITY), max(jpeg_quality - 10, 70)],
-    )
-    composite_aligned_bytes = _encode_image(
-        card_aligned,
-        ".jpg",
-        [int(cv2.IMWRITE_JPEG_QUALITY), max(jpeg_quality - 5, 80)],
-    )
-    composite_rotated_bytes = _encode_image(
-        composite_oriented,
-        ".jpg",
-        [int(cv2.IMWRITE_JPEG_QUALITY), max(jpeg_quality, 92)],
-    )
-    ocr_bytes = _encode_image(ocr_ready, ".png")
-
-    base_name = f"snapshot-{timestamp_slug}"
-    top_path = bottom_path = composite_path = composite_aligned_path = composite_raw_path = ocr_path = meta_path = None
-    if persist:
+    
+    # Encode images
+    jpeg_params = [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality]
+    png_params = [int(cv2.IMWRITE_PNG_COMPRESSION), 3]
+    
+    assets: Dict[str, Any] = {}
+    
+    # Encode selected card display
+    if persist and save_dir:
         save_dir.mkdir(parents=True, exist_ok=True)
-        top_path = save_dir / f"{base_name}-top.jpg"
-        bottom_path = save_dir / f"{base_name}-bottom.jpg"
-        composite_path = save_dir / f"{base_name}-composite.jpg"
-        composite_aligned_path = save_dir / f"{base_name}-composite-aligned.jpg"
-        composite_raw_path = save_dir / f"{base_name}-composite-raw.jpg"
-        ocr_path = save_dir / f"{base_name}-ocr.png"
-        top_path.write_bytes(top_bytes)
-        bottom_path.write_bytes(bottom_bytes)
-        composite_path.write_bytes(composite_rotated_bytes)
-        composite_aligned_path.write_bytes(composite_aligned_bytes)
-        composite_raw_path.write_bytes(composite_raw_bytes)
-        ocr_path.write_bytes(ocr_bytes)
-
-        meta_payload = {
-            "timestamp": timestamp_slug,
-            "paths": {
-                "top": str(top_path),
-                "bottom": str(bottom_path),
-                "composite": str(composite_path),
-                "composite_aligned": str(composite_aligned_path),
-                "composite_raw": str(composite_raw_path),
-                "ocr_prepared": str(ocr_path),
-            },
-            "ocr_map": ocr_text_map,
-            "ocr_result": ocr_text_meta,
-            "ocr_meta": ocr_meta,
-            "pair_orientation": pair_orientation,
-            "composite_meta": {
-                "raw": composite_meta,
-                "aligned": aligned_meta,
-                "rotated": rotated_meta,
-            },
-            "embedding": embedding_info,
+        
+        # Save card visualization
+        card_jpeg = _encode_image(card_display, ".jpg", jpeg_params)
+        card_path = save_dir / f"{timestamp_slug}_card.jpg"
+        card_path.write_bytes(card_jpeg)
+        
+        assets["ocr_text"] = {
+            "path": str(card_path),
+            "mime": "image/jpeg",
+            "shape": card_display.shape[:2],
+            "text": ocr_text_map,
         }
-        meta_path = save_dir / f"{base_name}-meta.json"
-        meta_path.write_text(json.dumps(meta_payload, indent=2, sort_keys=True), encoding="utf8")
-
-    assets: Dict[str, Any] = {
-        "top": {
+        
+        if include_bytes:
+            assets["ocr_text"]["bytes"] = card_jpeg
+        
+        # Save original frame
+        orig_jpeg = _encode_image(frame, ".jpg", jpeg_params)
+        orig_path = save_dir / f"{timestamp_slug}_original.jpg"
+        orig_path.write_bytes(orig_jpeg)
+        
+        assets["original"] = {
+            "path": str(orig_path),
             "mime": "image/jpeg",
-            "path": str(top_path) if top_path else "",
-            "shape": list(top_aligned.shape),
-        },
-        "bottom": {
+            "shape": frame.shape[:2],
+        }
+        
+        if include_bytes:
+            assets["original"]["bytes"] = orig_jpeg
+        
+        # Save metadata
+        meta_path = save_dir / f"{timestamp_slug}_meta.json"
+        meta_path.write_text(json.dumps(meta, indent=2, default=str), encoding="utf8")
+        
+        assets["meta"] = {
+            "path": str(meta_path),
+            **meta,  # Unpack meta directly into this dict
+        }
+    else:
+        # Just include bytes without persisting
+        card_jpeg = _encode_image(card_display, ".jpg", jpeg_params)
+        orig_jpeg = _encode_image(frame, ".jpg", jpeg_params)
+        
+        assets["ocr_text"] = {
             "mime": "image/jpeg",
-            "path": str(bottom_path) if bottom_path else "",
-            "shape": list(bottom_aligned.shape),
-        },
-        "composite_raw": {
+            "shape": card_display.shape[:2],
+            "bytes": card_jpeg if include_bytes else None,
+            "text": ocr_text_map,
+        }
+        
+        assets["original"] = {
             "mime": "image/jpeg",
-            "path": str(composite_raw_path) if composite_raw_path else "",
-            "shape": list(composite_raw.shape),
-            "meta": composite_meta,
-        },
-        "composite_aligned": {
-            "mime": "image/jpeg",
-            "path": str(composite_aligned_path) if composite_aligned_path else "",
-            "shape": list(card_aligned.shape),
-            "meta": aligned_meta,
-        },
-        "composite_rotated": {
-            "mime": "image/jpeg",
-            "path": str(composite_path) if composite_path else "",
-            "shape": list(composite_oriented.shape),
-            "meta": rotated_meta,
-        },
-        "composite": {
-            "mime": "image/jpeg",
-            "path": str(composite_path) if composite_path else "",
-            "shape": list(composite_oriented.shape),
-            "meta": rotated_meta,
-        },
-        "ocr_prepared": {
-            "mime": "image/png",
-            "path": str(ocr_path) if ocr_path else "",
-            "shape": list(ocr_ready.shape),
-            "meta": ocr_meta,
-        },
-        "meta": {
-            "timestamp_slug": timestamp_slug,
-            "orientation": orientation_meta,
-            "composite": rotated_meta,
-            "composite_raw": composite_meta,
-            "composite_aligned": aligned_meta,
-            "composite_rotated": rotated_meta,
-            "ocr": ocr_meta,
-            "ocr_map": ocr_text_map,
-            "ocr_result": ocr_text_meta,
-            "pair_orientation": pair_orientation,
-            "path": str(meta_path) if meta_path else "",
-            "embedding": embedding_info,
-        },
-    }
-
-    if include_bytes:
-        assets["top"]["bytes"] = top_bytes
-        assets["bottom"]["bytes"] = bottom_bytes
-        assets["composite_raw"]["bytes"] = composite_raw_bytes
-        assets["composite_aligned"]["bytes"] = composite_aligned_bytes
-        assets["composite_rotated"]["bytes"] = composite_rotated_bytes
-        assets["composite"]["bytes"] = composite_rotated_bytes
-        assets["ocr_prepared"]["bytes"] = ocr_bytes
-
-    assets["ocr_text"] = {
-        "mime": "text/plain",
-        "path": "",
-        "meta": ocr_text_meta,
-        "text": ocr_text_map,
-    }
-
+            "shape": frame.shape[:2],
+            "bytes": orig_jpeg if include_bytes else None,
+        }
+        
+        assets["meta"] = meta  # Include meta directly
+    
     return assets
 
-
-async def capture_dual_snapshot(offset_mm: float = 44.0, save_dir: str = "data/snapshots") -> Dict[str, Any]:
-    """Capture two photos (top/bottom), analyse orientation and persist frames."""
-    ctrl = motion.get_controller()
-    cam = camera_svc.get_manager()
-    loop = asyncio.get_running_loop()
-
-    original: Tuple[float, float, float] = (
-        float(ctrl.current[0]),
-        float(ctrl.current[1]),
-        float(ctrl.current[2]),
-    )
-    frame_top: np.ndarray
-    frame_bottom: np.ndarray
-    target_y = original[1] + offset_mm
-
-    async with ctrl.lock:
-        frame_top = await loop.run_in_executor(None, cam.snapshot_for_ocr)
-        try:
-            await ctrl.driver.set_speed(ctrl.default_speed)
-            await ctrl.driver.move_absolute(original[0], target_y, original[2], ctrl.default_speed)
-            ctrl.current = (original[0], target_y, original[2])
-            await asyncio.sleep(0.05)
-            frame_bottom = await loop.run_in_executor(None, cam.snapshot_for_ocr)
-        finally:
-            await ctrl.driver.move_absolute(original[0], original[1], original[2], ctrl.default_speed)
-            ctrl.current = original
-
-    orientation = analyze_orientation(frame_top, frame_bottom)
-    timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S-%f")
-    # Clear existing snapshots directory so only the latest remains
+def _extract_zone_text(name_zone: np.ndarray, collector_zone: np.ndarray) -> Dict[str, str]:
+    """Extract text from name and collector zones using OCR."""
+    result = {"name": "", "collector": ""}
+    
+    if not HAVE_TESSERACT or pytesseract is None:
+        return result
+    
     try:
-        sd = Path(save_dir)
-        if sd.exists():
-            for child in sd.iterdir():
-                try:
-                    if child.is_dir():
-                        shutil.rmtree(child)
-                    else:
-                        child.unlink()
-                except Exception:
-                    LOG.debug("Failed to remove snapshot item %s", child, exc_info=True)
-    except Exception:
-        LOG.warning("Could not clear snapshots directory: %s", save_dir, exc_info=True)
-
-    artifact_task = functools.partial(
-        prepare_snapshot_artifacts,
-        frame_top,
-        frame_bottom,
-        timestamp_slug=timestamp,
-        save_dir=Path(save_dir),
-        jpeg_quality=92,
-        persist=True,
-        include_bytes=False,
-    )
-    try:
-        artifacts = await loop.run_in_executor(None, artifact_task)
-    except Exception as exc:  # pragma: no cover - diagnostic only
-        LOG.warning("Failed to persist OCR snapshot artifacts: %s", exc)
-        artifacts = prepare_snapshot_artifacts(
-            frame_top,
-            frame_bottom,
-            timestamp_slug=timestamp,
-            save_dir=Path(save_dir),
-            jpeg_quality=92,
-            persist=False,
-            include_bytes=False,
+        # Prepare and OCR name zone with optimized config
+        name_prepared = _prepare_region_slice(name_zone, "name")
+        
+        # Save debug image to see what OCR is reading
+        debug_dir = Path("data/snapshots")
+        if debug_dir.exists():
+            try:
+                cv2.imwrite(str(debug_dir / "debug_name_prepared.jpg"), name_prepared)
+            except Exception:
+                pass
+        
+        # Try multiple OCR strategies and use consensus voting
+        results = []
+        
+        # Strategy 1: Normal grayscale with PSM 7 (single line)
+        name_config_1 = (
+            '--oem 1 --psm 7 '
+            '-c tessedit_char_whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,\'-./!?:" '
+            '-c preserve_interword_spaces=1'
         )
+        try:
+            text_1 = pytesseract.image_to_string(name_prepared, config=name_config_1, lang="eng").strip()
+            LOG.info(f"OCR Strategy 1 (normal): '{text_1}' (len={len(text_1)})")
+            results.append(('normal', text_1))
+        except Exception as e:
+            LOG.warning(f"OCR Strategy 1 failed: {e}")
+        
+        # Strategy 2: Inverted image (for white text on dark/textured background)
+        try:
+            name_inverted = cv2.bitwise_not(name_prepared)
+            if debug_dir.exists():
+                cv2.imwrite(str(debug_dir / "debug_name_inverted.jpg"), name_inverted)
+            text_2 = pytesseract.image_to_string(name_inverted, config=name_config_1, lang="eng").strip()
+            LOG.info(f"OCR Strategy 2 (inverted): '{text_2}' (len={len(text_2)})")
+            results.append(('inverted', text_2))
+        except Exception as e:
+            LOG.warning(f"OCR Strategy 2 failed: {e}")
+        
+        # Strategy 3: Binary threshold with Otsu's method
+        try:
+            _, name_binary = cv2.threshold(name_prepared, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            if debug_dir.exists():
+                cv2.imwrite(str(debug_dir / "debug_name_otsu.jpg"), name_binary)
+            text_3 = pytesseract.image_to_string(name_binary, config=name_config_1, lang="eng").strip()
+            LOG.info(f"OCR Strategy 3 (Otsu): '{text_3}' (len={len(text_3)})")
+            results.append(('otsu', text_3))
+        except Exception as e:
+            LOG.warning(f"OCR Strategy 3 failed: {e}")
+        
+        # Consensus voting: pick the result that appears most similar across strategies
+        # Require stronger agreement for more reliable results
+        name_text = ""
+        if len(results) >= 2:
+            # Check for consensus by comparing normalized first 10 characters
+            from collections import Counter
+            import re
+            normalized_results = []
+            for strategy, text in results:
+                # Clean and normalize: remove extra whitespace, lowercase
+                cleaned = re.sub(r'\s+', ' ', text.strip()).lower()
+                # Take first 10 chars as signature (or full text if shorter)
+                sig = cleaned[:10] if len(cleaned) >= 10 else cleaned
+                if len(sig) >= 5:  # Only consider if at least 5 chars
+                    normalized_results.append((sig, text, strategy, cleaned))
+            
+            # Count matching signatures
+            if normalized_results:
+                sig_counts = Counter(sig for sig, _, _, _ in normalized_results)
+                most_common_sig, count = sig_counts.most_common(1)[0]
+                
+                if count >= 2:
+                    # At least 2 strategies agree - use the longest matching result
+                    matching = [text for sig, text, _, _ in normalized_results if sig == most_common_sig]
+                    name_text = max(matching, key=len)
+                    LOG.info(f"✓ Consensus found ({count}/{len(results)} strategies agree): '{name_text}'")
+                else:
+                    # No clear consensus - check if results are similar enough
+                    # If longest result is ≥10 chars and contains most common sig, accept it
+                    longest = max((text for _, text in results), key=len, default="")
+                    longest_cleaned = re.sub(r'\s+', ' ', longest.strip()).lower()
+                    
+                    if len(longest) >= 10 and most_common_sig in longest_cleaned:
+                        name_text = longest
+                        LOG.warning(f"⚠ Weak consensus - longest contains common signature: '{name_text}'")
+                    elif len(longest) >= 8:
+                        name_text = longest
+                        LOG.warning(f"⚠ No consensus - using longest (≥8 chars): '{name_text}'")
+                    else:
+                        name_text = ""
+                        LOG.warning(f"✗ No consensus and all results too short - rejecting")
+            else:
+                # All results too short - reject
+                LOG.warning(f"✗ All OCR results < 5 chars - rejecting")
+                name_text = ""
+        elif results:
+            # Only one strategy succeeded - accept if long enough
+            if len(results[0][1]) >= 8:
+                name_text = results[0][1]
+                LOG.info(f"Single strategy result (≥8 chars): '{name_text}'")
+            else:
+                name_text = ""
+                LOG.warning(f"✗ Single strategy result too short - rejecting")
+        
+        LOG.info(f"Final OCR result: '{name_text}' (len={len(name_text)})")
+        result["name"] = name_text
+        
+        LOG.info(f"Final OCR result: '{name_text}' (len={len(name_text)})")
+        result["name"] = name_text
+        
+        # Prepare and OCR collector zone with optimized config
+        collector_prepared = _prepare_region_slice(collector_zone, "collector")
+        
+        # Save debug image
+        if debug_dir.exists():
+            try:
+                cv2.imwrite(str(debug_dir / "debug_collector_prepared.jpg"), collector_prepared)
+            except Exception:
+                pass
+        
+        # Enhanced config for collector numbers:
+        # More restrictive whitelist for collector numbers (letters, digits, slashes)
+        collector_config = (
+            '--oem 1 --psm 7 '
+            f'-c tessedit_char_whitelist="{COLLECTOR_CHAR_WHITELIST}"'
+        )
+        collector_text = pytesseract.image_to_string(collector_prepared, config=collector_config, lang="eng")
+        result["collector"] = collector_text.strip()
+    except Exception as exc:
+        LOG.warning("Zone OCR failed: %s", exc)
+    
+    return result
 
-    return {
-        "success": True,
-        "captured_at": timestamp,
-        "offset_mm": offset_mm,
-        "orientation": orientation,
-        "artifacts": {
-            "paths": {
-                "top": artifacts.get("top", {}).get("path", ""),
-                "bottom": artifacts.get("bottom", {}).get("path", ""),
-                "composite": artifacts.get("composite", {}).get("path", ""),
-                "ocr_prepared": artifacts.get("ocr_prepared", {}).get("path", ""),
-            },
-            "meta": artifacts.get("meta", {}),
-        },
-        "capture": {
-            "top_shape": list(frame_top.shape),
-            "bottom_shape": list(frame_bottom.shape),
-        },
-    }
+def _find_card_database() -> Optional[Path]:
+    """Find the card database JSON file."""
+    data_dir = Path("data")
+    for json_file in data_dir.glob("oracle-cards-*.json"):
+        return json_file
+    return None
 
-
-def run_ocr_from_image(image: np.ndarray) -> Tuple[Dict[str, str], Dict[str, Any]]:
-    if image.ndim == 3:
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    else:
-        gray = image
-    return _perform_ocr(gray)
-
-
-def run_ocr_from_bytes(data: bytes) -> Dict[str, Any]:
-    image = _decode_image_bytes(data, cv2.IMREAD_GRAYSCALE)
-    ocr_map, ocr_meta = run_ocr_from_image(image)
-    ocr_meta = dict(ocr_meta)
-    ocr_meta["input_shape"] = list(image.shape)
-    return {
-        "ocr_map": ocr_map,
-        "ocr_meta": ocr_meta,
-    }
-
-
-def run_ocr_from_path(path: Path | str) -> Dict[str, Any]:
-    file_path = Path(path)
-    if not file_path.exists() or not file_path.is_file():
-        raise FileNotFoundError(f"Image not found: {file_path}")
-    data = file_path.read_bytes()
-    return run_ocr_from_bytes(data)
+def _create_zone_visualization(image: np.ndarray, name_height: int, collector_height: int) -> np.ndarray:
+    """Create visualization with zone highlights."""
+    h, w = image.shape[:2]
+    vis = image.copy()
+    
+    if len(vis.shape) == 2:
+        vis = cv2.cvtColor(vis, cv2.COLOR_GRAY2BGR)
+    
+    # Draw zone rectangles
+    cv2.rectangle(vis, (0, 0), (w-1, name_height-1), (0, 255, 0), 2)
+    cv2.rectangle(vis, (0, h-collector_height), (w-1, h-1), (0, 255, 0), 2)
+    
+    # Add labels
+    cv2.putText(vis, "NAME", (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+    cv2.putText(vis, "COLLECTOR", (5, h-collector_height+15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+    
+    return vis

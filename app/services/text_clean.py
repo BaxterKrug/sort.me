@@ -23,6 +23,16 @@ _NAME_NOISE_START = re.compile(r"^[^a-zA-Z0-9]+")  # Remove leading non-alphanum
 _NAME_NOISE_END = re.compile(r"[^a-zA-Z0-9]+$")    # Remove trailing non-alphanumeric
 _NAME_PIPE_FIX = re.compile(r"\s*\|\s*")           # Remove pipe symbols and surrounding spaces
 
+# Common OCR misreads - map incorrect characters to likely correct ones
+_OCR_CHAR_FIXES = {
+    "l": "I",  # lowercase L often misread as I
+    "0": "O",  # zero to O in names
+    "1": "I",  # one to I in names
+}
+
+# Pattern to detect likely garbage text (repeated characters, random symbols)
+_GARBAGE_PATTERN = re.compile(r"^([a-z]{1,2})\1{2,}$|^[^a-zA-Z\s]{3,}$")
+
 
 def _strip_diacritics(text: str) -> str:
     base = "".join(_LIGATURE_MAP.get(ch, ch) for ch in text)
@@ -59,6 +69,7 @@ def normalize_card_name(value: str | None) -> str:
     - "ff Wrath of Skies" -> "Wrath of Skies"
     - "Card Name | xX" -> "Card Name"
     - "  Name  " -> "Name"
+    - "l1ght" -> "Light" (common OCR character mistakes)
     """
     if not value:
         return ""
@@ -85,6 +96,7 @@ def normalize_card_name(value: str | None) -> str:
     # Remove common OCR noise patterns:
     # - Leading 1-2 letter words that are likely noise (ff, aa, xx, etc.)
     # - Trailing 1-2 letter words (xX, aa, etc.)
+    # - Words that match garbage patterns
     # But keep single letters if they're the only word (like "X" the card)
     
     if len(words) > 1:
@@ -95,10 +107,19 @@ def normalize_card_name(value: str | None) -> str:
         # Remove trailing noise: 1-2 letter words at the end
         while len(words) > 1 and len(words[-1]) <= 2:
             words.pop()
+        
+        # Remove obvious garbage words (repeated chars, symbols)
+        words = [w for w in words if not _GARBAGE_PATTERN.match(w)]
+    
+    # If we have no words left, return empty
+    if not words:
+        return ""
     
     # Rejoin and collapse spaces
     text = " ".join(words)
     text = _WHITESPACE_RE.sub(" ", text)
+    
+    return text.strip()
     
     return text.strip()
 

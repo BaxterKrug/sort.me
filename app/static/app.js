@@ -167,11 +167,32 @@ async function takeSingleSnapshot() {
     try {
         const response = await fetch('/camera/snapshot');
         const data = await response.json();
-        const ocrTextFrame = data.frames?.find(f => f.label === 'ocr_text');
-        const identification = ocrTextFrame?.meta?.identification;
+        
+        // Try multiple paths to find identification (zone_ocr has both orientation results)
+        const zoneOcr = data.processing?.zone_ocr;
+        const identification = zoneOcr?.identification || data.processing?.identification;
         const assignment = data.assignment;
+        
+        // Check if identification was rejected
+        if (assignment?.warning) {
+            resultDiv.innerHTML = `
+                <div class="card-result" style="border-color: #ffa500;">
+                    <h3 style="color: #ffa500;">⚠ ${assignment.warning}</h3>
+                    <p style="margin-top: 10px; color: #ccc;">OCR Text:</p>
+                    <div style="font-family: monospace; font-size: 12px; color: #aaa; margin-top: 5px;">
+                        Normal: ${zoneOcr?.normal?.name || 'N/A'}<br>
+                        180°: ${zoneOcr?.rotated_180?.name || 'N/A'}
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
         if (identification && identification.best) {
             const card = identification.best;
+            const score = identification.score || 0;
+            const scoreColor = score >= 80 ? '#00ff9f' : score >= 60 ? '#ffa500' : '#e94560';
+            
             resultDiv.innerHTML = `
                 <div class="card-result">
                     <h3>✓ Card Identified</h3>
@@ -185,19 +206,34 @@ async function takeSingleSnapshot() {
                             <span class="card-info-value">${card.set_name || card.set || 'Unknown'}</span>
                         </div>
                         <div class="card-info-row">
-                            <span class="card-info-label">Price:</span>
-                            <span class="card-info-value">$${card.prices?.usd || 'N/A'}</span>
+                            <span class="card-info-label">Collector:</span>
+                            <span class="card-info-value">${card.collector_number || 'N/A'}</span>
                         </div>
                         <div class="card-info-row">
-                            <span class="card-info-label">Score:</span>
-                            <span class="card-info-value">${identification.score.toFixed(1)}%</span>
+                            <span class="card-info-label">Confidence:</span>
+                            <span class="card-info-value" style="color: ${scoreColor}; font-weight: bold;">${score.toFixed(1)}%</span>
                         </div>
+                        ${zoneOcr?.selected_orientation ? `
+                        <div class="card-info-row">
+                            <span class="card-info-label">Orientation:</span>
+                            <span class="card-info-value">${zoneOcr.selected_orientation === 'normal' ? 'Correct' : '180° rotated'}</span>
+                        </div>
+                        ` : ''}
                     </div>
-                    ${assignment ? `<div class="card-destination">📦 Cell ${assignment.cell}</div>` : ''}
+                    ${assignment ? `<div class="card-destination">📦 Assigned to Cell: ${assignment.cell} (${assignment.reason})</div>` : ''}
                 </div>
             `;
         } else {
-            resultDiv.innerHTML = '<div class="card-result" style="border-color: #e94560;"><h3 style="color: #e94560;">✗ No Match</h3></div>';
+            resultDiv.innerHTML = `
+                <div class="card-result" style="border-color: #e94560;">
+                    <h3 style="color: #e94560;">✗ No Match Found</h3>
+                    <p style="margin-top: 10px; color: #ccc;">OCR Text:</p>
+                    <div style="font-family: monospace; font-size: 12px; color: #aaa; margin-top: 5px;">
+                        Normal: ${zoneOcr?.normal?.name || 'N/A'}<br>
+                        180°: ${zoneOcr?.rotated_180?.name || 'N/A'}
+                    </div>
+                </div>
+            `;
         }
     } catch (error) {
         resultDiv.innerHTML = `<div style="color: #e94560;">❌ Error: ${error.message}</div>`;
@@ -210,29 +246,188 @@ async function beginAutoSort() {
     if (autoSortRunning) return;
     autoSortRunning = true;
     sortStats = { cardsProcessed: 0, errors: 0, startTime: new Date() };
+    let consecutiveErrors = 0;
+    const maxConsecutiveErrors = 5; // Stop after 5 consecutive errors
+    
     document.getElementById('beginSortBtn').style.display = 'none';
     document.getElementById('stopSortBtn').style.display = 'block';
     updateSortStatus('Starting...');
+    
+    // Move to feeder position (A1) before starting
+    try {
+        const homeResponse = await fetch('/motion/goto/A1', { method: 'POST' });
+        if (!homeResponse.ok) {
+            throw new Error(`Failed to move to A1: ${homeResponse.status}`);
+        }
+        await homeResponse.json(); // Wait for motion to complete
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for stabilization
+    } catch (error) {
+        console.error('Failed to move to feeder:', error);
+        updateSortStatus(`Error: ${error.message}`);
+        stopAutoSort();
+        return;
+    }
+    
     while (autoSortRunning) {
+        // Check for too many consecutive errors
+        if (consecutiveErrors >= maxConsecutiveErrors) {
+            updateSortStatus(`Stopped: ${maxConsecutiveErrors} consecutive errors`);
+            stopAutoSort();
+            break;
+        }
+        
         try {
-            const response = await fetch('/camera/snapshot');
-            const data = await response.json();
-            const ocrTextFrame = data.frames?.find(f => f.label === 'ocr_text');
-            const identification = ocrTextFrame?.meta?.identification;
-            const assignment = data.assignment;
+            // Retry logic: attempt identification up to 3 times
+            let identification = null;
+            let assignment = null;
+            let data = null;
+            let attempts = 0;
+            const maxAttempts = 3;
+            const minConfidenceScore = 70; // Require at least 70% confidence
+            
+            while (attempts < maxAttempts && !identification) {
+                attempts++;
+                if (attempts > 1) {
+                    updateSortStatus(`Retry attempt ${attempts}/${maxAttempts}...`);
+                    // Return to feeder position before retry
+                    try {
+                        const returnResponse = await fetch('/motion/goto/A1', { method: 'POST' });
+                        if (!returnResponse.ok) {
+                            throw new Error(`Failed to return to A1 for retry: ${returnResponse.status}`);
+                        }
+                        await returnResponse.json(); // Wait for motion to complete
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for stabilization
+                    } catch (error) {
+                        console.error('Failed to return to feeder for retry:', error);
+                        updateSortStatus(`Error returning to feeder: ${error.message}`);
+                        break; // Exit retry loop on motion error
+                    }
+                }
+                
+                // Always wait before taking snapshot to ensure stability
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const response = await fetch('/camera/snapshot');
+                if (!response.ok) {
+                    throw new Error(`Snapshot failed: ${response.status} ${response.statusText}`);
+                }
+                data = await response.json();
+                
+                // Safety check: ensure data has required structure
+                if (!data || !data.frames) {
+                    console.error('Invalid snapshot response:', data);
+                    updateSortStatus(`Invalid snapshot data (attempt ${attempts}/${maxAttempts})`);
+                    identification = null;
+                    continue;
+                }
+                
+                const ocrTextFrame = data.frames?.find(f => f.label === 'ocr_text');
+                identification = ocrTextFrame?.meta?.identification;
+                assignment = data.assignment;
+                
+                // Check if we got a valid identification with sufficient confidence
+                if (identification && identification.best && identification.score >= minConfidenceScore && assignment) {
+                    console.log(`Match found: ${identification.best.name} with ${identification.score.toFixed(1)}% confidence`);
+                    break;
+                } else {
+                    // Reset identification if confidence too low or missing
+                    if (identification && identification.best && identification.score < minConfidenceScore) {
+                        console.log(`Low confidence: ${identification.score.toFixed(1)}% < ${minConfidenceScore}% for ${identification.best?.name || 'unknown'} - retrying`);
+                        identification = null;
+                    } else if (!identification || !identification.best) {
+                        console.log(`No identification found (attempt ${attempts}/${maxAttempts})`);
+                        identification = null;
+                    }
+                }
+            }
+            
             if (identification && identification.best && assignment) {
                 sortStats.cardsProcessed++;
-                await fetch(`/motion/goto/${assignment.cell}`, { method: 'POST' });
-                updateSortStatus(`Sorted ${identification.best.name} to ${assignment.cell}`);
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                consecutiveErrors = 0; // Reset consecutive error counter on success
+                // Execute full pickup-and-delivery sequence (Z-axis pickup, move to cell, drop, return)
+                try {
+                    const pickupResponse = await fetch('/motion/home_z_and_extrude', { method: 'POST' });
+                    if (!pickupResponse.ok) {
+                        throw new Error(`Failed to execute pickup sequence: ${pickupResponse.status}`);
+                    }
+                    const pickupResult = await pickupResponse.json();
+                    if (!pickupResult.ok) {
+                        throw new Error(`Pickup sequence failed: ${pickupResult.error || 'unknown error'}`);
+                    }
+                    const movedTo = pickupResult.moved_to || assignment.cell;
+                    updateSortStatus(`Sorted ${identification.best.name} to ${movedTo}`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } catch (error) {
+                    console.error('Motion error:', error);
+                    updateSortStatus(`Motion error: ${error.message}`);
+                    sortStats.errors++;
+                    consecutiveErrors++;
+                    // System should already be back at start position after home_z_and_extrude
+                    // Just add a delay before continuing
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
             } else {
                 sortStats.errors++;
-                await fetch('/motion/goto/ERR1', { method: 'POST' });
-                updateSortStatus('Error - moved to overflow');
+                consecutiveErrors++;
+                updateSortStatus(`Failed to identify after ${maxAttempts} attempts`);
+                
+                // First ensure we're back at A1 before trying to move to ERR1
+                try {
+                    // Return to A1 first
+                    const homeResponse = await fetch('/motion/goto/A1', { method: 'POST' });
+                    if (!homeResponse.ok) {
+                        throw new Error(`Failed to return to A1: ${homeResponse.status}`);
+                    }
+                    await homeResponse.json();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Now move to error pile
+                    const errorResponse = await fetch('/motion/goto/ERR1', { method: 'POST' });
+                    if (!errorResponse.ok) {
+                        throw new Error(`Failed to move to ERR1: ${errorResponse.status}`);
+                    }
+                    await errorResponse.json(); // Wait for motion to complete
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Return to feeder position after error
+                    const returnResponse = await fetch('/motion/goto/A1', { method: 'POST' });
+                    if (!returnResponse.ok) {
+                        throw new Error(`Failed to return to A1: ${returnResponse.status}`);
+                    }
+                    await returnResponse.json(); // Wait for motion to complete
+                    await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second pause for stability
+                } catch (error) {
+                    console.error('Error handling motion error:', error);
+                    updateSortStatus(`Error: ${error.message}`);
+                    consecutiveErrors++;
+                    // Last ditch effort to return to A1
+                    try {
+                        const lastChanceResponse = await fetch('/motion/goto/A1', { method: 'POST' });
+                        if (lastChanceResponse.ok) {
+                            await lastChanceResponse.json();
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                        }
+                    } catch (finalError) {
+                        console.error('Final recovery failed:', finalError);
+                        updateSortStatus(`Critical error: System may be in unknown position`);
+                    }
+                }
             }
         } catch (error) {
             sortStats.errors++;
+            consecutiveErrors++;
             updateSortStatus(`Error: ${error.message}`);
+            // Try to recover to A1 on any unexpected error
+            try {
+                const emergencyResponse = await fetch('/motion/goto/A1', { method: 'POST' });
+                if (emergencyResponse.ok) {
+                    await emergencyResponse.json();
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    updateSortStatus(`Recovered to feeder after error`);
+                }
+            } catch (emergencyError) {
+                console.error('Emergency recovery failed:', emergencyError);
+            }
             await new Promise(resolve => setTimeout(resolve, 2000));
         }
     }

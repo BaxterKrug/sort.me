@@ -507,6 +507,13 @@ class MotionController:
         async with self.lock:
             await self.driver.set_speed(sp)
             await self.driver.move_absolute(x, y, z, sp)
+            # Wait for move to complete before releasing lock
+            try:
+                if hasattr(self.driver, "send_gcode"):
+                    await self.driver.send_gcode("M400")  # Wait for moves to complete
+                await asyncio.sleep(0.1)  # Small additional delay for stability
+            except Exception as exc:
+                LOG.debug("M400 wait failed in move_to_cell_xy: %s", exc)
             self.current = (x, y, z)
             LOG.info("Moved (XY) to cell %s -> %s", cell_id, self.current)
 

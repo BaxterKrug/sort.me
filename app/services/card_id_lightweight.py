@@ -372,11 +372,11 @@ def identify_card_from_ocr(
     # Default weights if not provided
     if weights is None:
         weights = {
-            "name": 0.6,        # Name is most important
-            "oracle": 0.15,     # Oracle text helps distinguish
+            "name": 0.70,       # Name is most important - increased from 0.6
+            "oracle": 0.10,     # Oracle text helps distinguish - decreased from 0.15
             "collector": 0.15,  # Collector number is unique per set
-            "type": 0.05,       # Type line helps
-            "set": 0.05,        # Set code helps
+            "type": 0.03,       # Type line helps a bit - decreased from 0.05
+            "set": 0.02,        # Set code helps a bit - decreased from 0.05
         }
     
     # Extract OCR data
@@ -429,6 +429,8 @@ def identify_card_from_ocr(
         LOG.warning("No fuzzy name matches found for: %s", ocr_name)
         return results
     
+    LOG.debug("Found %d name candidates for '%s'", len(name_candidates), ocr_name)
+    
     # Score all candidates
     scored_candidates = []
     for card, name_score in name_candidates:
@@ -443,11 +445,26 @@ def identify_card_from_ocr(
         results['best'] = scored_candidates[0]['card']
         results['score'] = scored_candidates[0]['total_score']
         results['debug']['match_type'] = 'fuzzy_multi_criteria'
-        LOG.debug(
-            "Best match: %s (score: %.2f)",
-            results['best'].get("name"),
-            results['score']
-        )
+        
+        # Log top 3 candidates for debugging inconsistencies
+        LOG.info("Identification for '%s':", ocr_name)
+        LOG.info("  Best match: %s (score: %.2f)", 
+                results['best'].get("name"), results['score'])
+        for i, candidate in enumerate(scored_candidates[:3], 1):
+            LOG.info("  %d. %s - total: %.2f (name: %.2f, oracle: %.2f, collector: %.2f)",
+                    i,
+                    candidate['card'].get('name', 'Unknown'),
+                    candidate['total_score'],
+                    candidate['name_score'],
+                    candidate['oracle_score'],
+                    candidate['collector_score'])
+        
+        # Warning if top scores are very close (potential ambiguity)
+        if len(scored_candidates) > 1:
+            score_diff = scored_candidates[0]['total_score'] - scored_candidates[1]['total_score']
+            if score_diff < 5.0:
+                LOG.warning("  ⚠ Top 2 candidates have very close scores (diff: %.2f) - identification may be unreliable!", 
+                          score_diff)
     
     return results
 

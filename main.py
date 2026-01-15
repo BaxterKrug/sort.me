@@ -71,10 +71,59 @@ if camera_cfg is None:
 # Pass the use_fake_hardware flag to camera configuration
 use_fake_hardware = raw_cfg.get("use_fake_hardware", False)
 camera_cfg["use_fake"] = use_fake_hardware
+
+# If no device specified or device not available, auto-detect best camera
+if not camera_cfg.get("use_fake", False):
+    specified_device = camera_cfg.get("device")
+    if specified_device is None:
+        LOG.info("No camera device specified in config, attempting auto-detection...")
+        try:
+            devices = camera_svc.list_devices(max_index=10)
+            if devices.get("recommended") is not None:
+                camera_cfg["device"] = devices["recommended"]
+                LOG.info(f"Auto-selected camera device: {devices['recommended']}")
+            elif devices.get("count", 0) > 0:
+                camera_cfg["device"] = devices["candidates"][0]["id"]
+                LOG.info(f"Selected first available camera: {devices['candidates'][0]['id']}")
+            else:
+                LOG.warning("No cameras detected, will use device 0 as fallback")
+                camera_cfg["device"] = 0
+        except Exception as e:
+            LOG.warning(f"Camera auto-detection failed: {e}, using default device 0")
+            camera_cfg["device"] = 0
+
+# Configure and verify camera
 try:
     camera_svc.configure(camera_cfg)
+    LOG.info(f"Camera configured: device={camera_cfg.get('device')}, use_fake={camera_cfg.get('use_fake', False)}")
+    
+    # Verify camera is actually working by checking status
+    mgr = camera_svc.get_manager()
+    camera_info = mgr.info(ensure_capture=True)
+    
+    if camera_info.get("online"):
+        LOG.info(f"✓ Camera verification successful: {camera_info.get('resolution')} @ {camera_info.get('fps')}fps")
+        # Try to grab a test frame to ensure it's really working
+        try:
+            test_frame = mgr.grab_frame_sync(max_age=0.0)
+            if test_frame is not None and test_frame.size > 0:
+                LOG.info(f"✓ Camera test frame captured successfully: shape={test_frame.shape}")
+            else:
+                LOG.error("✗ Camera test frame is invalid (empty or None)")
+        except Exception as frame_exc:
+            LOG.error(f"✗ Failed to capture test frame: {frame_exc}")
+    else:
+        error_msg = camera_info.get("error", "Unknown error")
+        LOG.error(f"✗ Camera verification failed: {error_msg}")
+        if camera_cfg.get("fallback_image"):
+            LOG.warning(f"Camera offline but fallback image configured: {camera_cfg.get('fallback_image')}")
+        else:
+            LOG.error("No fallback image configured - camera operations will fail!")
+            
 except Exception as exc:  # pragma: no cover - best effort on startup
-    LOG.warning("Camera configuration failed: %s", exc)
+    LOG.error(f"✗ Camera setup failed: {exc}")
+    import traceback
+    LOG.error(traceback.format_exc())
 
 try:
     feeder_monitor.configure_from_cfg(CFG, camera_cfg)
@@ -90,9 +139,46 @@ AUTO_SORT_RUNNING = False
 AUTO_SORT_TASK: Optional[asyncio.Task] = None
 AUTO_SORT_STATS = {"cards_processed": 0, "errors": 0, "started_at": None}
 
+# Snapshot protection to prevent concurrent requests
+SNAPSHOT_IN_PROGRESS = False
+
 CARD_METADATA_CACHE: Dict[str, Dict[str, Any]] = {}
 CARD_DETAILS_CACHE: Dict[str, Dict[str, Any]] = {}
 SET_CACHE: Dict[str, Dict[str, Any]] = {}
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Print system status summary on startup."""
+    LOG.info("=" * 60)
+    LOG.info("SYSTEM STARTUP SUMMARY")
+    LOG.info("=" * 60)
+    
+    # Camera status
+    camera_info = camera_svc.get_manager().info(ensure_capture=False)
+    if camera_info.get("online"):
+        LOG.info(f"✓ Camera: ONLINE (device={camera_info.get('device')}, {camera_info.get('resolution')})")
+    else:
+        error = camera_info.get("error", "Unknown error")
+        LOG.warning(f"✗ Camera: OFFLINE ({error})")
+    
+    # Motion controller status
+    try:
+        if is_demo_mode():
+            LOG.info("✓ Motion: DEMO MODE (fake hardware)")
+        else:
+            LOG.info(f"✓ Motion: Configured")
+    except Exception as e:
+        LOG.warning(f"✗ Motion: Error - {e}")
+    
+    # Configuration
+    LOG.info(f"  Cells configured: {len(CFG.cells)}")
+    LOG.info(f"  Sort mode: {CFG.default_sort_mode}")
+    LOG.info(f"  Sort operation: {CFG.default_sort_operation}")
+    
+    LOG.info("=" * 60)
+    LOG.info("Server ready at http://0.0.0.0:8000")
+    LOG.info("=" * 60)
 
 
 async def _await_motion_completion(
@@ -119,12 +205,32 @@ async def _await_motion_completion(
         try:
             pos = await ctrl.driver.query_position()
             current = (float(pos[0]), float(pos[1]), float(pos[2]))
+            
+            # CRITICAL SAFETY CHECK: Detect runaway motion
+            # If any axis exceeds reasonable limits, stop immediately
+            MAX_X = 500.0  # Maximum X position in mm
+            MAX_Y = 150.0  # Maximum Y position in mm  
+            MAX_Z = 200.0  # Maximum Z position in mm
+            
+            if current[0] < -10.0 or current[0] > MAX_X:
+                LOG.error(f"SAFETY: X position out of bounds: {current[0]:.1f}mm (limit: 0-{MAX_X})")
+                raise RuntimeError(f"X-axis runaway detected: {current[0]:.1f}mm exceeds safe limits")
+            if current[1] < -10.0 or current[1] > MAX_Y:
+                LOG.error(f"SAFETY: Y position out of bounds: {current[1]:.1f}mm (limit: 0-{MAX_Y})")
+                raise RuntimeError(f"Y-axis runaway detected: {current[1]:.1f}mm exceeds safe limits")
+            if current[2] < -10.0 or current[2] > MAX_Z:
+                LOG.error(f"SAFETY: Z position out of bounds: {current[2]:.1f}mm (limit: 0-{MAX_Z})")
+                raise RuntimeError(f"Z-axis runaway detected: {current[2]:.1f}mm exceeds safe limits")
+            
             ctrl.current = current
             last_pos = current
             if target is None:
                 return current
             if all(abs(current[i] - target[i]) <= tolerance for i in range(3)):
                 return current
+        except RuntimeError as safety_exc:
+            # Re-raise safety exceptions immediately
+            raise
         except Exception as exc:  # pragma: no cover - hardware specific
             last_error = exc
             LOG.debug("query_position while waiting for completion failed: %s", exc)
@@ -742,26 +848,25 @@ async def motion_home_z() -> Dict[str, Any]:
 @app.post("/motion/home_z_and_extrude")
 async def motion_home_z_and_extrude() -> Dict[str, Any]:
     """
-    Homes the Z-axis, sends an extrusion command, and then raises the Z-axis to 135mm,
-    without intermediate polling or delays.
+    Homes the Z-axis, extrudes 0.2mm, raises to 145mm, moves to assigned cell,
+    lowers Z, retracts 0.2mm, raises Z, and returns to start position.
     """
     try:
         # Save starting position
         start_x = float(MOTION.current[0])
         start_y = float(MOTION.current[1])
         
-        # 1. Lower the Z-axis (Home Z)
-        # This command is assumed to block until the Z-axis is confirmed at Z=0.
+        # 1. Home the Z-axis to Z=0
+        LOG.info("Auto-sort: Homing Z-axis")
         await MOTION.home_z()
 
-        # 2. Send the extrude command
-        # Extrude 0.2mm at a speed of 50.0 mm/min
+        # 2. Extrude 0.2mm at 50 mm/min to pick up card
+        LOG.info("Auto-sort: Extruding 0.2mm to pick up card")
         await MOTION.driver.extrude(0.2, 50.0)
 
-        # 3. Raise Z-axis with jerking motion to shake off extra cards
-        # Start at Z=0, do shake pattern, end at Z=135mm safe height
-        # Pattern: +40mm, -20mm, +40mm, -20mm, +95mm = 135mm total
-        # Wait for each move to complete before sending the next
+        # 3. Raise Z-axis to 145mm safe height with jerking motion to shake off extra cards
+        # Pattern: +40mm, -20mm, +40mm, -20mm, +105mm = 145mm total
+        LOG.info("Auto-sort: Raising to 145mm with shake pattern")
         await MOTION.driver.send_gcode('G0 Z40.0 F1000')   # Up 40mm to Z=40
         try:
             await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 40.0), tolerance=1.0, timeout=5.0)
@@ -786,24 +891,21 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         except Exception:
             await asyncio.sleep(1.0)
         
-        await MOTION.driver.send_gcode('G0 Z135.0 F1000')  # Up 95mm to Z=135 (safe height)
+        await MOTION.driver.send_gcode('G0 Z145.0 F1000')  # Up 105mm to Z=145 (safe height)
+        LOG.info("Auto-sort: Reached safe height Z=145mm")
 
         # Ensure the motion controller's cached position reflects the raised Z.
-        # Many callers (move_to_cell_xy) preserve the controller's current Z when
-        # performing XY-only moves, so it's critical to update MOTION.current here
-        # to avoid inadvertently moving down and colliding with the work surface.
         try:
-            # Wait for the driver to report the new Z (or stable position near it).
-            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 135.0), tolerance=1.0, timeout=6.0)
+            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 145.0), tolerance=1.0, timeout=6.0)
         except Exception:
-            # Fallback: try a direct query; if that fails, conservatively set the Z to 135
+            # Fallback: try a direct query; if that fails, conservatively set the Z to 145
             try:
                 pos = await MOTION.driver.query_position()
                 MOTION.current = (float(pos[0]), float(pos[1]), float(pos[2]))
             except Exception:
-                MOTION.current = (MOTION.current[0], MOTION.current[1], 135.0)
+                MOTION.current = (MOTION.current[0], MOTION.current[1], 145.0)
 
-        # After extrusion/raise, attempt to read the most recent scanned assignment
+        # 4. Read the assigned cell from scanned_cards.csv and move there
         moved_cell = None
         move_error = None
         try:
@@ -821,10 +923,9 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                     if target:
                         if target in CFG.cells:
                             try:
-                                # Prefer an XY-only G-code move (no Z component) when the
-                                # driver supports raw G-code. This prevents the firmware
-                                # from interpolating Z movement while traveling in XY
-                                # which can cause the head to rise or lower during the move.
+                                LOG.info("Auto-sort: Moving to cell %s", target)
+                                
+                                # Get cell position
                                 pos = MOTION.cells.get(target) if hasattr(MOTION, 'cells') else CFG.cells.get(target)
                                 if not isinstance(pos, dict):
                                     raise KeyError(f"Cell position for {target} missing or invalid: {pos}")
@@ -855,7 +956,8 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                         # Best-effort; don't fail the whole operation if completion wait fails
                                         pass
                                     
-                                    # Lower Z by 100mm after reaching the target cell
+                                    # 5. Lower Z by 100mm after reaching the target cell to deposit card
+                                    LOG.info("Auto-sort: Lowering Z by 100mm to deposit card")
                                     new_z = safe_z - 100.0
                                     await driver.send_gcode(f'G1 Z{new_z:.3f} F1000')
                                     MOTION.current = (tx, ty, new_z)
@@ -864,15 +966,16 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                     except Exception:
                                         pass
                                     
-                                    # Retract extruder by 0.2mm at 50 mm/min
+                                    # 6. Retract extruder by 0.2mm at 50 mm/min to release card
+                                    LOG.info("Auto-sort: Retracting extruder 0.2mm to release card")
                                     await driver.extrude(-0.2, 50.0)
                                     
                                     # Small delay to ensure retraction completes
-                                    import asyncio
                                     await asyncio.sleep(0.5)
                                     
-                                    # Raise Z by 100mm back to safe height
+                                    # 7. Raise Z by 100mm back to safe height (145mm)
                                     # CRITICAL: Must complete before XY move to avoid collision
+                                    LOG.info("Auto-sort: Raising Z back to safe height")
                                     await driver.send_gcode(f'G0 Z{safe_z:.3f} F1000')
                                     
                                     # Wait for Z raise with extended timeout and mandatory completion
@@ -894,7 +997,8 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                         await asyncio.sleep(3.0)  # Extra time for Z to complete
                                         MOTION.current = (tx, ty, safe_z)
                                     
-                                    # Return to starting position
+                                    # 8. Return to starting position
+                                    LOG.info("Auto-sort: Returning to start position (X=%.1f, Y=%.1f)", start_x, start_y)
                                     feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 800)))
                                     await driver.send_gcode(f'G1 X{start_x:.3f} Y{start_y:.3f} F{feed}')
                                     MOTION.current = (start_x, start_y, safe_z)
@@ -909,15 +1013,16 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                     await MOTION.move_to_cell_xy(target)
 
                                 moved_cell = target
+                                LOG.info("Auto-sort: Successfully completed motion sequence for cell %s", target)
                             except Exception as mex:
                                 move_error = str(mex)
-                                LOG.warning("Failed to move to assigned cell %s: %s", target, mex)
+                                LOG.warning("Failed to move to assigned cell %s: %s", target, mex, exc_info=True)
                         else:
                             LOG.debug("Assigned cell from CSV not in config: %s", target)
         except Exception as exc:
             LOG.warning("Failed to read scanned_cards.csv or move to assigned cell: %s", exc, exc_info=True)
 
-        result = {"ok": True, "message": "Z homing, extrusion, and raise command sent", "pos": MOTION.current}
+        result = {"ok": True, "message": "Card pickup and delivery sequence completed", "pos": MOTION.current}
         if moved_cell:
             result["moved_to"] = moved_cell
         elif move_error:
@@ -926,6 +1031,7 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
     except Exception as exc:
         import traceback
         tb = traceback.format_exc()
+        LOG.error("Auto-sort motion sequence failed: %s", exc, exc_info=True)
         # Return an error if any command fails
         return {"ok": False, "error": str(exc), "traceback": tb}
 
@@ -1302,17 +1408,101 @@ def logs_tail() -> Dict[str, Any]:
 
 
 @app.get("/camera/devices")
-def camera_devices(max_index: int = 4) -> Dict[str, Any]:
-    return camera_svc.list_devices(max_index=max_index)
+def camera_devices(max_index: int = 10) -> Dict[str, Any]:
+    """List all available camera devices with their capabilities."""
+    devices = camera_svc.list_devices(max_index=max_index)
+    LOG.info(f"Found {devices.get('count', 0)} available cameras: {devices.get('candidates', [])}")
+    return devices
 
 
 @app.post("/camera/select")
 def camera_select(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Select and configure a camera device."""
     device = payload.get("device")
     if device is None:
         raise HTTPException(status_code=400, detail="Missing device")
-    camera_svc.configure({"device": device})
-    return {"ok": True, "device": device, "info": camera_svc.get_manager().info()}
+    
+    LOG.info(f"Attempting to configure camera device: {device}")
+    try:
+        camera_svc.configure({"device": device})
+        info = camera_svc.get_manager().info()
+        LOG.info(f"Successfully configured camera {device}: {info}")
+        return {"ok": True, "device": device, "info": info}
+    except Exception as e:
+        LOG.error(f"Failed to configure camera {device}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to configure camera: {str(e)}")
+
+
+@app.get("/camera/test/{device_id}")
+def camera_test_device(device_id: str) -> Dict[str, Any]:
+    """Test capture a frame from a specific device without changing configuration.
+    
+    Args:
+        device_id: Can be numeric index like "0" or device path like "/dev/video0"
+    
+    Returns:
+        Dictionary with frame info and base64 encoded preview image
+    """
+    # Parse device_id - convert to int if numeric, otherwise use as string
+    try:
+        device = int(device_id)
+    except ValueError:
+        device = device_id
+    
+    LOG.info(f"Testing camera device: {device}")
+    
+    try:
+        # Try to open the device temporarily
+        cap = cv2.VideoCapture(device)
+        if not cap or not cap.isOpened():
+            LOG.warning(f"Failed to open camera device {device}")
+            return {
+                "ok": False,
+                "device": device,
+                "error": "Failed to open device"
+            }
+        
+        # Try to capture a frame
+        ret, frame = cap.read()
+        cap.release()
+        
+        if not ret or frame is None:
+            LOG.warning(f"Failed to capture frame from device {device}")
+            return {
+                "ok": False,
+                "device": device,
+                "error": "Failed to capture frame"
+            }
+        
+        # Get frame info
+        height, width = frame.shape[:2]
+        
+        # Create a small preview (max 400px width)
+        scale = min(1.0, 400.0 / width)
+        preview_width = int(width * scale)
+        preview_height = int(height * scale)
+        preview = cv2.resize(frame, (preview_width, preview_height))
+        
+        # Encode as JPEG
+        _, buffer = cv2.imencode('.jpg', preview, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        preview_b64 = base64.b64encode(buffer).decode('utf-8')
+        
+        LOG.info(f"Successfully captured test frame from {device}: {width}x{height}")
+        
+        return {
+            "ok": True,
+            "device": device,
+            "resolution": f"{width}x{height}",
+            "preview": f"data:image/jpeg;base64,{preview_b64}"
+        }
+        
+    except Exception as e:
+        LOG.error(f"Error testing camera device {device}: {e}")
+        return {
+            "ok": False,
+            "device": device,
+            "error": str(e)
+        }
 
 
 @app.get("/camera/status")
@@ -1521,6 +1711,17 @@ async def camera_snapshot(
 ) -> Dict[str, Any]:
     """Capture a single snapshot for card identification (no dual-frame compositing)."""
     cam = camera_svc.get_manager()
+    
+    # Check camera status first
+    camera_info = cam.info(ensure_capture=True)
+    if not camera_info.get("online"):
+        error_detail = camera_info.get("error", "Camera not available")
+        LOG.error(f"Camera snapshot failed: {error_detail}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Camera not available: {error_detail}"
+        )
+    
     ctrl = motion.get_controller()
     loop = asyncio.get_running_loop()
 
@@ -1552,17 +1753,63 @@ async def camera_snapshot(
             raise HTTPException(status_code=503, detail=str(exc))
 
         ctrl.current = measured_start
+        
+        # CRITICAL SAFETY CHECK: Ensure axes are homed before any motion
+        if not ctrl.homed:
+            LOG.error("Snapshot request rejected: System not homed")
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot take snapshot: System not homed. Home all axes first for safety (use Home All button)."
+            )
+        
+        # SAFETY CHECK: Ensure Z-axis is at a safe height before moving Y
+        # Prevent collisions by requiring Z >= 100mm
+        if measured_start[2] < 100.0:
+            LOG.warning(f"Z-axis too low for snapshot ({measured_start[2]:.1f}mm). Raising to safe height...")
+            try:
+                # Raise Z to safe height (145mm) before any XY movement
+                await ctrl.driver.send_gcode('G0 Z145.0 F1000')
+                await _await_motion_completion(ctrl, (measured_start[0], measured_start[1], 145.0), tolerance=1.0, timeout=8.0)
+                measured_start = (measured_start[0], measured_start[1], 145.0)
+                ctrl.current = measured_start
+                LOG.info("Z-axis raised to safe height: 145mm")
+            except Exception as z_raise_exc:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Failed to raise Z to safe height: {z_raise_exc}"
+                )
+        
+        # SAFETY CHECK: Ensure Y position is reasonable
+        # If Y > 100, something is wrong - probably position tracking issue
+        if measured_start[1] > 100.0:
+            LOG.error(f"Unsafe Y position detected: {measured_start[1]:.1f}mm - resetting to 0")
+            # Try to recover by moving back to Y=0
+            try:
+                await ctrl.driver.move_absolute(measured_start[0], 0.0, measured_start[2], ctrl.default_speed)
+                await _await_motion_completion(ctrl, (measured_start[0], 0.0, measured_start[2]), tolerance=0.5, timeout=6.0)
+                measured_start = (measured_start[0], 0.0, measured_start[2])
+                ctrl.current = measured_start
+            except Exception as recovery_exc:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Unsafe Y position ({measured_start[1]:.1f}mm) and recovery failed: {recovery_exc}"
+                )
 
         try:
             await ctrl.driver.set_speed(ctrl.default_speed)
             
-            # Move Y-axis by 50mm for photo capture
-            photo_y = measured_start[1] + 50.0
+            # Move Y-axis by 55mm for photo capture
+            photo_y = measured_start[1] + 55.0
+            LOG.info(f"SNAPSHOT MOVEMENT: Starting position: X={measured_start[0]:.3f}, Y={measured_start[1]:.3f}, Z={measured_start[2]:.3f}")
+            LOG.info(f"SNAPSHOT MOVEMENT: Moving to: X={measured_start[0]:.3f}, Y={photo_y:.3f}, Z={measured_start[2]:.3f} (Y+55mm)")
             await ctrl.driver.move_absolute(measured_start[0], photo_y, measured_start[2], ctrl.default_speed)
             ctrl.current = (measured_start[0], photo_y, measured_start[2])
             
-            # Wait for motion to complete and camera to stabilize
-            await asyncio.sleep(2.0)
+            # Wait for motion to complete
+            await _await_motion_completion(ctrl, (measured_start[0], photo_y, measured_start[2]), tolerance=0.5, timeout=6.0)
+            
+            # Wait for camera to stabilize after movement (autofocus, auto-exposure, vibration)
+            await asyncio.sleep(3.0)
             
             # Capture single frame at offset position
             frame = await _capture_fresh_frame(max_age_override=0.0, discard=5, settle=0.05)
@@ -1678,12 +1925,32 @@ async def camera_snapshot(
     try:
         # Use lightweight identification instead of embeddings
         identification_info = artifacts.get("meta", {}).get("identification") if isinstance(artifacts.get("meta", {}), dict) else None
+        zone_ocr_info = artifacts.get("meta", {}).get("zone_ocr") if isinstance(artifacts.get("meta", {}), dict) else None
         scry_id = None
         assigned_cell = None
         assignment_reason = None
+        identification_warning = None
+        
+        # Check for rejected identifications
+        if zone_ocr_info:
+            selected_orientation = zone_ocr_info.get("selected_orientation")
+            if selected_orientation in ("low_confidence", "orientation_ambiguous", "no_valid_ocr"):
+                identification_warning = {
+                    "low_confidence": "Identification rejected: confidence too low",
+                    "orientation_ambiguous": "Identification rejected: orientation unclear",
+                    "no_valid_ocr": "Identification rejected: no readable text",
+                }.get(selected_orientation, "Identification failed")
+                LOG.warning(identification_warning)
         
         if isinstance(identification_info, dict):
             best = identification_info.get("best")
+            score = identification_info.get("score", 0.0)
+            
+            # Warn if score is marginal
+            if score < 60.0 and score > 0:
+                identification_warning = f"Low identification confidence: {score:.1f}%"
+                LOG.warning(identification_warning)
+            
             if isinstance(best, dict):
                 # FTS identification stores id or scryfall_id in best
                 scry_id = best.get("id") or best.get("scryfall_id")
@@ -1718,7 +1985,8 @@ async def camera_snapshot(
         "assignment": {
             "cell": assigned_cell,
             "reason": assignment_reason,
-        } if assigned_cell else None,
+            "warning": identification_warning,
+        } if assigned_cell or identification_warning else None,
     }
 
 

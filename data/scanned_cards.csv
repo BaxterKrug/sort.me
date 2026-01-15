@@ -110,3 +110,303 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-01-14T22:11:19Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
 2026-01-14T22:11:40Z,616d1b20-61c1-4d39-a9b5-ad9fd61699e4,Stifle,K3,divert:low_confidence,0.675
 2026-01-14T22:11:57Z,56125660-2307-4270-a947-f1f4ad63841c,Leery Fogbeast,K3,divert:low_confidence,0.675
+2026-01-14T22:18:00Z,a23f846e-b5e6-48c2-afea-c9be7fc8b7c3,Stangg,K3,divert:low_confidence,0.675
+2026-01-14T22:18:50Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T22:19:16Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-14T22:20:16Z,a23f846e-b5e6-48c2-afea-c9be7fc8b7c3,Stangg,K3,divert:low_confidence,0.675
+2026-01-14T22:22:10Z,bdf3b2be-d0cd-4a3c-a10e-82d32c12d3bd,Ba Sing Se,K3,divert:low_confidence,0.641
+2026-01-14T22:22:23Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-14T22:22:32Z,b2e46695-7bd3-448c-a5ea-6d544943ec5f,"K-9, Mark I",K3,divert:low_confidence,0.641
+2026-01-14T22:22:42Z,e8364ce0-4c11-4af0-9f4b-e4c20d640dfc,Psychic Possession,K3,divert:low_confidence,0.641
+2026-01-14T22:22:52Z,15611e29-6f96-4c5c-a919-c8fe590581b0,Naya,K3,divert:low_confidence,0.579
+2026-01-14T22:23:08Z,e053d330-d0a2-4468-afba-42bf165b8fbf,Gallant Pie-Wielder,K3,divert:low_confidence,0.641
+2026-01-14T22:23:18Z,fad2c6d4-03dd-4dab-861c-77c55bda0db7,Skemfar Avenger,K3,divert:low_confidence,0.675
+2026-01-14T22:23:41Z,648ae09d-f867-49d1-a694-ff9d63800041,A-Ocelot Pride,K3,divert:low_confidence,0.641
+2026-01-14T22:24:42Z,806134c8-2f14-4ea8-a4d8-aaf90b7a474c,"Minsc & Boo, Timeless Heroes // Minsc & Boo, Timeless Heroes",K3,divert:low_confidence,0.641
+2026-01-14T22:29:44Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T22:31:19Z,d5e55695-16cc-4373-8078-959f1ded4c6d,Psychic Trance,K3,divert:low_confidence,0.675
+2026-01-14T22:31:54Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T22:32:16Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-14T22:33:06Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T22:33:46Z,1126b572-1cac-44aa-8fec-e2c72a9fea47,Loyal Fire Sage,K3,divert:low_confidence,0.675
+2026-01-14T22:34:09Z,c733e915-aead-4f82-92d0-37eabbfd0017,Complaints Clerk,K3,divert:low_confidence,0.688
+2026-01-14T22:34:52Z,3001822e-56ed-4090-b6c1-ca4e2e728bee,Tiny,K3,divert:low_confidence,0.675
+2026-01-14T22:36:35Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,C3,alpha_exact:F:Frog,1.000
+2026-01-14T22:36:45Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,C3,alpha_exact:F:Frog,1.000
+2026-01-14T22:37:31Z,b7e2708c-2824-4925-b529-d625deb77924,Tyrant's Scorn,K3,divert:low_confidence,0.641
+2026-01-14T22:37:40Z,25857884-6bb7-4a8e-a08b-fa610af8a5c3,Roc Hatchling,K3,divert:low_confidence,0.579
+2026-01-14T22:38:24Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T22:39:16Z,9d53d15b-aa4a-4cdf-8d3e-ae2aa584f68c,Peel Out,K3,divert:low_confidence,0.641
+2026-01-14T22:39:24Z,a6028e2c-486b-40f8-8b74-7150eb72b9f1,Leeches,K3,divert:low_confidence,0.675
+2026-01-14T22:42:00Z,adea296b-b320-4588-9d6e-cbb5db7c39e3,Tor Wauki the Younger,K3,divert:low_confidence,0.641
+2026-01-14T22:42:13Z,9e02ddba-fdc1-4d7b-89eb-00a0417f8963,Ordeal of Erebos,K3,divert:low_confidence,0.641
+2026-01-14T22:46:51Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-14T22:53:29Z,5be40c34-6df0-4471-b99b-850ae2be9923,Damning Verdict,K3,divert:low_confidence,0.675
+2026-01-14T22:57:39Z,72048624-e3fd-4e9b-91a9-996ea3a1a74f,Dusk Legion Zealot,K3,divert:low_confidence,0.506
+2026-01-14T23:01:45Z,95a39b26-8c83-40ea-b492-036251366d73,Tail Swipe,K3,divert:low_confidence,0.675
+2026-01-14T23:08:13Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T23:33:37Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T23:43:37Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T23:43:46Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T23:43:54Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T23:44:26Z,956b90ca-1012-4132-bf2f-bc3825ed16ac,Psychic Pickpocket,K3,divert:low_confidence,0.641
+2026-01-14T23:44:37Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T23:45:17Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-14T23:54:38Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T00:11:53Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T00:12:16Z,ac6d7d5a-697b-4251-bc18-4dcfe0aa5cc6,Psychic Transfer,K3,divert:low_confidence,0.675
+2026-01-15T00:12:42Z,ea96eeac-c316-4247-a81f-0ddf52675ebf,Lassoed by the Law,K3,divert:low_confidence,0.675
+2026-01-15T00:13:11Z,2e59fb98-c887-42f1-a620-9e6b40b94cb5,Demon's Due,K3,divert:low_confidence,0.641
+2026-01-15T00:13:38Z,993957c7-5d61-4c98-826d-b657aed667e1,Acquire,K3,divert:low_confidence,0.675
+2026-01-15T00:14:24Z,e6cce4d3-e6d8-4c6f-9d9c-c0a8a607a42f,Angelic Observer,K3,divert:low_confidence,0.675
+2026-01-15T00:26:44Z,30225e40-4bde-4e2e-b0f0-48ed16aebafd,Unctus's Retrofitter,K3,divert:low_confidence,0.675
+2026-01-15T00:26:53Z,6d4c853e-2231-4af2-bcb0-1781c18ec3be,Standing Stones,K3,divert:low_confidence,0.675
+2026-01-15T00:27:02Z,6ecbeb07-0f45-49bf-9a12-f4ca09969122,Treasure Chest,K3,divert:low_confidence,0.675
+2026-01-15T00:27:51Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T00:28:16Z,3895f0ce-ef97-4188-8b86-d0cc7067aacd,Rotting Rats,K3,divert:low_confidence,0.675
+2026-01-15T00:28:46Z,a2cfcf67-f83c-43af-9e2d-5513fcdde835,Plaza of Heroes,K3,divert:low_confidence,0.675
+2026-01-15T00:29:04Z,5c892daa-57fe-4712-b64a-6099d531bb26,Shimmer,K3,divert:low_confidence,0.675
+2026-01-15T00:37:22Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T00:37:39Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T00:37:49Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T00:38:35Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T00:39:55Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.90:Psychic Frog,1.000
+2026-01-15T00:40:10Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.90:Psychic Frog,1.000
+2026-01-15T00:40:29Z,11a77897-2aba-4a9b-bbe6-1768ca9f12cb,Allies at Last,K3,divert:low_confidence,0.675
+2026-01-15T00:43:11Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.90:Psychic Frog,1.000
+2026-01-15T00:43:36Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.90:Psychic Frog,1.000
+2026-01-15T00:44:05Z,5314bae2-4930-4f8a-8a52-853bc3feb88f,Aerial Engineer,K3,divert:low_confidence,0.675
+2026-01-15T00:44:32Z,8e23f5a1-bf3e-41e0-875f-fc2f8508e69f,Misstep,K3,divert:low_confidence,0.675
+2026-01-15T00:45:05Z,162dd988-0beb-48e4-9eaa-a08ddb835648,Mtenda Griffin,K3,divert:low_confidence,0.675
+2026-01-15T00:45:34Z,e882c9f9-bf30-46b6-bedc-379d2c80e5cb,+2 Mace,K3,divert:low_confidence,0.675
+2026-01-15T00:47:12Z,61f94e32-3b22-4c47-b866-1f36a7f3c734,Germ,K3,divert:low_confidence,0.675
+2026-01-15T00:47:47Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.90:Psychic Frog,0.713
+2026-01-15T00:47:57Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.90:Psychic Frog,1.000
+2026-01-15T00:48:40Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.90:Psychic Frog,1.000
+2026-01-15T00:49:15Z,162dd988-0beb-48e4-9eaa-a08ddb835648,Mtenda Griffin,K3,divert:low_confidence,0.675
+2026-01-15T00:50:10Z,64933acc-3656-4fdf-8eee-c8f8764e3329,Fly // Fly,K3,divert:low_confidence,0.675
+2026-01-15T00:54:28Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T00:55:01Z,7286819f-6c57-4503-898c-528786ad86e9,Scrying Glass,K3,divert:low_confidence,0.675
+2026-01-15T00:58:54Z,d81bcabd-7bbe-463c-a35a-992c12c4e4bf,Leering Emblem,K3,divert:low_confidence,0.675
+2026-01-15T00:59:15Z,99f235d7-8f6b-4d17-bc36-6f2cb6d5deec,Power Leak,K3,divert:low_confidence,0.675
+2026-01-15T00:59:23Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T01:01:02Z,616d1b20-61c1-4d39-a9b5-ad9fd61699e4,Stifle,K3,divert:low_confidence,0.675
+2026-01-15T01:01:11Z,84b9bee2-b973-4de7-b72d-7f36f8e8153c,Honey Mammoth,K3,divert:low_confidence,0.675
+2026-01-15T01:01:19Z,8702d6b9-bb01-4841-a76d-4a576066c772,Alpine Meadow,K3,divert:low_confidence,0.675
+2026-01-15T01:01:40Z,46f7b269-1589-4d82-9784-57a783833f42,Rats,K3,divert:low_confidence,0.579
+2026-01-15T01:01:56Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T01:02:22Z,1cba7d67-5c6c-4738-8907-7cce503e3180,Psychic Barrier,K3,divert:low_confidence,0.643
+2026-01-15T01:02:49Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T01:03:14Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T01:04:45Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T01:05:31Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T01:06:00Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T02:36:10Z,91df110f-85d2-41cb-96b6-6c79cebfada7,Leopard-Spotted Jiao,K3,divert:low_confidence,0.688
+2026-01-15T02:37:38Z,baea4cd3-cc62-4138-ac2e-5c96c70bbcce,Flatline,K3,divert:low_confidence,0.450
+2026-01-15T02:38:09Z,6037ba46-74ef-4928-9145-180b400d075c,Pyrewild Shaman,K3,divert:low_confidence,0.675
+2026-01-15T02:38:51Z,61094858-b8a8-425f-9c96-fac4fc6ecae8,Tariff,K3,divert:low_confidence,0.675
+2026-01-15T02:39:01Z,40972644-a284-4c7c-a451-d70eff7488ab,Vault 21: House Gambit,K3,divert:low_confidence,0.450
+2026-01-15T02:41:49Z,e882c9f9-bf30-46b6-bedc-379d2c80e5cb,+2 Mace,K3,divert:low_confidence,0.675
+2026-01-15T02:41:56Z,49827a57-cf10-4a44-a1fd-ac611da39dc9,Airdrop Aeronauts,K3,divert:low_confidence,0.688
+2026-01-15T02:42:27Z,203b1cb3-5eae-469a-8a5a-2e56dc859f78,T-45 Power Armor,K3,divert:low_confidence,0.450
+2026-01-15T02:43:02Z,ba4736b3-d6ce-4a16-bcb7-67780caeb78c,Seed Guardian,K3,divert:low_confidence,0.675
+2026-01-15T02:43:17Z,203b1cb3-5eae-469a-8a5a-2e56dc859f78,T-45 Power Armor,K3,divert:low_confidence,0.450
+2026-01-15T02:43:24Z,203b1cb3-5eae-469a-8a5a-2e56dc859f78,T-45 Power Armor,K3,divert:low_confidence,0.450
+2026-01-15T02:43:31Z,203b1cb3-5eae-469a-8a5a-2e56dc859f78,T-45 Power Armor,K3,divert:low_confidence,0.450
+2026-01-15T02:43:46Z,61094858-b8a8-425f-9c96-fac4fc6ecae8,Tariff,K3,divert:low_confidence,0.675
+2026-01-15T02:43:53Z,ba4736b3-d6ce-4a16-bcb7-67780caeb78c,Seed Guardian,K3,divert:low_confidence,0.675
+2026-01-15T02:44:02Z,40972644-a284-4c7c-a451-d70eff7488ab,Vault 21: House Gambit,K3,divert:low_confidence,0.450
+2026-01-15T02:44:09Z,40972644-a284-4c7c-a451-d70eff7488ab,Vault 21: House Gambit,K3,divert:low_confidence,0.450
+2026-01-15T02:44:19Z,f58840dc-c641-4092-8b67-9c0d449af715,Delivery Moogle,K3,divert:low_confidence,0.675
+2026-01-15T02:44:32Z,61094858-b8a8-425f-9c96-fac4fc6ecae8,Tariff,K3,divert:low_confidence,0.675
+2026-01-15T02:44:49Z,40972644-a284-4c7c-a451-d70eff7488ab,Vault 21: House Gambit,K3,divert:low_confidence,0.450
+2026-01-15T02:44:56Z,f58840dc-c641-4092-8b67-9c0d449af715,Delivery Moogle,K3,divert:low_confidence,0.675
+2026-01-15T02:45:11Z,203b1cb3-5eae-469a-8a5a-2e56dc859f78,T-45 Power Armor,K3,divert:low_confidence,0.450
+2026-01-15T02:45:19Z,203b1cb3-5eae-469a-8a5a-2e56dc859f78,T-45 Power Armor,K3,divert:low_confidence,0.450
+2026-01-15T02:45:26Z,203b1cb3-5eae-469a-8a5a-2e56dc859f78,T-45 Power Armor,K3,divert:low_confidence,0.450
+2026-01-15T02:45:34Z,f58840dc-c641-4092-8b67-9c0d449af715,Delivery Moogle,K3,divert:low_confidence,0.675
+2026-01-15T02:45:42Z,2e8d744a-6763-4380-afab-b251d7c797e4,Coalition Corps,K3,divert:low_confidence,0.688
+2026-01-15T02:45:49Z,203b1cb3-5eae-469a-8a5a-2e56dc859f78,T-45 Power Armor,K3,divert:low_confidence,0.450
+2026-01-15T02:45:57Z,33bf267b-f41c-447a-aa35-0c01aad8a489,Vault 87: Forced Evolution,K3,divert:low_confidence,0.450
+2026-01-15T02:49:51Z,42794e10-ddcd-4d2d-ab0c-a6b99b6d4662,Reroute,K3,divert:low_confidence,0.675
+2026-01-15T02:50:03Z,59f138e5-501d-486f-b9a0-3f37640398a0,Bat,K3,divert:low_confidence,0.540
+2026-01-15T02:50:48Z,42794e10-ddcd-4d2d-ab0c-a6b99b6d4662,Reroute,K3,divert:low_confidence,0.675
+2026-01-15T02:51:39Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T02:52:12Z,fec3275e-4491-43a8-9f23-d7b48177c103,Psychic Allergy,K3,divert:low_confidence,0.675
+2026-01-15T02:52:24Z,fec3275e-4491-43a8-9f23-d7b48177c103,Psychic Allergy,K3,divert:low_confidence,0.675
+2026-01-15T02:53:48Z,fec3275e-4491-43a8-9f23-d7b48177c103,Psychic Allergy,K3,divert:low_confidence,0.675
+2026-01-15T02:56:19Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T02:56:52Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T02:57:02Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T02:57:10Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T02:57:17Z,9e341d6b-f4b0-4347-8055-f5fab756334c,Psychic Puppetry,K3,divert:low_confidence,0.675
+2026-01-15T02:57:37Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T02:57:45Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T02:57:53Z,9e341d6b-f4b0-4347-8055-f5fab756334c,Psychic Puppetry,K3,divert:low_confidence,0.675
+2026-01-15T02:58:04Z,9e341d6b-f4b0-4347-8055-f5fab756334c,Psychic Puppetry,K3,divert:low_confidence,0.675
+2026-01-15T02:58:13Z,8e3809e6-41ac-47e8-80dc-9e9c8be1ed7a,Rag Man,K3,divert:low_confidence,0.675
+2026-01-15T02:58:28Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T03:00:04Z,d7da182c-cde3-40d8-976e-a88427a1edb8,Dream Cache,K3,divert:low_confidence,0.675
+2026-01-15T03:01:32Z,f176f6ec-1ff8-4cd4-b7a6-b95830532f6a,Dalek,K3,divert:low_confidence,0.675
+2026-01-15T03:03:31Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T03:04:02Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-15T03:04:16Z,89f51602-0ab8-4acd-9734-16ef05953970,Rile,K3,divert:low_confidence,0.579
+2026-01-15T03:04:25Z,fd99bce1-ce39-464b-8e61-2631eb3ed6f6,Tolarian Academy,K3,divert:low_confidence,0.540
+2026-01-15T03:05:14Z,2026b14c-ef60-4167-ae3b-a9b8fe2399a4,Psychic Whorl // Psychic Whorl,K3,divert:low_confidence,0.641
+2026-01-15T03:05:26Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-15T03:07:04Z,90c4b759-f53d-4977-8d97-a93762622e75,Marsh Lurker,K3,divert:low_confidence,0.675
+2026-01-15T03:09:44Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T03:11:49Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-15T03:12:03Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,K3,divert:low_confidence,0.675
+2026-01-15T03:12:17Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T03:12:33Z,2ae83b4e-e5a4-4c98-8d16-eef3c71b8ff2,Wolfbat,K3,divert:low_confidence,0.675
+2026-01-15T03:12:44Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-15T03:12:55Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T03:13:14Z,020dee17-d85b-44c4-9faa-b1ef977956f4,Gysahl Greens,K3,divert:low_confidence,0.675
+2026-01-15T03:20:31Z,103d84da-2a1b-48b1-973f-5a995218d0e0,Goblin S.W.A.T. Team,K3,divert:low_confidence,0.641
+2026-01-15T03:20:45Z,ece674d3-6c39-4489-b097-a7e875bc6655,Mer Man,K3,divert:low_confidence,0.641
+2026-01-15T03:20:58Z,fa90d01c-2bc8-46f7-9351-e878eb528d4c,Spawning Pod,K3,divert:low_confidence,0.641
+2026-01-15T03:37:30Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T03:39:02Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-15T03:40:27Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T03:40:42Z,2d39a0e1-6484-409c-ab05-5b276925a949,Secret Tunnel,K3,divert:low_confidence,0.675
+2026-01-15T03:41:03Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T03:41:46Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.90:Psychic Frog,1.000
+2026-01-15T03:42:43Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.90:Psychic Frog,1.000
+2026-01-15T04:16:31Z,8f14c947-2452-4fd6-8f1a-391cf5898100,Dig Up,K3,divert:low_confidence,0.491
+2026-01-15T04:16:41Z,a4e81be6-6447-4f1e-be00-6fcdb2ab35af,"Ertha Jo, Frontier Mentor",K3,divert:low_confidence,0.641
+2026-01-15T04:16:51Z,a4e81be6-6447-4f1e-be00-6fcdb2ab35af,"Ertha Jo, Frontier Mentor",K3,divert:low_confidence,0.641
+2026-01-15T04:17:01Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-15T04:25:29Z,b7bb405a-3643-4b3a-95d2-ea7ac9c6a2ff,Graveshifter,K3,divert:low_confidence,0.675
+2026-01-15T04:26:23Z,f90eb8ef-ad70-4d6c-9958-e6153f8599bc,"G'raha Tia, Scion Reborn",K3,divert:low_confidence,0.641
+2026-01-15T04:26:35Z,50870bfd-7779-4a1c-b18f-57fac7e193b1,Suit Up,K3,divert:low_confidence,0.641
+2026-01-15T04:27:03Z,63cda4a0-0dff-4edb-ae67-a2b7e2971350,"Kinnan, Bonder Prodigy",K3,divert:low_confidence,0.650
+2026-01-15T04:27:58Z,1632f3fa-4615-46ee-9768-22bbd9d142d6,Elk,K3,divert:low_confidence,0.540
+2026-01-15T04:28:21Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-15T04:29:20Z,c49690c7-c282-4eb4-8da3-5e0c46a80fc4,"Kellan, Inquisitive Prodigy // Tail the Suspect",K3,divert:low_confidence,0.641
+2026-01-15T04:30:03Z,63cda4a0-0dff-4edb-ae67-a2b7e2971350,"Kinnan, Bonder Prodigy",E2,"alpha_exact:K:Kinnan, Bonder Prodigy",1.000
+2026-01-15T04:31:26Z,d50f89d4-56fd-492c-bd9a-28eab5a5b1aa,Naturalize 2,K3,divert:low_confidence,0.641
+2026-01-15T04:32:47Z,c49690c7-c282-4eb4-8da3-5e0c46a80fc4,"Kellan, Inquisitive Prodigy // Tail the Suspect",K3,divert:low_confidence,0.675
+2026-01-15T04:33:12Z,c49690c7-c282-4eb4-8da3-5e0c46a80fc4,"Kellan, Inquisitive Prodigy // Tail the Suspect",K3,divert:low_confidence,0.675
+2026-01-15T04:33:42Z,c49690c7-c282-4eb4-8da3-5e0c46a80fc4,"Kellan, Inquisitive Prodigy // Tail the Suspect",K3,divert:low_confidence,0.675
+2026-01-15T04:34:40Z,63cda4a0-0dff-4edb-ae67-a2b7e2971350,"Kinnan, Bonder Prodigy",E2,"alpha_exact:K:Kinnan, Bonder Prodigy",0.714
+2026-01-15T04:40:33Z,63cda4a0-0dff-4edb-ae67-a2b7e2971350,"Kinnan, Bonder Prodigy",E2,"alpha_exact:K:Kinnan, Bonder Prodigy",0.714
+2026-01-15T04:40:33Z,63cda4a0-0dff-4edb-ae67-a2b7e2971350,"[Kinnan, fonder Prodigy : =O)",B1,"alpha_exact:A:[Kinnan, fonder Prodigy : =O)",0.800
+2026-01-15T04:40:33,"[Kinnan, fonder Prodigy : =O)",,B1,"alpha_exact:A:[Kinnan, fonder Prodigy : =O)"
+2026-01-15T04:41:37Z,63cda4a0-0dff-4edb-ae67-a2b7e2971350,"Kinnan, Bonder Prodigy",E2,"alpha_exact:K:Kinnan, Bonder Prodigy",1.000
+2026-01-15T04:41:37Z,63cda4a0-0dff-4edb-ae67-a2b7e2971350,"Kinnan, Bonder Prodigy me)",E2,"alpha_exact:K:Kinnan, Bonder Prodigy me)",0.800
+2026-01-15T04:41:37,"Kinnan, Bonder Prodigy me)",,E2,"alpha_exact:K:Kinnan, Bonder Prodigy me)"
+2026-01-15T04:42:06Z,45e92d69-0684-4a57-8c1c-bbf742bd8a23,Expressive Iteration,C2,alpha_exact:E:Expressive Iteration,0.731
+2026-01-15T04:42:06Z,45e92d69-0684-4a57-8c1c-bbf742bd8a23,| Expressive [teration 2) :,B1,alpha_exact:A:| Expressive [teration 2) :,0.800
+2026-01-15T04:42:06,| Expressive [teration 2) :,,B1,alpha_exact:A:| Expressive [teration 2) :
+2026-01-15T15:57:34Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T15:58:06Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T15:58:20Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T15:58:57Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.93:Psychic Frog,0.713
+2026-01-15T16:05:20Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T16:06:01Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.93:Psychic Frog,1.000
+2026-01-15T16:06:22Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.93:Psychic Frog,1.000
+2026-01-15T16:07:05Z,44af3038-5106-42e3-b9ed-29db209de4d1,Wild Crocodile,K3,divert:low_confidence,0.675
+2026-01-15T16:10:19Z,d997088b-f8f9-4e4c-ba64-aa7f43cc7505,Ruin Processor,K3,divert:low_confidence,0.675
+2026-01-15T16:10:33Z,15e94825-98a8-40f1-8f61-83c79885fec0,Ox,F3,alpha_exact:O:Ox,1.000
+2026-01-15T16:11:02Z,15e94825-98a8-40f1-8f61-83c79885fec0,Ox,F3,alpha_exact:O:Ox,1.000
+2026-01-15T16:12:16Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T16:12:38Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T16:12:59Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,K3,divert:low_confidence,0.675
+2026-01-15T16:13:14Z,66483d05-444a-4710-97fa-7b7481b4a420,Daring Saboteur,K3,divert:low_confidence,0.675
+2026-01-15T16:13:28Z,956b90ca-1012-4132-bf2f-bc3825ed16ac,Psychic Pickpocket,K3,divert:low_confidence,0.641
+2026-01-15T16:13:53Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T16:14:09Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T16:14:54Z,7fc6a735-cbf5-4af2-b15c-7ced82f0d9da,Satyr Firedancer,K3,divert:low_confidence,0.675
+2026-01-15T16:15:42Z,9d4a54bd-5598-4313-b5e6-29fd38da016a,Brokers Veteran,K3,divert:low_confidence,0.579
+2026-01-15T16:25:33Z,190ad379-1a0f-4598-b5b1-453955846597,Feral Invocation,K3,divert:low_confidence,0.540
+2026-01-15T16:27:10Z,4ccc3ebd-34e1-421c-87b4-0be905954289,Romana II,K3,divert:low_confidence,0.691
+2026-01-15T16:32:03Z,6a4f5a28-0bd2-4cc4-b67f-324e89193caa,General Jarkeld,D1,alpha_exact:G:General Jarkeld,0.713
+2026-01-15T16:32:48Z,91173ce1-62a9-4d0e-8b2a-9bc33858c4fc,Web,K3,divert:low_confidence,0.540
+2026-01-15T16:33:00Z,3fa57822-8bca-4cdd-916f-261dae494228,"Timmy, Power Gamer",K3,divert:low_confidence,0.691
+2026-01-15T16:38:31Z,034c5631-fd61-47cb-88b6-aca036affc1e,A-Futurist Operative,K3,divert:low_confidence,0.641
+2026-01-15T16:38:41Z,4b2a5df9-cec9-4f93-b0e3-d6181eb893b1,Armor of Faith,K3,divert:low_confidence,0.675
+2026-01-15T17:09:33Z,acf4f164-d441-4604-ad08-2033db89d84b,A-Llanowar Loamspeaker,K3,divert:low_confidence,0.641
+2026-01-15T17:10:15Z,acf4f164-d441-4604-ad08-2033db89d84b,A-Llanowar Loamspeaker,K3,divert:low_confidence,0.641
+2026-01-15T17:19:45Z,67afa501-d561-4a02-9321-351d19daa10d,A-Sorcerer Class,K3,divert:low_confidence,0.641
+2026-01-15T17:20:13Z,df2f81dc-2346-4bd9-aa3b-aaa2d3873415,A-Alrund's Epiphany,K3,divert:low_confidence,0.540
+2026-01-15T17:22:10Z,fe034544-e13f-45fc-ae43-83d0f399ed33,What Must Be Done,K3,divert:low_confidence,0.641
+2026-01-15T17:22:22Z,ec7d7c80-4e3c-454e-b2ed-6f0436df19c9,Chaos Harlequin,K3,divert:low_confidence,0.675
+2026-01-15T17:27:17Z,54b9c323-ac9b-4864-bd57-81b557f44114,Isolation at Orthanc,K3,divert:low_confidence,0.641
+2026-01-15T17:27:50Z,b319f0e1-6f18-4fea-9f72-a21da5513aa4,"ED-E, Lonesome Eyebot",K3,divert:low_confidence,0.641
+2026-01-15T17:29:47Z,39fb5187-a315-4a6d-9435-67db30c06c55,Havoc Jester,K3,divert:low_confidence,0.675
+2026-01-15T17:35:54Z,44f6daf9-e3fa-474e-a6af-356c619f8d22,No Way Out (Playtest),K3,divert:low_confidence,0.641
+2026-01-15T17:36:18Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:36:34Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:38:48Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T17:41:34Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:42:09Z,673a67b2-fbb0-4be4-9edd-93946a583f23,Flick a Coin,K3,divert:low_confidence,0.641
+2026-01-15T17:42:28Z,5078488d-517d-4926-b4f5-fe078f9bcd36,A-Navigation Orb,K3,divert:low_confidence,0.641
+2026-01-15T17:46:04Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:46:21Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:46:33Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:47:32Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T17:47:44Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T17:47:56Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:48:08Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:48:19Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T17:49:16Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:49:36Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:49:55Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T17:50:14Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:50:31Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:50:48Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:51:04Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:51:22Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:51:39Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:51:55Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:53:01Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:53:37Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:55:27Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T17:55:53Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:56:29Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T17:56:55Z,bb1ef824-306c-4975-abca-19f0bd77449f,Fume Spitter,K3,divert:low_confidence,0.641
+2026-01-15T17:57:33Z,1affba6d-2cca-4cdf-8690-1e23ffbe8462,Sold Out,K3,divert:low_confidence,0.540
+2026-01-15T17:57:49Z,ebf9bab7-98a0-4394-90c0-e7c52e14eb37,You Come to a River,K3,divert:low_confidence,0.641
+2026-01-15T17:58:05Z,ebf9bab7-98a0-4394-90c0-e7c52e14eb37,You Come to a River,K3,divert:low_confidence,0.641
+2026-01-15T18:04:36Z,30c176fd-af4d-41f3-bc55-6961bba7bc38,I Am Untouchable,K3,divert:low_confidence,0.641
+2026-01-15T18:04:51Z,4b2ee605-3c7a-4769-978d-3199bdc7c504,Ape,K3,divert:low_confidence,0.513
+2026-01-15T18:05:36Z,0ef240aa-2a88-4ec4-888a-918466372adb,"Katilda, Dawnhart Martyr // Katilda's Rising Dawn",K3,divert:low_confidence,0.641
+2026-01-15T18:08:55Z,e74efff1-37a9-451f-8be1-7e1ad79dc5ee,Reality Is Mine to Control // Reality Is Mine to Control,K3,divert:low_confidence,0.641
+2026-01-15T18:09:22Z,41bd9465-abfb-4fbc-b0cf-11682e6d8a5e,Chaos,K3,divert:low_confidence,0.600
+2026-01-15T18:12:54Z,ee7292f7-1c7e-449c-9c52-7584d6a14c2c,Rally at the Hornburg,K3,divert:low_confidence,0.641
+2026-01-15T18:13:07Z,d9debe4f-c1cc-4b90-aae4-f31f737e2016,Pox,K3,divert:low_confidence,0.450
+2026-01-15T18:13:21Z,3738b0d1-06c0-4d6d-a307-478d994ff36e,Clear a Path,K3,divert:low_confidence,0.641
+2026-01-15T18:13:37Z,d1dd0e10-2ad7-467f-8d4b-c70b95bf2e9c,Erase,K3,divert:low_confidence,0.506
+2026-01-15T18:13:50Z,3738b0d1-06c0-4d6d-a307-478d994ff36e,Clear a Path,K3,divert:low_confidence,0.641
+2026-01-15T18:14:18Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T18:21:04Z,b57e1b62-df2b-48dc-9cb1-d86c9d3ab986,Clam-I-Am,K3,divert:low_confidence,0.641
+2026-01-15T18:21:18Z,c733e915-aead-4f82-92d0-37eabbfd0017,Complaints Clerk,K3,divert:low_confidence,0.688
+2026-01-15T18:24:26Z,efaa37e5-302e-4b4b-bb2d-6a0f9f80cd3f,Ogre,K3,divert:low_confidence,0.481
+2026-01-15T18:27:18Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T18:27:45Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T18:28:26Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,K3,divert:low_confidence,0.675
+2026-01-15T18:28:44Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T18:28:58Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,K3,divert:low_confidence,0.675
+2026-01-15T18:32:35Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T18:34:44Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T18:35:10Z,285d22fa-1623-463a-83c0-a9aa7c969ce2,Psychic Corrosion,K3,divert:low_confidence,0.675
+2026-01-15T18:35:26Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,K3,divert:low_confidence,0.675
+2026-01-15T18:35:42Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,K3,divert:low_confidence,0.675
+2026-01-15T18:40:38Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T18:44:13Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,K3,divert:low_confidence,0.675
+2026-01-15T18:44:48Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T18:45:30Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,K3,divert:low_confidence,0.675
+2026-01-15T18:46:03Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,K3,divert:low_confidence,0.675
+2026-01-15T18:46:36Z,5e6d479d-c30d-4048-b250-5233358a174c,Toy,K3,divert:low_confidence,0.540
+2026-01-15T18:46:50Z,72b20b07-2983-4b5e-9351-b8d7a5bcd72a,An Unearthly Child,K3,divert:low_confidence,0.641
+2026-01-15T18:51:00Z,e882c9f9-bf30-46b6-bedc-379d2c80e5cb,+2 Mace,K3,divert:low_confidence,0.641
+2026-01-15T18:53:45Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,G1,alpha_exact:P:Psychic Frog // Psychic Frog,0.713
+2026-01-15T18:54:16Z,e3425241-efdc-4261-a2bb-58fbf4a9fe8c,"Zuo Ci, the Mocking Sage",K3,divert:low_confidence,0.641
+2026-01-15T18:55:02Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T18:55:28Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T18:56:12Z,e3c84944-23b8-40d7-9b25-c746b08b4dc4,Frog,K3,divert:low_confidence,0.675
+2026-01-15T18:56:30Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T18:57:11Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T18:57:30Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T18:57:48Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713

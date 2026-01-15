@@ -115,6 +115,17 @@ class CameraManager:
             self._last_error = None
             LOG.info("Camera configured: device=%s resolution=%s fps=%s use_fake=%s", 
                     self._cfg["device"], self._cfg["resolution"], self._cfg.get("fps"), self._cfg.get("use_fake"))
+            
+            # Attempt to open camera immediately to catch issues early
+            if not self._cfg.get("use_fake", False):
+                try:
+                    cap = self._ensure_capture_locked()
+                    if cap is None or not cap.isOpened():
+                        LOG.warning(f"Camera device {self._cfg['device']} could not be opened during configuration")
+                    else:
+                        LOG.debug(f"Camera device {self._cfg['device']} opened successfully during configuration")
+                except Exception as e:
+                    LOG.warning(f"Error opening camera during configuration: {e}")
 
     def _dispose_locked(self) -> None:
         if self._capture is not None:
@@ -186,6 +197,9 @@ class CameraManager:
                 use_device = int(device)
         except Exception:
             use_device = device
+        
+        LOG.debug(f"Attempting to open camera device: {use_device}")
+        
         # cv2.VideoCapture accepts either an int index or a string device path.
         api_prefs = [None]
         v4l2_pref = getattr(cv2, "CAP_V4L2", None)
@@ -196,13 +210,17 @@ class CameraManager:
         for api_pref in api_prefs:
             try:
                 if api_pref is None:
+                    LOG.debug(f"Trying to open camera {use_device} with default API")
                     cap_candidate = cv2.VideoCapture(use_device) if isinstance(use_device, int) else cv2.VideoCapture(str(use_device))
                 else:
+                    LOG.debug(f"Trying to open camera {use_device} with API preference: {api_pref}")
                     cap_candidate = cv2.VideoCapture(use_device, api_pref) if isinstance(use_device, int) else cv2.VideoCapture(str(use_device), api_pref)
             except Exception as exc:  # pragma: no cover - depends on system drivers
+                LOG.debug(f"Failed to create VideoCapture for {use_device}: {exc}")
                 last_exc = exc
                 continue
             if cap_candidate and cap_candidate.isOpened():
+                LOG.debug(f"Successfully opened camera {use_device}")
                 cap = cap_candidate
                 break
             if cap_candidate:
@@ -214,12 +232,15 @@ class CameraManager:
             if last_exc is not None:
                 self._last_error = f"Camera open failed for {device}: {last_exc}"
             else:
-                self._last_error = f"Unable to open camera device {device}"
+                self._last_error = f"Unable to open camera device {device} (device may not exist or be in use)"
+            LOG.error(self._last_error)
             fallback = self._cfg.get("fallback_image")
             if fallback:
                 LOG.warning("Camera device %s unavailable, will use fallback image %s", device, fallback)
             self._capture = None
             return None
+        
+        # Configure camera properties
         width, height = self._cfg.get("resolution", (1280, 720))
         if width:
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, float(width))
@@ -228,6 +249,13 @@ class CameraManager:
         fps = self._cfg.get("fps")
         if fps:
             cap.set(cv2.CAP_PROP_FPS, float(fps))
+        
+        # Verify actual settings (may differ from requested)
+        actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        actual_fps = int(cap.get(cv2.CAP_PROP_FPS))
+        LOG.info(f"Camera {device} opened: {actual_width}x{actual_height} @ {actual_fps}fps")
+        
         self._capture = cap
         self._last_error = None
         return cap
@@ -286,45 +314,86 @@ class CameraManager:
         return self.grab_frame_sync(max_age=0.2)
 
 
-def list_devices(max_index: int = 4) -> Dict[str, Any]:
+def list_devices(max_index: int = 10) -> Dict[str, Any]:
     """Probe likely camera devices and return a summary.
 
-    Returns mapping with keys 'candidates' -> list of dicts {id,type,available}
+    Returns mapping with keys 'candidates' -> list of dicts {id,type,available,info}
     where id is either an index (int) or device path (str).
     """
     candidates = []
-    # include /dev/video* entries first (Linux)
-    for path in sorted(glob.glob('/dev/video*')):
-        available = False
-        try:
-            cap = cv2.VideoCapture(path)
-            available = bool(cap and cap.isOpened())
-            try:
-                cap.release()
-            except Exception:
-                pass
-        except Exception:
-            available = False
-        candidates.append({'id': path, 'type': 'dev', 'available': available})
-
-    # probe numeric indices up to max_index
+    
+    # Probe numeric indices - this is more reliable than parsing device paths
+    LOG.info(f"Scanning camera devices 0-{max_index}...")
     for i in range(0, max_index + 1):
-        # skip if same path already listed
-        if any(str(c.get('id')) == str(i) for c in candidates):
-            continue
         available = False
+        width = None
+        height = None
+        fps = None
+        backend = "unknown"
+        
         try:
+            # Try opening with numeric index
             cap = cv2.VideoCapture(int(i))
-            available = bool(cap and cap.isOpened())
+            if cap and cap.isOpened():
+                available = True
+                # Try to get camera properties
+                try:
+                    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                    fps = int(cap.get(cv2.CAP_PROP_FPS))
+                    # Try to get backend name
+                    backend_id = cap.get(cv2.CAP_PROP_BACKEND)
+                    if backend_id == cv2.CAP_V4L2:
+                        backend = "V4L2"
+                    elif backend_id == cv2.CAP_ANY:
+                        backend = "Any"
+                except Exception as e:
+                    LOG.debug(f"Could not get properties for camera {i}: {e}")
+                    pass
+                
+                # Try to actually read a frame to verify it works
+                try:
+                    ret, frame = cap.read()
+                    if not ret or frame is None:
+                        LOG.warning(f"Camera {i} opened but failed to read frame")
+                        available = False
+                except Exception as e:
+                    LOG.warning(f"Camera {i} opened but failed to read: {e}")
+                    available = False
+                    
             try:
                 cap.release()
             except Exception:
                 pass
-        except Exception:
+                
+        except Exception as e:
+            LOG.debug(f"Failed to open camera {i}: {e}")
             available = False
-        candidates.append({'id': i, 'type': 'index', 'available': available})
+        
+        if available:
+            device_info = {
+                'id': i,
+                'type': 'index',
+                'available': True,
+                'resolution': f"{width}x{height}" if width and height else "unknown",
+                'fps': fps if fps and fps > 0 else "unknown",
+                'backend': backend,
+                'device_index': i,
+                'path': f"/dev/video{i}"
+            }
+            candidates.append(device_info)
+            LOG.info(f"Found camera {i}: {device_info['resolution']} @ {device_info['fps']}fps ({backend})")
 
-    return {'candidates': candidates}
+    LOG.info(f"Camera scan complete: found {len(candidates)} available camera(s)")
+    
+    # Sort by device index to get consistent ordering
+    candidates.sort(key=lambda x: x['device_index'])
+    
+    return {
+        'candidates': candidates,
+        'count': len(candidates),
+        'recommended': candidates[0]['id'] if candidates else None
+    }
 
 
 _manager: Optional[CameraManager] = None
