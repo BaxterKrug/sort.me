@@ -305,13 +305,23 @@ async function beginAutoSort() {
                 }
                 
                 // Always wait before taking snapshot to ensure stability
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Longer wait for Auto Sort to allow full settling after previous card motion
+                await new Promise(resolve => setTimeout(resolve, 1500));
                 
                 const response = await fetch('/camera/snapshot');
                 if (!response.ok) {
                     throw new Error(`Snapshot failed: ${response.status} ${response.statusText}`);
                 }
                 data = await response.json();
+                
+                // Debug logging to diagnose identification issues
+                console.log('Snapshot data received:', {
+                    hasFrames: !!data?.frames,
+                    frameCount: data?.frames?.length || 0,
+                    hasOcrTextFrame: !!data.frames?.find(f => f.label === 'ocr_text'),
+                    hasAssignment: !!data?.assignment,
+                    assignmentCell: data?.assignment?.cell,
+                });
                 
                 // Safety check: ensure data has required structure
                 if (!data || !data.frames) {
@@ -325,9 +335,35 @@ async function beginAutoSort() {
                 identification = ocrTextFrame?.meta?.identification;
                 assignment = data.assignment;
                 
+                // Debug logging for identification results
+                console.log('Identification check:', {
+                    hasIdentification: !!identification,
+                    hasBest: !!identification?.best,
+                    cardName: identification?.best?.name,
+                    score: identification?.score,
+                    meetsThreshold: identification?.score >= minConfidenceScore,
+                    hasAssignment: !!assignment,
+                    assignmentCell: assignment?.cell,
+                    assignmentWarning: assignment?.warning,
+                });
+                
+                // Check if there's a warning that should trigger a retry
+                if (assignment && assignment.warning && !assignment.cell) {
+                    console.warn(`Assignment warning: ${assignment.warning} - will retry`);
+                    identification = null;
+                    assignment = null;  // Reset assignment too so we don't use stale data
+                    continue;
+                }
+                
                 // Check if we got a valid identification with sufficient confidence
-                if (identification && identification.best && identification.score >= minConfidenceScore && assignment) {
+                // Note: assignment may be null if card assignment fails, but we still break on successful identification
+                if (identification && identification.best && identification.score >= minConfidenceScore) {
                     console.log(`Match found: ${identification.best.name} with ${identification.score.toFixed(1)}% confidence`);
+                    if (assignment && assignment.cell) {
+                        console.log(`Assigned to cell: ${assignment.cell}`);
+                    } else {
+                        console.warn('Identification succeeded but assignment is missing or has no cell');
+                    }
                     break;
                 } else {
                     // Reset identification if confidence too low or missing
@@ -341,7 +377,29 @@ async function beginAutoSort() {
                 }
             }
             
-            if (identification && identification.best && assignment) {
+            // Log final state after retry loop
+            console.log('After retry loop:', {
+                attempts,
+                maxAttempts,
+                hasIdentification: !!identification,
+                hasBest: !!identification?.best,
+                cardName: identification?.best?.name,
+                hasAssignment: !!assignment,
+                hasCell: !!assignment?.cell,
+                cellValue: assignment?.cell,
+            });
+            
+            if (identification && identification.best) {
+                // Check if we have a valid assignment with a cell to move to
+                if (!assignment || !assignment.cell) {
+                    console.warn('Identification succeeded but no cell assignment available');
+                    updateSortStatus(`Warning: ${identification.best.name} identified but no cell assigned`);
+                    sortStats.errors++;
+                    consecutiveErrors++;
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    continue; // Skip to next card
+                }
+                
                 sortStats.cardsProcessed++;
                 consecutiveErrors = 0; // Reset consecutive error counter on success
                 // Execute full pickup-and-delivery sequence (Z-axis pickup, move to cell, drop, return)
@@ -356,7 +414,8 @@ async function beginAutoSort() {
                     }
                     const movedTo = pickupResult.moved_to || assignment.cell;
                     updateSortStatus(`Sorted ${identification.best.name} to ${movedTo}`);
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    // Wait longer for system to fully settle after motion sequence
+                    await new Promise(resolve => setTimeout(resolve, 2000));
                 } catch (error) {
                     console.error('Motion error:', error);
                     updateSortStatus(`Motion error: ${error.message}`);

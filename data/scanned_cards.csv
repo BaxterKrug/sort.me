@@ -410,3 +410,43 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-01-15T18:57:11Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
 2026-01-15T18:57:30Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
 2026-01-15T18:57:48Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T19:01:09Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:01:22Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T19:03:44Z,8f0b3308-9c0b-4461-9094-38deec20e1bc,Vanish into Eternity,K3,divert:low_confidence,0.506
+2026-01-15T19:03:57Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-15T19:04:14Z,71bdd944-e86c-4e5e-b75c-9bbf4fb27ccd,Unyaro Bee Sting,K3,divert:low_confidence,0.641
+2026-01-15T19:04:34Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:04:56Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,0.713
+2026-01-15T19:05:29Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:05:45Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:06:24Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:09:04Z,706e573e-3e3b-4684-b51c-8b583fddc549,Six-y Beast,K3,divert:low_confidence,0.641
+2026-01-15T19:09:18Z,6a6a3320-638a-46de-9a60-010c65ecd6e1,A-Thran Spider,K3,divert:low_confidence,0.641
+2026-01-15T19:09:40Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:10:06Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:10:27Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:10:41Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:10:57Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:14:39Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:15:02Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:15:18Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:18:39Z,512df222-0db0-4b24-9372-d0c01b181b91,V.A.T.S.,K3,divert:low_confidence,0.641
+2026-01-15T19:18:51Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:20:39Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:21:12Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:21:34Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:25:50Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:26:05Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:26:23Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:26:43Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:40:11Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:40:35Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:42:21Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:42:57Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T19:46:38Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-15T20:03:56Z,c49535ea-8901-4435-acb8-477c115c0249,Welded,K3,divert:low_confidence,0.450
+2026-01-15T20:04:10Z,f13406c6-f208-402a-94d3-a94a24f03563,Snap,K3,divert:low_confidence,0.579
+2026-01-15T20:04:36Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-15T20:05:01Z,9116138a-679d-4169-a4a9-c76460bbb3fd,Nurgle's Rot,K3,divert:low_confidence,0.641
+2026-01-15T20:14:40Z,a4c73220-363e-44d7-b406-436246c02a75,Jo Grant,K3,divert:low_confidence,0.641
+2026-01-15T20:15:04Z,cdb63900-b600-47ab-9f53-cd1441df31d2,"Guan Yu's 1,000-Li March",K3,divert:low_confidence,0.641

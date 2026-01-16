@@ -228,6 +228,36 @@ class GCodeDriver(MotionDriver):
                 LOG.info("GCodeDriver <- (no response)")
             return lines
         except Exception as exc:
+            # Check if it's a serial exception that might be recoverable by reconnecting
+            import serial  # type: ignore[import-not-found]
+            if isinstance(exc, serial.SerialException):
+                LOG.warning("Serial connection error detected: %s. Attempting to reconnect...", exc)
+                # Close the bad connection and reset
+                try:
+                    if self._serial:
+                        self._serial.close()
+                except Exception:
+                    pass  # Ignore errors during close
+                self._serial = None
+                
+                # Retry once with a fresh connection
+                try:
+                    self._ensure_serial()
+                    LOG.info("GCodeDriver (retry) -> %s", cmd.strip())
+                    await loop.run_in_executor(None, self._write_blocking, cmd)
+                    if not wait_ok:
+                        return []
+                    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
+                    if lines:
+                        LOG.info("GCodeDriver (retry) <- %s", " | ".join(lines))
+                    else:
+                        LOG.info("GCodeDriver (retry) <- (no response)")
+                    LOG.info("Serial reconnection successful")
+                    return lines
+                except Exception as retry_exc:
+                    LOG.exception("GCodeDriver retry also failed for cmd=%s: %s", cmd.strip(), retry_exc)
+                    raise
+            
             LOG.exception("GCodeDriver send_gcode failed for cmd=%s: %s", cmd.strip(), exc)
             raise
 
@@ -1243,10 +1273,9 @@ def configure_from_cfg(cfg: Any) -> None:
     if grid_positions:
         # Use explicit grid positions from config
         for cell_id, pos in grid_positions.items():
-            # Only include actual grid cells (A1-K3), exclude ERR1 etc.
-            if (cell_id.startswith(('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K')) and 
-                len(cell_id) == 2 and cell_id[1] in '123'):
-                x, y = pos if isinstance(pos, (list, tuple)) and len(pos) >= 2 else (0, 0)
+            # Include all cells with valid positions (grid cells and special cells like ERR1)
+            if isinstance(pos, (list, tuple)) and len(pos) >= 2:
+                x, y = pos[0], pos[1]
                 # Z coordinate is NOT included - motion system should handle Z separately
                 cells[cell_id] = {'x': float(x), 'y': float(y)}
     else:

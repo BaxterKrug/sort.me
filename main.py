@@ -1965,10 +1965,19 @@ async def camera_snapshot(
                         collector_number=best.get("collector_number", ""),
                         confidence=identification_info.get("score", 0.0) / 100.0,  # Convert score to 0-1 confidence
                     )
+                    LOG.info("Attempting to assign card: %s (scryfall_id=%s, confidence=%.2f)", 
+                             card.name, scry_id, card.confidence)
                     assigned_cell, assignment_reason = assign_card(card, CFG, STATE)
                     LOG.info("Card %s assigned to cell %s (%s)", card.name, assigned_cell, assignment_reason)
                 except Exception as exc:
-                    LOG.warning("Failed to assign card to cell: %s", exc, exc_info=True)
+                    LOG.error("Failed to assign card to cell: %s", exc, exc_info=True)
+                    # Set assignment warning so frontend knows there was an issue
+                    if not identification_warning:
+                        identification_warning = f"Assignment failed: {str(exc)}"
+        
+        # Log final assignment state for debugging
+        LOG.info("Final assignment state: cell=%s, reason=%s, warning=%s", 
+                 assigned_cell, assignment_reason, identification_warning)
                     
         last_path = snapshot_dir / "last_snapshot.json"
         # Write just the scryfall id as a JSON string (or null)
@@ -1976,18 +1985,30 @@ async def camera_snapshot(
     except Exception:
         LOG.warning("Failed to write last_snapshot.json", exc_info=True)
 
-    return {
+    # Always include assignment in response (even if None) for frontend clarity
+    assignment_data = {
+        "cell": assigned_cell,
+        "reason": assignment_reason,
+        "warning": identification_warning,
+    } if (assigned_cell or identification_warning) else None
+    
+    LOG.info("Creating assignment_data: %s (assigned_cell=%s, warning=%s)", 
+             assignment_data, assigned_cell, identification_warning)
+
+    response_data = {
         "timestamp": timestamp_iso,
         "frames": frames,
         "images": frame_map,
         "saved": saved_paths,
         "processing": processing_meta,
-        "assignment": {
-            "cell": assigned_cell,
-            "reason": assignment_reason,
-            "warning": identification_warning,
-        } if assigned_cell or identification_warning else None,
+        "assignment": assignment_data,
     }
+    
+    LOG.info("Snapshot response includes assignment: %s", bool(response_data.get("assignment")))
+    if response_data.get("assignment"):
+        LOG.info("Assignment details: cell=%s", response_data["assignment"].get("cell"))
+    
+    return response_data
 
 
 @app.post("/camera/dual_snapshot")
@@ -2673,30 +2694,32 @@ async def _auto_sort_loop():
                 await asyncio.sleep(2.0)
                 continue
             
-            # Get card identification from OCR frame
-            text_data = ocr_text_frame.get("text", {})
+            # Get card identification from OCR frame meta (same path as frontend)
+            meta = ocr_text_frame.get("meta", {})
+            identification = meta.get("identification", {}) if isinstance(meta, dict) else {}
             card_name = None
             scryfall_id = None
+            confidence_score = 0.0
             
-            # Try to get card name and ID from various OCR fields
-            if isinstance(text_data, dict):
-                card_name = (
-                    text_data.get("name") 
-                    or text_data.get("oracle") 
-                    or text_data.get("full_text")
-                    or text_data.get("full")
+            # Extract identification data from the correct path
+            if isinstance(identification, dict):
+                best_match = identification.get("best")
+                confidence_score = identification.get("score", 0.0)
+                
+                if isinstance(best_match, dict):
+                    card_name = best_match.get("name")
+                    scryfall_id = best_match.get("scryfall_id")
+            
+            # Require minimum confidence threshold (same as frontend: 70%)
+            min_confidence = 70.0
+            if confidence_score < min_confidence:
+                LOG.warning(
+                    "Auto-sort: Identification confidence too low: %.1f%% < %.1f%% for card '%s'",
+                    confidence_score, min_confidence, card_name or "unknown"
                 )
-                meta = text_data.get("meta", {})
-                if isinstance(meta, dict):
-                    embedding = meta.get("embedding", {})
-                    if isinstance(embedding, dict):
-                        matches = embedding.get("matches", [])
-                        if matches and len(matches) > 0:
-                            top_match = matches[0]
-                            if isinstance(top_match, dict):
-                                scryfall_id = top_match.get("scryfall_id")
-                                if not card_name:
-                                    card_name = top_match.get("name")
+                AUTO_SORT_STATS["errors"] += 1
+                await asyncio.sleep(2.0)
+                continue
             
             if not card_name and not scryfall_id:
                 LOG.warning("Auto-sort: Could not identify card from snapshot")
@@ -2704,13 +2727,18 @@ async def _auto_sort_loop():
                 await asyncio.sleep(2.0)
                 continue
             
-            LOG.info("Auto-sort: Identified card: %s (ID: %s)", card_name or "unknown", scryfall_id or "none")
+            LOG.info(
+                "Auto-sort: Identified card: %s (ID: %s) with %.1f%% confidence", 
+                card_name or "unknown", 
+                scryfall_id or "none",
+                confidence_score
+            )
             
             # Step 2: Assign cell for the card
             card = Card(
                 game="mtg",
                 name=card_name or scryfall_id or "Unknown",
-                confidence=0.8,
+                confidence=confidence_score / 100.0,  # Convert percentage to 0-1 scale
                 scryfall_id=scryfall_id,
             )
             cell, reason = assign_card(card, CFG, STATE)

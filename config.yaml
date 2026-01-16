@@ -258,7 +258,7 @@ sorting:
         kaldheim: E3
         "*": K2
 camera:
-  device: 2  # Auto-detected camera device (was 1, updated to 2)
+  device: 1  # Working camera device on /dev/video1
   resolution:
   - 1280
   - 720
