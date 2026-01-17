@@ -135,8 +135,8 @@ SESSION = sort_session.get_manager()
 ERROR_LOG: List[Dict[str, Any]] = []
 
 # Motion constants
-SAFE_Z_HEIGHT = 135.0  # Safe Z height for XY movements (mm)
-SAFE_Z_THRESHOLD = 130.0  # Minimum Z height before raising to safe height (mm)
+SAFE_Z_HEIGHT = 130.0  # Safe Z height for XY movements (mm)
+SAFE_Z_THRESHOLD = 125.0  # Minimum Z height before raising to safe height (mm)
 
 # Auto-sort loop control
 AUTO_SORT_RUNNING = False
@@ -784,7 +784,7 @@ async def motion_goto_cell(cell_id: str) -> Dict[str, Any]:
     ctrl = MOTION
     if cell == "A1":
         try:
-            LOG.info(f"Moving to A1 (homing X and Y)")
+            LOG.info(f"Moving to A1 (homing X and Y, then moving to A1 position)")
             # Ensure Z is at safe height before homing XY
             current_z = ctrl.current[2] if ctrl.current else 0.0
             if current_z < 100.0:
@@ -794,12 +794,16 @@ async def motion_goto_cell(cell_id: str) -> Dict[str, Any]:
                     ctrl.current = (ctrl.current[0], ctrl.current[1], SAFE_Z_HEIGHT)
                 await asyncio.sleep(0.5)  # Brief wait for movement
             
+            # Home X and Y axes to establish origin (0, 0)
             await ctrl.home_x()
             await ctrl.home_y()
-            return {"ok": True, "cell": cell, "pos": ctrl.current, "action": "homed_to_A1"}
+            
+            # Now move to the actual A1 cell position from config
+            await ctrl.move_to_cell_xy(cell)
+            return {"ok": True, "cell": cell, "pos": ctrl.current, "action": "homed_and_moved_to_A1"}
         except Exception as exc:
-            LOG.error(f"Failed to home to A1: {exc}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Failed to home to A1: {str(exc)}") from exc
+            LOG.error(f"Failed to home and move to A1: {exc}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Failed to home and move to A1: {str(exc)}") from exc
 
     try:
         await ctrl.move_to_cell_xy(cell)
@@ -884,7 +888,7 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         await MOTION.driver.extrude(0.4, 50.0)
 
         # 3. Raise Z-axis to safe height with jerking motion to shake off extra cards
-        # Pattern: +60mm, -30mm, +30mm, -20mm, +95mm = 135mm total
+        # Pattern: +60mm, -30mm, +30mm, -20mm, +90mm = 130mm total
         # CRITICAL: Lock X and Y during all Z movements to prevent card damage
         LOG.info(f"Auto-sort: Raising to {SAFE_Z_HEIGHT}mm with shake pattern")
         current_x = float(MOTION.current[0])
@@ -914,7 +918,7 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         except Exception:
             await asyncio.sleep(1.0)
         
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z{SAFE_Z_HEIGHT} F1000')  # Up 95mm to Z=135 (safe height)
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z{SAFE_Z_HEIGHT} F1000')  # Up 90mm to Z=130 (safe height)
         LOG.info(f"Auto-sort: Reached safe height Z={SAFE_Z_HEIGHT}mm")
 
         # Ensure the motion controller's cached position reflects the raised Z.
@@ -1800,13 +1804,14 @@ async def camera_snapshot(
                 detail="Cannot take snapshot: System not homed. Home all axes first for safety (use Home All button)."
             )
         
-        # SAFETY CHECK: Ensure Z-axis is at a safe height before moving Y
-        # Prevent collisions by requiring Z >= 100mm
+        # SAFETY CHECK: Ensure Z-axis is at safe height before moving Y
+        # If Z < 100mm, raise it to safe height first to prevent collisions
         if measured_start[2] < 100.0:
             LOG.warning(f"Z-axis too low for snapshot ({measured_start[2]:.1f}mm). Raising to safe height...")
             try:
                 # Raise Z to safe height before any XY movement
-                await ctrl.driver.send_gcode(f'G0 Z{SAFE_Z_HEIGHT} F1000')
+                # Include X,Y in command to prevent drift
+                await ctrl.driver.send_gcode(f'G0 X{measured_start[0]:.3f} Y{measured_start[1]:.3f} Z{SAFE_Z_HEIGHT} F1000')
                 await _await_motion_completion(ctrl, (measured_start[0], measured_start[1], SAFE_Z_HEIGHT), tolerance=1.0, timeout=8.0)
                 measured_start = (measured_start[0], measured_start[1], SAFE_Z_HEIGHT)
                 ctrl.current = measured_start
@@ -1836,32 +1841,16 @@ async def camera_snapshot(
         try:
             await ctrl.driver.set_speed(ctrl.default_speed)
             
-            # Move Y-axis by 55mm for photo capture
-            photo_y = measured_start[1] + 55.0
-            LOG.info(f"SNAPSHOT MOVEMENT: Starting position: X={measured_start[0]:.3f}, Y={measured_start[1]:.3f}, Z={measured_start[2]:.3f}")
-            LOG.info(f"SNAPSHOT MOVEMENT: Moving to: X={measured_start[0]:.3f}, Y={photo_y:.3f}, Z={measured_start[2]:.3f} (Y+55mm)")
-            await ctrl.driver.move_absolute(measured_start[0], photo_y, measured_start[2], ctrl.default_speed)
-            ctrl.current = (measured_start[0], photo_y, measured_start[2])
+            # Capture frame at current position (no Y movement needed)
+            LOG.info(f"SNAPSHOT: Taking snapshot at current position: X={measured_start[0]:.3f}, Y={measured_start[1]:.3f}, Z={measured_start[2]:.3f}")
             
-            # Wait for motion to complete
-            await _await_motion_completion(ctrl, (measured_start[0], photo_y, measured_start[2]), tolerance=0.5, timeout=6.0)
+            # Wait for camera to stabilize (autofocus, auto-exposure)
+            await asyncio.sleep(2.0)
             
-            # Wait for camera to stabilize after movement (autofocus, auto-exposure, vibration)
-            await asyncio.sleep(3.0)
-            
-            # Capture single frame at offset position
+            # Capture single frame at current position
             frame = await _capture_fresh_frame(max_age_override=0.0, discard=5, settle=0.05)
             
-            # Return to original position
-            await ctrl.driver.move_absolute(measured_start[0], measured_start[1], measured_start[2], ctrl.default_speed)
-            ctrl.current = measured_start
         except Exception as exc:
-            # Ensure we return to original position even on error
-            try:
-                await ctrl.driver.move_absolute(measured_start[0], measured_start[1], measured_start[2], ctrl.default_speed)
-                ctrl.current = measured_start
-            except Exception:
-                pass
             raise HTTPException(status_code=503, detail=f"Camera snapshot failed: {exc}")
 
     if frame is None:

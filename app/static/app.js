@@ -440,7 +440,29 @@ async function beginAutoSort() {
                     updateSortStatus(`Motion error: ${error.message}`);
                     sortStats.errors++;
                     consecutiveErrors++;
-                    // System should already be back at start position after home_z_and_extrude
+                    
+                    // CRITICAL: After motion error, system may be in unknown state
+                    // Must return to A1 (feeder position with Z=0) before continuing
+                    updateSortStatus('Recovering from motion error - returning to safe position...');
+                    try {
+                        // Attempt to return to A1 to reset to known safe state (Z=0)
+                        const recoveryResponse = await fetch('/motion/goto/A1', { method: 'POST' });
+                        if (!recoveryResponse.ok) {
+                            // Recovery failed - must stop auto-sort for safety
+                            console.error('CRITICAL: Failed to recover to safe position after motion error');
+                            updateSortStatus('CRITICAL ERROR: Cannot recover to safe position. Auto-sort stopped.');
+                            stopAutoSort();
+                            break;
+                        }
+                        await recoveryResponse.json();
+                        updateSortStatus('Recovered to safe position - continuing...');
+                    } catch (recoveryError) {
+                        console.error('CRITICAL: Recovery failed:', recoveryError);
+                        updateSortStatus('CRITICAL ERROR: Recovery failed. Auto-sort stopped.');
+                        stopAutoSort();
+                        break;
+                    }
+                    
                     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
                 }
             } else {

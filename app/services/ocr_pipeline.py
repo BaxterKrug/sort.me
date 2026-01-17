@@ -1139,8 +1139,8 @@ def prepare_single_snapshot_artifacts(
     save_dir = Path(save_dir) if save_dir is not None else Path("data") / "snapshots"
     jpeg_quality = int(max(10, min(jpeg_quality, 100)))
 
-    # Crop 300 pixels from the left edge
-    crop_left_original = 300
+    # Crop 200 pixels from the left edge
+    crop_left_original = 200
     if frame.shape[1] > crop_left_original:
         frame = frame[:, crop_left_original:]
     
