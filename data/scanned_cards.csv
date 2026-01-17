@@ -629,3 +629,35 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-01-17T20:35:03Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
 2026-01-17T20:37:40Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,C1,price:$2.13:Vault of Whispers,1.000
 2026-01-17T20:38:09Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,C1,price:$2.13:Vault of Whispers,1.000
+2026-01-17T22:53:59Z,70cd7d2b-e9c4-4900-89a0-f6eb0c6cb22b,Great Hart,K3,divert:low_confidence,0.641
+2026-01-17T22:54:09Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,1.000
+2026-01-17T22:54:56Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,K3,divert:low_confidence,0.660
+2026-01-17T22:55:17Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,0.713
+2026-01-17T23:01:15Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,1.000
+2026-01-17T23:08:49Z,89414770-2a19-4baf-9b18-76104b7b0b9a,Panacea,K3,divert:low_confidence,0.579
+2026-01-17T23:09:15Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,1.000
+2026-01-17T23:09:35Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,K3,divert:low_confidence,0.692
+2026-01-17T23:09:47Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,1.000
+2026-01-17T23:10:00Z,e5b7afa9-e07a-4a84-a41f-7a8bc5c1d274,Arena,K3,divert:low_confidence,0.600
+2026-01-17T23:10:08Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,K3,divert:low_confidence,0.660
+2026-01-17T23:10:38Z,a798feb4-561b-4bb9-bdc9-771325faec57,Great Intelligence's Plan,K3,divert:low_confidence,0.641
+2026-01-17T23:10:46Z,ff3b0dba-0207-4249-bdab-e807c76ce39e,Negate,K3,divert:low_confidence,0.540
+2026-01-17T23:10:58Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,1.000
+2026-01-17T23:11:11Z,402eea7c-2afe-4e93-9773-3e0424cabfdd,Lance,K3,divert:low_confidence,0.506
+2026-01-17T23:11:25Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,0.720
+2026-01-17T23:11:42Z,a798feb4-561b-4bb9-bdc9-771325faec57,Great Intelligence's Plan,K3,divert:low_confidence,0.641
+2026-01-17T23:11:52Z,a798feb4-561b-4bb9-bdc9-771325faec57,Great Intelligence's Plan,K3,divert:low_confidence,0.641
+2026-01-17T23:13:28Z,a798feb4-561b-4bb9-bdc9-771325faec57,Great Intelligence's Plan,K3,divert:low_confidence,0.641
+2026-01-17T23:13:38Z,43df9f41-944e-4cf3-ac80-524eadac221d,Deface,K3,divert:low_confidence,0.563
+2026-01-17T23:13:44Z,a798feb4-561b-4bb9-bdc9-771325faec57,Great Intelligence's Plan,K3,divert:low_confidence,0.641
+2026-01-17T23:13:50Z,a798feb4-561b-4bb9-bdc9-771325faec57,Great Intelligence's Plan,K3,divert:low_confidence,0.641
+2026-01-17T23:26:57Z,ac0615cc-860a-4fed-9e9c-4377ba8ed22a,Amy's Home,K3,divert:low_confidence,0.641
+2026-01-17T23:27:38Z,2cf4a081-3532-45e5-be72-1ff2fb88bb08,B-I-N-G-O,K3,divert:low_confidence,0.641
+2026-01-17T23:28:41Z,c1788d4c-31b8-4f73-8275-5470316e7ad4,Rat,K3,divert:low_confidence,0.540
+2026-01-17T23:28:54Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,0.713
+2026-01-17T23:29:05Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,0.713
+2026-01-17T23:29:29Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,K3,divert:low_confidence,0.688
+2026-01-17T23:31:14Z,e882c9f9-bf30-46b6-bedc-379d2c80e5cb,+2 Mace,K3,divert:low_confidence,0.540
+2026-01-17T23:32:40Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,0.722
+2026-01-17T23:33:37Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T23:34:42Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,F3,alpha_exact:O:Ordeal of Thassa,1.000

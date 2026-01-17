@@ -176,46 +176,94 @@ class GCodeDriver(MotionDriver):
         self._last_position = (0.0, 0.0, 0.0)
 
     def _ensure_serial(self):
-        if self._serial:
-            return
+        # Check if serial exists AND is open
+        if self._serial and hasattr(self._serial, 'is_open'):
+            try:
+                if self._serial.is_open:
+                    return  # Connection is valid and open
+                else:
+                    LOG.warning("Serial port exists but is closed. Reopening...")
+                    self._serial = None  # Force reconnection
+            except Exception:
+                LOG.warning("Could not check serial port status. Reconnecting...")
+                self._serial = None
+        
         try:
             import serial  # type: ignore[import-not-found]
         except Exception as exc:
             raise RuntimeError("pyserial is required for GCodeDriver: install pyserial") from exc
+        
+        LOG.info("Opening serial port %s at %d baud", self.port, self.baud)
         self._serial = serial.Serial(self.port, self.baud, timeout=0.1)
 
     def _read_lines_blocking(self, timeout: float) -> List[str]:
         lines = []
         if not self._serial:
             return lines
+        
+        # Verify serial port is open before attempting to read
+        try:
+            if not self._serial.is_open:
+                LOG.error("Cannot read from closed serial port")
+                return lines
+        except AttributeError:
+            pass  # Some serial implementations might not have is_open
+        
         deadline = time.time() + timeout
         buff = b""
-        while time.time() < deadline:
-            data = self._serial.read(1024)
-            if data:
-                buff += data
-                while b"\n" in buff:
-                    line, buff = buff.split(b"\n", 1)
-                    text = line.decode('utf8', errors='ignore').strip()
-                    if text:
-                        lines.append(text)
-                        # Check if this is a completion line (ok, error, alarm)
-                        # Ignore echo:busy messages - they indicate still processing
-                        if text.lower().startswith('echo:busy'):
-                            # Still processing, don't treat as completion
-                            continue
-                        if text.lower().startswith('ok') or text.lower().startswith('error') or text.lower().startswith('alarm'):
-                            return lines
-            else:
-                time.sleep(0.01)
+        last_busy_time = time.time()  # Track last echo:busy message
+        
+        try:
+            while time.time() < deadline:
+                data = self._serial.read(1024)
+                if data:
+                    buff += data
+                    while b"\n" in buff:
+                        line, buff = buff.split(b"\n", 1)
+                        text = line.decode('utf8', errors='ignore').strip()
+                        if text:
+                            lines.append(text)
+                            # Check if this is a completion line (ok, error, alarm)
+                            # Ignore echo:busy messages - they indicate still processing
+                            if text.lower().startswith('echo:busy'):
+                                # Extend deadline when we get busy messages - firmware is still working
+                                last_busy_time = time.time()
+                                deadline = max(deadline, last_busy_time + timeout)
+                                LOG.debug("Firmware busy, extending deadline")
+                                continue
+                            if text.lower().startswith('ok') or text.lower().startswith('error') or text.lower().startswith('alarm'):
+                                return lines
+                else:
+                    time.sleep(0.01)
+        except (OSError, IOError) as e:
+            LOG.error("Serial read failed: %s", e)
+            # Return whatever we read so far
+            return lines
+        
+        # Log timeout with context
+        LOG.warning("Serial read timeout after %.2fs. Received %d lines.", timeout, len(lines))
         return lines
 
     def _write_blocking(self, cmd: str) -> None:
         if not self._serial:
-            return
-        data = (cmd.rstrip() + '\n').encode('utf8')
-        self._serial.write(data)
-        self._serial.flush()
+            raise RuntimeError("Serial port not initialized")
+        
+        # Check if serial port is actually open before writing
+        try:
+            if not self._serial.is_open:
+                raise RuntimeError("Serial port is closed")
+        except AttributeError:
+            # Some serial implementations might not have is_open
+            pass
+        
+        try:
+            data = (cmd.rstrip() + '\n').encode('utf8')
+            self._serial.write(data)
+            self._serial.flush()
+        except (OSError, IOError) as e:
+            # Catch "Bad file descriptor" and similar errors
+            LOG.error("Serial write failed: %s", e)
+            raise RuntimeError(f"Serial write failed: {e}") from e
 
     async def send_gcode(self, cmd: str, wait_ok: bool = True, timeout: float = 2.0) -> List[str]:
         self._ensure_serial()
@@ -235,8 +283,14 @@ class GCodeDriver(MotionDriver):
         except Exception as exc:
             # Check if it's a serial exception that might be recoverable by reconnecting
             import serial  # type: ignore[import-not-found]
-            # Catch both SerialException and TypeError (which occurs when serial fd is None)
-            is_serial_error = isinstance(exc, serial.SerialException) or isinstance(exc, TypeError)
+            # Catch SerialException, TypeError (serial fd is None), OSError (bad file descriptor), and IOError
+            is_serial_error = (
+                isinstance(exc, serial.SerialException) or 
+                isinstance(exc, TypeError) or 
+                isinstance(exc, OSError) or 
+                isinstance(exc, IOError) or
+                isinstance(exc, RuntimeError)
+            )
             if is_serial_error:
                 LOG.warning("Serial connection error detected (%s): %s. Attempting to reconnect...", type(exc).__name__, exc)
                 # Close the bad connection and reset
@@ -262,10 +316,10 @@ class GCodeDriver(MotionDriver):
                     LOG.info("Serial reconnection successful")
                     
                     # Clear position cache after reconnection to safe default
-                    # Assume Z=145 (safe height) to prevent collisions during recovery
+                    # Assume Z=130 (safe height / camera focal) to prevent collisions during recovery
                     # X=0, Y=0 assumes we're at home position
-                    self._last_position = (0.0, 0.0, 145.0)
-                    LOG.info("Position cache reset to safe position (0, 0, 145) after reconnection")
+                    self._last_position = (0.0, 0.0, 130.0)
+                    LOG.info("Position cache reset to safe position (0, 0, 130) after reconnection")
                     
                     return lines
                 except Exception as retry_exc:
@@ -498,25 +552,38 @@ class MotionController:
         async with self.lock:
             LOG.info("Starting sequential homing: X -> Y -> Z")
             
-            # Home X axis first
-            LOG.info("Homing X axis...")
-            await self.driver.send_gcode('G28 X')
-            LOG.info("X axis homed")
-            
-            # Home Y axis second  
-            LOG.info("Homing Y axis...")
-            await self.driver.send_gcode('G28 Y')
-            LOG.info("Y axis homed")
-            
-            # Home Z axis last
-            LOG.info("Homing Z axis...")
-            await self.driver.send_gcode('G28 Z')
-            LOG.info("Z axis homed")
-            
-            # Mark as fully homed and reset position to (0,0,0)
-            self.current = (0.0, 0.0, 0.0)
-            self.homed = True
-            LOG.info("All axes homed. Position reset to (0.0, 0.0, 0.0)")
+            try:
+                # Home X axis first
+                LOG.info("Homing X axis...")
+                await self.driver.send_gcode('G28 X', wait_ok=True, timeout=10.0)
+                LOG.info("X axis homed")
+                
+                # Home Y axis second  
+                LOG.info("Homing Y axis...")
+                await self.driver.send_gcode('G28 Y', wait_ok=True, timeout=10.0)
+                LOG.info("Y axis homed")
+                
+                # Home Z axis last
+                LOG.info("Homing Z axis...")
+                await self.driver.send_gcode('G28 Z', wait_ok=True, timeout=10.0)
+                LOG.info("Z axis homed")
+                
+                # Mark as fully homed and reset position to (0,0,0)
+                self.current = (0.0, 0.0, 0.0)
+                self.homed = True
+                LOG.info("All axes homed. Position reset to (0.0, 0.0, 0.0)")
+                
+            except Exception as e:
+                LOG.error("Homing failed: %s", e, exc_info=True)
+                self.homed = False
+                # Try to query actual position from hardware
+                try:
+                    actual_pos = await self.driver.query_position()
+                    self.current = actual_pos
+                    LOG.warning("Homing failed but recovered position: %s", actual_pos)
+                except Exception:
+                    LOG.error("Could not recover position after homing failure")
+                raise RuntimeError(f"Homing failed: {e}") from e
 
     async def move_to_cell(self, cell_id: str, speed: Optional[float] = None) -> None:
         """
@@ -734,7 +801,7 @@ class MotionController:
         """Home X axis using G28 X command"""
         async with self.lock:
             LOG.info("Homing X axis with G28 X")
-            await self.driver.send_gcode('G28 X')
+            await self.driver.send_gcode('G28 X', wait_ok=True, timeout=10.0)
             # Update position - assume it went to X=0 after homing
             self.current = (0.0, self.current[1], self.current[2])
             LOG.info("X axis homed to position: 0.0")
@@ -743,7 +810,7 @@ class MotionController:
         """Home Y axis using G28 Y command"""
         async with self.lock:
             LOG.info("Homing Y axis with G28 Y")
-            await self.driver.send_gcode('G28 Y')
+            await self.driver.send_gcode('G28 Y', wait_ok=True, timeout=10.0)
             # Update position - assume it went to Y=0 after homing
             self.current = (self.current[0], 0.0, self.current[2])
             LOG.info("Y axis homed to position: 0.0")
@@ -752,7 +819,7 @@ class MotionController:
         """Home Z axis using G28 Z command"""
         async with self.lock:
             LOG.info("Homing Z axis with G28 Z")
-            await self.driver.send_gcode('G28 Z')
+            await self.driver.send_gcode('G28 Z', wait_ok=True, timeout=10.0)
             # Update position - assume it went to Z=0 after homing
             self.current = (self.current[0], self.current[1], 0.0)
             LOG.info("Z axis homed to position: 0.0")

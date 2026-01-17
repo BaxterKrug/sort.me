@@ -137,6 +137,8 @@ ERROR_LOG: List[Dict[str, Any]] = []
 # Motion constants
 SAFE_Z_HEIGHT = 130.0  # Safe Z height for XY movements (mm)
 SAFE_Z_THRESHOLD = 125.0  # Minimum Z height before raising to safe height (mm)
+# Camera focal constraint: do not raise above this Z (mm)
+CAMERA_FOCUS_Z = 130.0
 
 # Auto-sort loop control
 AUTO_SORT_RUNNING = False
@@ -788,10 +790,12 @@ async def motion_goto_cell(cell_id: str) -> Dict[str, Any]:
             # Ensure Z is at safe height before homing XY
             current_z = ctrl.current[2] if ctrl.current else 0.0
             if current_z < 100.0:
-                LOG.info(f"Z is at {current_z}mm, raising to {SAFE_Z_HEIGHT}mm for safety")
+                # Cap any raise to the camera focal constraint to avoid lifting above focus
+                target_safe_z = min(SAFE_Z_HEIGHT, CAMERA_FOCUS_Z)
+                LOG.info(f"Z is at {current_z}mm, raising to {target_safe_z}mm for safety")
                 async with ctrl.lock:
-                    await ctrl.driver.send_gcode(f'G0 Z{SAFE_Z_HEIGHT} F1000')
-                    ctrl.current = (ctrl.current[0], ctrl.current[1], SAFE_Z_HEIGHT)
+                    await ctrl.driver.send_gcode(f'G0 Z{target_safe_z:.3f} F1000')
+                    ctrl.current = (ctrl.current[0], ctrl.current[1], target_safe_z)
                 await asyncio.sleep(0.5)  # Brief wait for movement
             
             # Home X and Y axes to establish origin (0, 0)
@@ -889,23 +893,25 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
 
         # 3. Raise Z-axis to safe height in one smooth motion
         # CRITICAL: Lock X and Y during Z movement to prevent card damage
-        LOG.info(f"Auto-sort: Raising to {SAFE_Z_HEIGHT}mm")
+        # Determine the actual safe Z to use (do not exceed camera focus)
+        target_safe_z = min(SAFE_Z_HEIGHT, CAMERA_FOCUS_Z)
+        LOG.info(f"Auto-sort: Raising to {target_safe_z}mm")
         current_x = float(MOTION.current[0])
         current_y = float(MOTION.current[1])
-        
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z{SAFE_Z_HEIGHT} F1000')
-        LOG.info(f"Auto-sort: Reached safe height Z={SAFE_Z_HEIGHT}mm")
+    
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z{target_safe_z:.3f} F1000')
+        LOG.info(f"Auto-sort: Reached safe height Z={target_safe_z}mm")
 
         # Ensure the motion controller's cached position reflects the raised Z.
         try:
-            await _await_motion_completion(MOTION, (current_x, current_y, SAFE_Z_HEIGHT), tolerance=1.0, timeout=6.0)
+            await _await_motion_completion(MOTION, (current_x, current_y, target_safe_z), tolerance=1.0, timeout=6.0)
         except Exception:
             # Fallback: try a direct query; if that fails, conservatively set the Z to safe height
             try:
                 pos = await MOTION.driver.query_position()
                 MOTION.current = (float(pos[0]), float(pos[1]), float(pos[2]))
             except Exception:
-                MOTION.current = (current_x, current_y, SAFE_Z_HEIGHT)
+                MOTION.current = (current_x, current_y, target_safe_z)
 
         # 4. Read the assigned cell from scanned_cards.csv and move there
         moved_cell = None
@@ -939,16 +945,18 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                 ty = float(raw_y)
 
                                 driver = MOTION.driver
-                                # Current safe Z to preserve during XY travel
-                                safe_z = float(MOTION.current[2]) if MOTION.current is not None else SAFE_Z_HEIGHT
+                                # Current safe Z to preserve during XY travel (cap default to camera focus)
+                                safe_z = float(MOTION.current[2]) if MOTION.current is not None else min(SAFE_Z_HEIGHT, CAMERA_FOCUS_Z)
 
                                 if hasattr(driver, 'send_gcode'):
                                     # CRITICAL: Ensure Z is at safe height BEFORE any XY movement
                                     # This prevents collision with cards/obstacles during travel
                                     if safe_z < SAFE_Z_THRESHOLD:
-                                        LOG.warning(f"Auto-sort: Z={safe_z:.1f} too low before XY move! Raising to {SAFE_Z_HEIGHT}mm", safe_z)
-                                        await driver.send_gcode(f'G0 Z{SAFE_Z_HEIGHT} F1000')
-                                        safe_z = SAFE_Z_HEIGHT
+                                        # Cap raising to camera focal constraint
+                                        target_safe_z = min(SAFE_Z_HEIGHT, CAMERA_FOCUS_Z)
+                                        LOG.warning(f"Auto-sort: Z={safe_z:.1f} too low before XY move! Raising to {target_safe_z}mm", safe_z)
+                                        await driver.send_gcode(f'G0 Z{target_safe_z:.3f} F1000')
+                                        safe_z = target_safe_z
                                         MOTION.current = (MOTION.current[0], MOTION.current[1], safe_z)
                                         await asyncio.sleep(1.0)  # Wait for Z raise
                                     
@@ -1798,11 +1806,12 @@ async def camera_snapshot(
             try:
                 # Raise Z to safe height before any XY movement
                 # Include X,Y in command to prevent drift
-                await ctrl.driver.send_gcode(f'G0 X{measured_start[0]:.3f} Y{measured_start[1]:.3f} Z{SAFE_Z_HEIGHT} F1000')
-                await _await_motion_completion(ctrl, (measured_start[0], measured_start[1], SAFE_Z_HEIGHT), tolerance=1.0, timeout=8.0)
-                measured_start = (measured_start[0], measured_start[1], SAFE_Z_HEIGHT)
+                target_safe_z = min(SAFE_Z_HEIGHT, CAMERA_FOCUS_Z)
+                await ctrl.driver.send_gcode(f'G0 X{measured_start[0]:.3f} Y{measured_start[1]:.3f} Z{target_safe_z:.3f} F1000')
+                await _await_motion_completion(ctrl, (measured_start[0], measured_start[1], target_safe_z), tolerance=1.0, timeout=8.0)
+                measured_start = (measured_start[0], measured_start[1], target_safe_z)
                 ctrl.current = measured_start
-                LOG.info(f"Z-axis raised to safe height: {SAFE_Z_HEIGHT}mm")
+                LOG.info(f"Z-axis raised to safe height: {target_safe_z}mm")
             except Exception as z_raise_exc:
                 raise HTTPException(
                     status_code=503,

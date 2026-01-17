@@ -260,10 +260,10 @@ async function beginAutoSort() {
     
     // Configuration constants
     const WAIT_STABILIZATION = 2000;
-    const WAIT_RETRY = 500;  // Reduced from 1000ms to 500ms for faster retries
+    const WAIT_RETRY = 300;  // Reduced to 300ms for faster retries (was 500ms)
     const WAIT_SNAPSHOT = 1000;  // Reduced from 1500ms to 1000ms for faster snapshots
     const WAIT_AFTER_MOTION = 1500;  // Reduced from 2000ms to 1500ms for faster cycle
-    const MAX_ATTEMPTS = 3;
+    const MAX_ATTEMPTS = 7;  // Increased from 3 to 7 attempts for better identification
     const MIN_CONFIDENCE_SCORE = 70;
     
     document.getElementById('beginSortBtn').style.display = 'none';
