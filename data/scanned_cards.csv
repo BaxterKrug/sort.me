@@ -511,3 +511,83 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-01-17T03:33:27Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.88:Psychic Frog,0.713
 2026-01-17T03:33:53Z,66901808-dbf3-435b-961d-1f7d68121f3c,Psychic Frog // Psychic Frog,B1,price:no_price:Psychic Frog // Psychic Frog,0.713
 2026-01-17T03:35:18Z,91f99614-45e2-4688-8403-f3a6b9162b08,Aether Meltdown,K3,divert:low_confidence,0.675
+2026-01-17T15:47:15Z,8f067c26-c51d-44d0-a0af-106b5778f06a,Borderland Ranger,K3,divert:low_confidence,0.583
+2026-01-17T15:47:27Z,e56623ff-2f7e-470d-bdb3-ddd25e002dcb,Boar,K3,divert:low_confidence,0.579
+2026-01-17T15:47:37Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T15:49:36Z,5e4304f1-987b-4e4f-a321-c3263bd916de,Heal,K3,divert:low_confidence,0.675
+2026-01-17T15:49:58Z,fafb0372-6860-4b0b-b92e-873735489006,Debtor's Pulpit,K3,divert:low_confidence,0.641
+2026-01-17T16:03:39Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,1.000
+2026-01-17T16:06:18Z,3feca7ae-e3ab-42a7-812a-b7729af00318,You Live Only Because I Will It,K3,divert:low_confidence,0.641
+2026-01-17T16:06:29Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:06:44Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:06:57Z,e56623ff-2f7e-470d-bdb3-ddd25e002dcb,Boar,K3,divert:low_confidence,0.579
+2026-01-17T16:07:09Z,9258ad10-cbe6-4676-93b4-6ef4a33f12ee,Land Tax,K3,divert:low_confidence,0.591
+2026-01-17T16:08:15Z,bafbd034-c8a0-4798-a680-555c13bdd251,Brand,K3,divert:low_confidence,0.540
+2026-01-17T16:08:29Z,e56623ff-2f7e-470d-bdb3-ddd25e002dcb,Boar,K3,divert:low_confidence,0.579
+2026-01-17T16:08:47Z,8f067c26-c51d-44d0-a0af-106b5778f06a,Borderland Ranger,K3,divert:low_confidence,0.600
+2026-01-17T16:09:08Z,5d2a3833-ab5b-4f84-b39c-d0eeb7b474d3,Minotaur,K3,divert:low_confidence,0.675
+2026-01-17T16:09:36Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,1.000
+2026-01-17T16:09:54Z,d3ab8065-cecc-4b19-be93-7cf791a93e62,Parch,K3,divert:low_confidence,0.600
+2026-01-17T16:10:05Z,90954848-af7e-47b3-82e7-9fedde6ad606,Shocker,K3,divert:low_confidence,0.519
+2026-01-17T16:12:17Z,5d2a3833-ab5b-4f84-b39c-d0eeb7b474d3,Minotaur,K3,divert:low_confidence,0.675
+2026-01-17T16:13:05Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:13:32Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:13:57Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:14:10Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:14:22Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:14:33Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:14:49Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:15:21Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:15:36Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:19:56Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:33:45Z,4b2ee605-3c7a-4769-978d-3199bdc7c504,Ape,K3,divert:low_confidence,0.540
+2026-01-17T16:34:12Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:35:21Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:36:54Z,120c05f1-5ec3-4a0f-8628-6919e393104a,Kodama of the South Tree,K3,divert:low_confidence,0.513
+2026-01-17T16:38:23Z,c8e2bfb1-5a6a-4e49-a0ad-b7fae84890d1,Sorceress's Schemes // Sorceress's Schemes,K3,divert:low_confidence,0.550
+2026-01-17T16:41:08Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,0.713
+2026-01-17T16:41:24Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,1.000
+2026-01-17T16:41:38Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,1.000
+2026-01-17T16:42:40Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,1.000
+2026-01-17T16:42:53Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,1.000
+2026-01-17T16:43:06Z,8b8c80ea-7b29-4335-ba7b-3e51a5a104a9,Borderland Minotaur,B2,alpha_exact:B:Borderland Minotaur,1.000
+2026-01-17T16:48:05Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T16:48:19Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T16:48:34Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T16:49:38Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T16:50:15Z,0f138d4b-64ab-490f-a79b-94e516b1c047,Rescind,K3,divert:low_confidence,0.579
+2026-01-17T16:50:28Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,K3,divert:low_confidence,0.675
+2026-01-17T17:01:37Z,89f51602-0ab8-4acd-9734-16ef05953970,Rile,K3,divert:low_confidence,0.550
+2026-01-17T17:01:52Z,f7c3cf39-c49f-4055-87e6-c82a224b273c,A-Gutter Skulker // A-Gutter Shortcut,K3,divert:low_confidence,0.641
+2026-01-17T17:02:18Z,186e9707-b20e-4ea6-b353-9abd98174011,A-Civil Servant,K3,divert:low_confidence,0.641
+2026-01-17T17:04:06Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T17:06:22Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T17:06:54Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,B2,price:$0.13:Prescient Chimera,0.713
+2026-01-17T17:15:51Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,K3,divert:low_confidence,0.632
+2026-01-17T17:16:22Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,K3,divert:low_confidence,0.632
+2026-01-17T17:16:50Z,cf2d7500-13da-4692-a328-bc8d6a605a3d,Elven,K3,divert:low_confidence,0.540
+2026-01-17T17:17:20Z,0ebaf0bf-7aa2-469d-bdbb-0fbf6741eede,Planetarium of Wan Shi Tong,K3,divert:low_confidence,0.641
+2026-01-17T17:29:19Z,200c9655-e51c-4b63-96cf-7f3fba3ec75c,Brass-Talon Chimera,K3,divert:low_confidence,0.641
+2026-01-17T17:29:30Z,200c9655-e51c-4b63-96cf-7f3fba3ec75c,Brass-Talon Chimera,K3,divert:low_confidence,0.641
+2026-01-17T17:29:42Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,B2,price:$0.13:Prescient Chimera,0.713
+2026-01-17T17:37:18Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T17:37:38Z,5f73b249-be19-4a51-8759-648a2f122e6d,Treeshaker Chimera,K3,divert:low_confidence,0.641
+2026-01-17T17:37:52Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T17:51:41Z,7022506d-8685-41e0-bd1a-2c27c964128b,Horizon Chimera,K3,divert:low_confidence,0.675
+2026-01-17T17:52:39Z,7022506d-8685-41e0-bd1a-2c27c964128b,Horizon Chimera,K3,divert:low_confidence,0.675
+2026-01-17T17:53:19Z,7022506d-8685-41e0-bd1a-2c27c964128b,Horizon Chimera,K3,divert:low_confidence,0.675
+2026-01-17T17:53:42Z,7022506d-8685-41e0-bd1a-2c27c964128b,Horizon Chimera,K3,divert:low_confidence,0.675
+2026-01-17T17:53:59Z,84c21aa7-678e-4998-9061-a13d04d92842,Horizon Scholar,D2,alpha_exact:H:Horizon Scholar,1.000
+2026-01-17T17:54:16Z,7022506d-8685-41e0-bd1a-2c27c964128b,Horizon Chimera,K3,divert:low_confidence,0.675
+2026-01-17T17:54:29Z,7e6317b9-a426-453b-a82a-e63905a77019,Horizon Seed,D2,alpha_exact:H:Horizon Seed,0.717
+2026-01-17T17:54:52Z,7e6317b9-a426-453b-a82a-e63905a77019,Horizon Seed,K3,divert:low_confidence,0.688
+2026-01-17T17:55:18Z,7022506d-8685-41e0-bd1a-2c27c964128b,Horizon Chimera,K3,divert:low_confidence,0.675
+2026-01-17T17:55:48Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,1.000
+2026-01-17T17:56:20Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,1.000
+2026-01-17T17:56:38Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,1.000
+2026-01-17T17:57:12Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,1.000
+2026-01-17T17:58:30Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,1.000
+2026-01-17T17:59:20Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,1.000
+2026-01-17T18:01:21Z,594323b6-558d-4597-beb8-5346599ea571,A-Plate Armor,K3,divert:low_confidence,0.641
+2026-01-17T18:02:55Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,0.703
+2026-01-17T18:06:17Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,1.000

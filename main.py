@@ -134,6 +134,10 @@ MOTION = get_controller()
 SESSION = sort_session.get_manager()
 ERROR_LOG: List[Dict[str, Any]] = []
 
+# Motion constants
+SAFE_Z_HEIGHT = 135.0  # Safe Z height for XY movements (mm)
+SAFE_Z_THRESHOLD = 130.0  # Minimum Z height before raising to safe height (mm)
+
 # Auto-sort loop control
 AUTO_SORT_RUNNING = False
 AUTO_SORT_TASK: Optional[asyncio.Task] = None
@@ -784,10 +788,10 @@ async def motion_goto_cell(cell_id: str) -> Dict[str, Any]:
             # Ensure Z is at safe height before homing XY
             current_z = ctrl.current[2] if ctrl.current else 0.0
             if current_z < 100.0:
-                LOG.info(f"Z is at {current_z}mm, raising to 145mm for safety")
+                LOG.info(f"Z is at {current_z}mm, raising to {SAFE_Z_HEIGHT}mm for safety")
                 async with ctrl.lock:
-                    await ctrl.driver.send_gcode('G0 Z145.0 F1000')
-                    ctrl.current = (ctrl.current[0], ctrl.current[1], 145.0)
+                    await ctrl.driver.send_gcode(f'G0 Z{SAFE_Z_HEIGHT} F1000')
+                    ctrl.current = (ctrl.current[0], ctrl.current[1], SAFE_Z_HEIGHT)
                 await asyncio.sleep(0.5)  # Brief wait for movement
             
             await ctrl.home_x()
@@ -863,7 +867,7 @@ async def motion_home_z() -> Dict[str, Any]:
 @app.post("/motion/home_z_and_extrude")
 async def motion_home_z_and_extrude() -> Dict[str, Any]:
     """
-    Homes the Z-axis, extrudes 0.2mm, raises to 145mm, moves to assigned cell,
+    Homes the Z-axis, extrudes 0.2mm, raises to safe height, moves to assigned cell,
     lowers Z, retracts 0.2mm, raises Z, and returns to start position.
     """
     try:
@@ -879,46 +883,50 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         LOG.info("Auto-sort: Extruding 0.2mm to pick up card")
         await MOTION.driver.extrude(0.2, 50.0)
 
-        # 3. Raise Z-axis to 145mm safe height with jerking motion to shake off extra cards
-        # Pattern: +40mm, -20mm, +40mm, -20mm, +105mm = 145mm total
-        LOG.info("Auto-sort: Raising to 145mm with shake pattern")
-        await MOTION.driver.send_gcode('G0 Z40.0 F1000')   # Up 40mm to Z=40
+        # 3. Raise Z-axis to safe height with jerking motion to shake off extra cards
+        # Pattern: +40mm, -20mm, +40mm, -20mm, +95mm = 135mm total
+        # CRITICAL: Lock X and Y during all Z movements to prevent card damage
+        LOG.info(f"Auto-sort: Raising to {SAFE_Z_HEIGHT}mm with shake pattern")
+        current_x = float(MOTION.current[0])
+        current_y = float(MOTION.current[1])
+        
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z40.0 F1000')   # Up 40mm to Z=40
         try:
-            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 40.0), tolerance=1.0, timeout=5.0)
+            await _await_motion_completion(MOTION, (current_x, current_y, 40.0), tolerance=1.0, timeout=5.0)
         except Exception:
             await asyncio.sleep(1.0)  # Fallback wait
         
-        await MOTION.driver.send_gcode('G0 Z20.0 F1000')   # Down 20mm to Z=20
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z20.0 F1000')   # Down 20mm to Z=20
         try:
-            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 20.0), tolerance=1.0, timeout=5.0)
+            await _await_motion_completion(MOTION, (current_x, current_y, 20.0), tolerance=1.0, timeout=5.0)
         except Exception:
             await asyncio.sleep(1.0)
         
-        await MOTION.driver.send_gcode('G0 Z60.0 F1000')   # Up 40mm to Z=60
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z60.0 F1000')   # Up 40mm to Z=60
         try:
-            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 60.0), tolerance=1.0, timeout=5.0)
+            await _await_motion_completion(MOTION, (current_x, current_y, 60.0), tolerance=1.0, timeout=5.0)
         except Exception:
             await asyncio.sleep(1.0)
         
-        await MOTION.driver.send_gcode('G0 Z40.0 F1000')   # Down 20mm to Z=40
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z40.0 F1000')   # Down 20mm to Z=40
         try:
-            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 40.0), tolerance=1.0, timeout=5.0)
+            await _await_motion_completion(MOTION, (current_x, current_y, 40.0), tolerance=1.0, timeout=5.0)
         except Exception:
             await asyncio.sleep(1.0)
         
-        await MOTION.driver.send_gcode('G0 Z145.0 F1000')  # Up 105mm to Z=145 (safe height)
-        LOG.info("Auto-sort: Reached safe height Z=145mm")
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z{SAFE_Z_HEIGHT} F1000')  # Up 90mm to Z=130 (safe height)
+        LOG.info(f"Auto-sort: Reached safe height Z={SAFE_Z_HEIGHT}mm")
 
         # Ensure the motion controller's cached position reflects the raised Z.
         try:
-            await _await_motion_completion(MOTION, (MOTION.current[0], MOTION.current[1], 145.0), tolerance=1.0, timeout=6.0)
+            await _await_motion_completion(MOTION, (current_x, current_y, SAFE_Z_HEIGHT), tolerance=1.0, timeout=6.0)
         except Exception:
-            # Fallback: try a direct query; if that fails, conservatively set the Z to 145
+            # Fallback: try a direct query; if that fails, conservatively set the Z to safe height
             try:
                 pos = await MOTION.driver.query_position()
                 MOTION.current = (float(pos[0]), float(pos[1]), float(pos[2]))
             except Exception:
-                MOTION.current = (MOTION.current[0], MOTION.current[1], 145.0)
+                MOTION.current = (current_x, current_y, SAFE_Z_HEIGHT)
 
         # 4. Read the assigned cell from scanned_cards.csv and move there
         moved_cell = None
@@ -953,15 +961,15 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
 
                                 driver = MOTION.driver
                                 # Current safe Z to preserve during XY travel
-                                safe_z = float(MOTION.current[2]) if MOTION.current is not None else 145.0
+                                safe_z = float(MOTION.current[2]) if MOTION.current is not None else SAFE_Z_HEIGHT
 
                                 if hasattr(driver, 'send_gcode'):
                                     # CRITICAL: Ensure Z is at safe height BEFORE any XY movement
                                     # This prevents collision with cards/obstacles during travel
-                                    if safe_z < 140.0:
-                                        LOG.warning("Auto-sort: Z=%.1f too low before XY move! Raising to 145mm", safe_z)
-                                        await driver.send_gcode('G0 Z145.0 F1000')
-                                        safe_z = 145.0
+                                    if safe_z < SAFE_Z_THRESHOLD:
+                                        LOG.warning(f"Auto-sort: Z={safe_z:.1f} too low before XY move! Raising to {SAFE_Z_HEIGHT}mm", safe_z)
+                                        await driver.send_gcode(f'G0 Z{SAFE_Z_HEIGHT} F1000')
+                                        safe_z = SAFE_Z_HEIGHT
                                         MOTION.current = (MOTION.current[0], MOTION.current[1], safe_z)
                                         await asyncio.sleep(1.0)  # Wait for Z raise
                                     
@@ -986,7 +994,8 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                     # 5. Lower Z by 100mm after reaching the target cell to deposit card
                                     LOG.info("Auto-sort: Lowering Z by 100mm to deposit card")
                                     new_z = safe_z - 100.0
-                                    await driver.send_gcode(f'G1 Z{new_z:.3f} F1000')
+                                    # Lock X and Y during Z movement
+                                    await driver.send_gcode(f'G1 X{tx:.3f} Y{ty:.3f} Z{new_z:.3f} F1000')
                                     MOTION.current = (tx, ty, new_z)
                                     try:
                                         await _await_motion_completion(MOTION, (tx, ty, new_z), tolerance=1.0, timeout=6.0)
@@ -1000,10 +1009,11 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                     # Small delay to ensure retraction completes
                                     await asyncio.sleep(0.5)
                                     
-                                    # 7. Raise Z by 100mm back to safe height (145mm)
+                                    # 7. Raise Z by 100mm back to safe height (135mm)
                                     # CRITICAL: Must complete before XY move to avoid collision
+                                    # Lock X and Y during Z movement
                                     LOG.info("Auto-sort: Raising Z back to safe height")
-                                    await driver.send_gcode(f'G0 Z{safe_z:.3f} F1000')
+                                    await driver.send_gcode(f'G0 X{tx:.3f} Y{ty:.3f} Z{safe_z:.3f} F1000')
                                     
                                     # Wait for Z raise with extended timeout and mandatory completion
                                     z_raised = False
@@ -1795,12 +1805,12 @@ async def camera_snapshot(
         if measured_start[2] < 100.0:
             LOG.warning(f"Z-axis too low for snapshot ({measured_start[2]:.1f}mm). Raising to safe height...")
             try:
-                # Raise Z to safe height (145mm) before any XY movement
-                await ctrl.driver.send_gcode('G0 Z145.0 F1000')
-                await _await_motion_completion(ctrl, (measured_start[0], measured_start[1], 145.0), tolerance=1.0, timeout=8.0)
-                measured_start = (measured_start[0], measured_start[1], 145.0)
+                # Raise Z to safe height before any XY movement
+                await ctrl.driver.send_gcode(f'G0 Z{SAFE_Z_HEIGHT} F1000')
+                await _await_motion_completion(ctrl, (measured_start[0], measured_start[1], SAFE_Z_HEIGHT), tolerance=1.0, timeout=8.0)
+                measured_start = (measured_start[0], measured_start[1], SAFE_Z_HEIGHT)
                 ctrl.current = measured_start
-                LOG.info("Z-axis raised to safe height: 145mm")
+                LOG.info(f"Z-axis raised to safe height: {SAFE_Z_HEIGHT}mm")
             except Exception as z_raise_exc:
                 raise HTTPException(
                     status_code=503,
@@ -2702,6 +2712,15 @@ async def _auto_sort_loop():
     
     while AUTO_SORT_RUNNING:
         try:
+            # SAFETY CHECK: Ensure Z is at home (0) before attempting to scan a new card
+            # This prevents trying to scan while holding a card from a previous failed attempt
+            current_pos = MOTION.current
+            if current_pos and current_pos[2] > 5.0:  # Z should be near 0 for card pickup
+                LOG.warning("Auto-sort: Z-axis not at home position (Z=%.1f). Skipping cycle - manual intervention needed.", current_pos[2])
+                AUTO_SORT_STATS["errors"] += 1
+                await asyncio.sleep(5.0)  # Wait longer before checking again
+                continue
+            
             # Step 1: Capture snapshot with OCR and card identification
             LOG.info("Auto-sort: Capturing snapshot...")
             try:
@@ -2714,21 +2733,27 @@ async def _auto_sort_loop():
             
             # Extract card information from snapshot
             frames = snapshot_data.get("frames", [])
-            ocr_text_frame = None
-            for frame in frames:
-                if frame.get("label") == "ocr_text":
-                    ocr_text_frame = frame
-                    break
+            processing = snapshot_data.get("processing", {})
             
-            if not ocr_text_frame:
-                LOG.warning("Auto-sort: No OCR text frame found in snapshot")
-                AUTO_SORT_STATS["errors"] += 1
-                await asyncio.sleep(2.0)
-                continue
+            # DEBUG: Log the entire snapshot structure to understand what we're getting
+            LOG.info("Auto-sort DEBUG: snapshot_data keys: %s", list(snapshot_data.keys()))
+            LOG.info("Auto-sort DEBUG: processing keys: %s", list(processing.keys()) if isinstance(processing, dict) else "NOT A DICT")
             
-            # Get card identification from OCR frame meta (same path as frontend)
-            meta = ocr_text_frame.get("meta", {})
-            identification = meta.get("identification", {}) if isinstance(meta, dict) else {}
+            # Get card identification from processing meta (where it's actually stored)
+            identification = processing.get("identification", {}) if isinstance(processing, dict) else {}
+            LOG.info("Auto-sort DEBUG: identification from processing: %s", identification)
+            
+            # Also check if identification is in any frame's meta as fallback
+            if not identification:
+                for frame in frames:
+                    if isinstance(frame, dict):
+                        frame_meta = frame.get("meta", {})
+                        if isinstance(frame_meta, dict) and "identification" in frame_meta:
+                            identification = frame_meta.get("identification", {})
+                            LOG.info("Auto-sort DEBUG: Found identification in frame '%s' meta: %s", 
+                                   frame.get("label", "unknown"), identification)
+                            break
+            
             card_name = None
             scryfall_id = None
             confidence_score = 0.0
@@ -2738,26 +2763,32 @@ async def _auto_sort_loop():
                 best_match = identification.get("best")
                 confidence_score = identification.get("score", 0.0)
                 
+                LOG.info("Auto-sort DEBUG: best_match: %s, confidence_score: %.1f", best_match, confidence_score)
+                
                 if isinstance(best_match, dict):
                     card_name = best_match.get("name")
-                    scryfall_id = best_match.get("scryfall_id")
+                    # FTS stores it as "id" or "scryfall_id"
+                    scryfall_id = best_match.get("id") or best_match.get("scryfall_id")
+                    LOG.info("Auto-sort DEBUG: Extracted card_name='%s', scryfall_id='%s'", card_name, scryfall_id)
+            else:
+                LOG.warning("Auto-sort DEBUG: identification is not a dict, it's: %s", type(identification))
             
             # Require minimum confidence threshold (same as frontend: 70%)
             min_confidence = 70.0
             if confidence_score < min_confidence:
-                LOG.warning(
-                    "Auto-sort: Identification confidence too low: %.1f%% < %.1f%% for card '%s'",
+                LOG.error(
+                    "Auto-sort: Identification confidence too low: %.1f%% < %.1f%% for card '%s'. STOPPING AUTO-SORT.",
                     confidence_score, min_confidence, card_name or "unknown"
                 )
                 AUTO_SORT_STATS["errors"] += 1
-                await asyncio.sleep(2.0)
-                continue
+                AUTO_SORT_RUNNING = False  # Stop the loop to prevent damage
+                break
             
             if not card_name and not scryfall_id:
-                LOG.warning("Auto-sort: Could not identify card from snapshot")
+                LOG.error("Auto-sort: Could not identify card from snapshot. STOPPING AUTO-SORT for safety.")
                 AUTO_SORT_STATS["errors"] += 1
-                await asyncio.sleep(2.0)
-                continue
+                AUTO_SORT_RUNNING = False  # Stop the loop to prevent damage
+                break
             
             LOG.info(
                 "Auto-sort: Identified card: %s (ID: %s) with %.1f%% confidence", 

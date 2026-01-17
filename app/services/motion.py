@@ -199,6 +199,11 @@ class GCodeDriver(MotionDriver):
                     text = line.decode('utf8', errors='ignore').strip()
                     if text:
                         lines.append(text)
+                        # Check if this is a completion line (ok, error, alarm)
+                        # Ignore echo:busy messages - they indicate still processing
+                        if text.lower().startswith('echo:busy'):
+                            # Still processing, don't treat as completion
+                            continue
                         if text.lower().startswith('ok') or text.lower().startswith('error') or text.lower().startswith('alarm'):
                             return lines
             else:
@@ -230,8 +235,10 @@ class GCodeDriver(MotionDriver):
         except Exception as exc:
             # Check if it's a serial exception that might be recoverable by reconnecting
             import serial  # type: ignore[import-not-found]
-            if isinstance(exc, serial.SerialException):
-                LOG.warning("Serial connection error detected: %s. Attempting to reconnect...", exc)
+            # Catch both SerialException and TypeError (which occurs when serial fd is None)
+            is_serial_error = isinstance(exc, serial.SerialException) or isinstance(exc, TypeError)
+            if is_serial_error:
+                LOG.warning("Serial connection error detected (%s): %s. Attempting to reconnect...", type(exc).__name__, exc)
                 # Close the bad connection and reset
                 try:
                     if self._serial:

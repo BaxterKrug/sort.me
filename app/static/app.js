@@ -295,6 +295,7 @@ async function beginAutoSort() {
         
         try {
             // Retry logic: attempt identification up to 3 times
+            // IMPORTANT: All retries happen BEFORE picking up the card
             let identification = null;
             let assignment = null;
             let data = null;
@@ -304,19 +305,8 @@ async function beginAutoSort() {
                 attempts++;
                 if (attempts > 1) {
                     updateSortStatus(`Retry attempt ${attempts}/${MAX_ATTEMPTS}...`);
-                    // Return to feeder position before retry
-                    try {
-                        const returnResponse = await fetch('/motion/goto/A1', { method: 'POST' });
-                        if (!returnResponse.ok) {
-                            throw new Error(`Failed to return to A1 for retry: ${returnResponse.status}`);
-                        }
-                        await returnResponse.json();
-                        await new Promise(resolve => setTimeout(resolve, WAIT_RETRY));
-                    } catch (error) {
-                        console.error('Failed to return to feeder for retry:', error);
-                        updateSortStatus(`Error returning to feeder: ${error.message}`);
-                        break; // Exit retry loop on motion error
-                    }
+                    // Wait between retries, but DO NOT MOVE - retries are for the same card
+                    await new Promise(resolve => setTimeout(resolve, WAIT_RETRY));
                 }
                 
                 // Always wait before taking snapshot to ensure stability
@@ -333,6 +323,10 @@ async function beginAutoSort() {
                     hasFrames: !!data?.frames,
                     frameCount: data?.frames?.length || 0,
                     hasOcrTextFrame: !!data.frames?.find(f => f.label === 'ocr_text'),
+                    hasProcessing: !!data?.processing,
+                    hasIdentification: !!data?.processing?.identification,
+                    identificationBest: data?.processing?.identification?.best?.name || 'none',
+                    identificationScore: data?.processing?.identification?.score || 0,
                     hasAssignment: !!data?.assignment,
                     assignmentCell: data?.assignment?.cell,
                 });
@@ -345,8 +339,8 @@ async function beginAutoSort() {
                     continue;
                 }
                 
-                const ocrTextFrame = data.frames?.find(f => f.label === 'ocr_text');
-                identification = ocrTextFrame?.meta?.identification;
+                // Get identification from data.processing (where it's actually stored)
+                identification = data.processing?.identification;
                 assignment = data.assignment;
                 
                 // Debug logging for identification results
