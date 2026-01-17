@@ -1,0 +1,19 @@
+{
+  "timestamp": "20260117-203858-867143",
+  "border": {
+    "found": false,
+    "area": 13648.0,
+    "margin_px": 10
+  },
+  "rotation": {
+    "method": "fixed_90_ccw",
+    "degrees": 90
+  },
+  "zone_ocr": {
+    "name": "",
+    "collector": "Le",
+    "oracle": "",
+    "type_line": ""
+  },
+  "identification": null
+}

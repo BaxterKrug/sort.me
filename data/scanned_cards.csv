@@ -625,3 +625,7 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-01-17T20:24:08Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,0.727
 2026-01-17T20:24:36Z,d32d3d8a-7450-4a29-abc7-f472426f0c28,"Denethor, Stone Seer",K3,divert:low_confidence,0.675
 2026-01-17T20:24:51Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,0.727
+2026-01-17T20:34:25Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
+2026-01-17T20:35:03Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
+2026-01-17T20:37:40Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,C1,price:$2.13:Vault of Whispers,1.000
+2026-01-17T20:38:09Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,C1,price:$2.13:Vault of Whispers,1.000

@@ -887,38 +887,13 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         LOG.info("Auto-sort: Extruding 0.4mm to pick up card")
         await MOTION.driver.extrude(0.4, 50.0)
 
-        # 3. Raise Z-axis to safe height with jerking motion to shake off extra cards
-        # Pattern: +60mm, -30mm, +30mm, -20mm, +90mm = 130mm total
-        # CRITICAL: Lock X and Y during all Z movements to prevent card damage
-        LOG.info(f"Auto-sort: Raising to {SAFE_Z_HEIGHT}mm with shake pattern")
+        # 3. Raise Z-axis to safe height in one smooth motion
+        # CRITICAL: Lock X and Y during Z movement to prevent card damage
+        LOG.info(f"Auto-sort: Raising to {SAFE_Z_HEIGHT}mm")
         current_x = float(MOTION.current[0])
         current_y = float(MOTION.current[1])
         
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z60.0 F1000')   # Up 60mm to Z=60
-        try:
-            await _await_motion_completion(MOTION, (current_x, current_y, 60.0), tolerance=1.0, timeout=5.0)
-        except Exception:
-            await asyncio.sleep(1.0)  # Fallback wait
-        
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z30.0 F1000')   # Down 30mm to Z=30
-        try:
-            await _await_motion_completion(MOTION, (current_x, current_y, 30.0), tolerance=1.0, timeout=5.0)
-        except Exception:
-            await asyncio.sleep(1.0)
-        
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z60.0 F1000')   # Up 30mm to Z=60
-        try:
-            await _await_motion_completion(MOTION, (current_x, current_y, 60.0), tolerance=1.0, timeout=5.0)
-        except Exception:
-            await asyncio.sleep(1.0)
-        
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z40.0 F1000')   # Down 20mm to Z=40
-        try:
-            await _await_motion_completion(MOTION, (current_x, current_y, 40.0), tolerance=1.0, timeout=5.0)
-        except Exception:
-            await asyncio.sleep(1.0)
-        
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z{SAFE_Z_HEIGHT} F1000')  # Up 90mm to Z=130 (safe height)
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z{SAFE_Z_HEIGHT} F1000')
         LOG.info(f"Auto-sort: Reached safe height Z={SAFE_Z_HEIGHT}mm")
 
         # Ensure the motion controller's cached position reflects the raised Z.
@@ -1006,14 +981,26 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                     except Exception:
                                         pass
                                     
-                                    # 6. Retract extruder by 0.4mm at 50 mm/min to release card
-                                    LOG.info("Auto-sort: Retracting extruder 0.4mm to release card")
-                                    await driver.extrude(-0.4, 50.0)
+                                    # 6. Retract extruder to release card
+                                    # Increased retraction to ensure card drops
+                                    LOG.info("Auto-sort: Retracting extruder 0.6mm to release card")
+                                    try:
+                                        await driver.extrude(-0.6, 50.0)
+                                        LOG.info("Auto-sort: Retraction command sent successfully")
+                                    except Exception as retract_ex:
+                                        LOG.error("Auto-sort: Retraction FAILED: %s", retract_ex, exc_info=True)
+                                        raise
                                     
                                     # Small delay to ensure retraction completes
-                                    await asyncio.sleep(0.5)
+                                    await asyncio.sleep(0.3)
                                     
-                                    # 7. Raise Z by 100mm back to safe height (135mm)
+                                    # 6b. Small upward jog to help release card
+                                    LOG.info("Auto-sort: Small upward jog to help release card")
+                                    jog_z = new_z + 5.0  # Raise 5mm to help card drop
+                                    await driver.send_gcode(f'G0 X{tx:.3f} Y{ty:.3f} Z{jog_z:.3f} F500')
+                                    await asyncio.sleep(0.2)
+                                    
+                                    # 7. Raise Z by 100mm back to safe height (130mm)
                                     # CRITICAL: Must complete before XY move to avoid collision
                                     # Lock X and Y during Z movement
                                     LOG.info("Auto-sort: Raising Z back to safe height")
@@ -1030,7 +1017,7 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                         except Exception as e:
                                             LOG.warning("Z raise attempt %d failed: %s", attempt + 1, e)
                                             if attempt < 2:
-                                                await asyncio.sleep(0.5)
+                                                await asyncio.sleep(0.3)  # Reduced from 0.5s to 0.3s
                                     
                                     if not z_raised:
                                         # Emergency: Force position update and add safety delay
@@ -2707,7 +2694,7 @@ async def _auto_sort_loop():
             if current_pos and current_pos[2] > 5.0:  # Z should be near 0 for card pickup
                 LOG.warning("Auto-sort: Z-axis not at home position (Z=%.1f). Skipping cycle - manual intervention needed.", current_pos[2])
                 AUTO_SORT_STATS["errors"] += 1
-                await asyncio.sleep(5.0)  # Wait longer before checking again
+                await asyncio.sleep(3.0)  # Reduced from 5.0s to 3.0s
                 continue
             
             # Step 1: Capture snapshot with OCR and card identification
@@ -2717,7 +2704,7 @@ async def _auto_sort_loop():
             except Exception as snap_exc:
                 LOG.error("Auto-sort: Camera snapshot failed: %s", snap_exc, exc_info=True)
                 AUTO_SORT_STATS["errors"] += 1
-                await asyncio.sleep(3.0)
+                await asyncio.sleep(2.0)  # Reduced from 3.0s to 2.0s
                 continue
             
             # Extract card information from snapshot
@@ -2787,6 +2774,7 @@ async def _auto_sort_loop():
             )
             
             # Step 2: Assign cell for the card
+            # SAFETY: Assignment happens BEFORE grabbing the card
             card = Card(
                 game="mtg",
                 name=card_name or scryfall_id or "Unknown",
@@ -2819,13 +2807,14 @@ async def _auto_sort_loop():
                 })
             
             # Step 3: Execute motion sequence (home Z, extrude, move to cell, drop, return)
+            # SAFETY: Card is grabbed HERE, only after valid assignment confirmed above
             LOG.debug("Auto-sort: Executing motion sequence...")
             motion_result = await motion_home_z_and_extrude()
             
             if not motion_result.get("ok"):
                 LOG.error("Auto-sort: Motion sequence failed: %s", motion_result.get("error", "unknown"))
                 AUTO_SORT_STATS["errors"] += 1
-                await asyncio.sleep(2.0)
+                await asyncio.sleep(1.5)  # Reduced from 2.0s to 1.5s
                 continue
             
             moved_to = motion_result.get("moved_to")
@@ -2838,12 +2827,12 @@ async def _auto_sort_loop():
             LOG.info("Auto-sort: Card processed successfully (total: %d)", AUTO_SORT_STATS["cards_processed"])
             
             # Small delay before next card
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(0.5)  # Reduced from 1.0s to 0.5s
             
         except Exception as exc:
             LOG.error("Auto-sort loop error: %s", exc, exc_info=True)
             AUTO_SORT_STATS["errors"] += 1
-            await asyncio.sleep(3.0)  # Longer delay on error
+            await asyncio.sleep(2.0)  # Reduced from 3.0s to 2.0s for faster error recovery
     
     LOG.info("Auto-sort loop stopped (processed: %d, errors: %d)", 
              AUTO_SORT_STATS["cards_processed"], 

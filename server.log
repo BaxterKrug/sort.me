@@ -18,7 +18,7 @@ INFO:sort.feeder_monitor:Feeder monitor configured for cells: ['A1', 'A2', 'A3']
         
   @app.on_event("startup")
 DEBUG:asyncio:Using selector: EpollSelector
-INFO:     Started server process [236363]
+INFO:     Started server process [239166]
 INFO:     Waiting for application startup.
 INFO:sort.api:============================================================
 INFO:sort.api:SYSTEM STARTUP SUMMARY
@@ -34,1312 +34,52 @@ INFO:sort.api:============================================================
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
+INFO:     127.0.0.1:46546 - "GET /status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46546 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46546 - "GET /static/app.js HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
+INFO:     127.0.0.1:46546 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37946 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37946 - "GET /static/app.js HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
+INFO:     127.0.0.1:46546 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:Starting sequential homing: X -> Y -> Z
 INFO:sort.motion:Homing X axis...
 INFO:sort.motion:GCodeDriver -> G28 X
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
 DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
 WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
-INFO:     127.0.0.1:54738 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:0 Y:2240 Z:52000 | ok
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver -> M114
+INFO:sort.motion:GCodeDriver <- (no response)
 INFO:sort.motion:X axis homed
 INFO:sort.motion:Homing Y axis...
 INFO:sort.motion:GCodeDriver -> G28 Y
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:130.0000 E:0.0000 Count X:0 Y:0 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:130.0000 E:0.0000 Count X:0 Y:0 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 130.000) found=True
-INFO:     127.0.0.1:54738 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- 130.0000 E:0.0000 Count X:0 Y:0 Z:52000
-INFO:sort.motion:Y axis homed
-INFO:sort.motion:Homing Z axis...
-INFO:sort.motion:GCodeDriver -> G28 Z
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
-INFO:     127.0.0.1:54738 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-INFO:sort.motion:Z axis homed
-INFO:sort.motion:All axes homed. Position reset to (0.0, 0.0, 0.0)
-INFO:     127.0.0.1:37946 - "POST /motion/home HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'processing']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'processing']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- echo:busy: processing | X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'processing']
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 Count X:0 Y:0 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.api:Moving to A1 (homing X and Y, then moving to A1 position)
-INFO:sort.api:Z is at 0.0mm, raising to 130.0mm for safety
-INFO:sort.motion:GCodeDriver -> G0 Z130.0 F1000
-INFO:sort.motion:GCodeDriver <- ok
-INFO:sort.motion:Homing X axis with G28 X
-INFO:sort.motion:GCodeDriver -> G28 X
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
-INFO:     127.0.0.1:49248 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-INFO:sort.motion:X axis homed to position: 0.0
-INFO:sort.motion:Homing Y axis with G28 Y
-INFO:sort.motion:GCodeDriver -> G28 Y
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
-INFO:     127.0.0.1:49248 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-INFO:sort.motion:Y axis homed to position: 0.0
-INFO:sort.motion:GCodeDriver -> G90
-G1 X17.000 Y28.000 Z0.000 F2400
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
-INFO:     127.0.0.1:49248 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 0.0)
-INFO:     127.0.0.1:49248 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- echo:busy: processing | echo:busy: processing | X:0.0000 Y:0.0000 Z:130.0000 E:0.0000 Count X:0 Y:0 Z:52000 | ok
-INFO:sort.motion:GCodeDriver -> M400
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (17.0, 28.0, 0.0)
-INFO:     127.0.0.1:49248 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:130.0000 E:0.0000 Count X:0 Y:0 Z:52000 | ok
-INFO:sort.motion:Moved (XY) to cell A1 -> (17.0, 28.0, 0.0)
-INFO:     127.0.0.1:37946 - "POST /motion/goto/A1 HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (17.0, 28.0, 0.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'processing']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (17.0, 28.0, 0.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- echo:busy: processing | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'processing']
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (17.0, 28.0, 0.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:Jog request: axis=z, delta=130.000
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
-DEBUG:sort.motion:Jog sync - Hardware position: (17.000, 28.000, 0.000)
-DEBUG:sort.motion:Jog sync - Previous stored position: (17.000, 28.000, 0.000)
-INFO:sort.motion:Synced position with hardware: (17.000, 28.000, 0.000)
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
-INFO:sort.motion:Synced position with hardware: (17.000, 28.000, 0.000)
-INFO:sort.motion:Z jog: current=0.000, delta=130.000, target=130.000
-INFO:sort.motion:GCodeDriver -> M119
-INFO:sort.motion:GCodeDriver <- Reporting endstop status | x_min: open | x2_min: open | y_min: open | y2_min: open | z_min: open | ok
-INFO:sort.motion:Single jog move: (17.0, 28.0, 0.0) -> (17.0, 28.0, 130.0)
-INFO:sort.motion:GCodeDriver -> G90
-G1 X17.000 Y28.000 Z130.000 F1600
-INFO:sort.motion:GCodeDriver <- ok
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:sort.motion:Hardware reports position: (17.0, 28.0, 130.0)
-INFO:sort.motion:Jogged z by 130.000 -> pos=(17.0, 28.0, 130.0)
-INFO:     127.0.0.1:37946 - "POST /motion/jog HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M400
-INFO:sort.motion:GCodeDriver <- ok
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:sort.api:SNAPSHOT: Taking snapshot at current position: X=17.000, Y=28.000, Z=130.000
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:42596 - "GET /status HTTP/1.1" 200 OK
-/home/baxterkrug/Documents/sort.me/main.py:1859: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  timestamp_dt = datetime.utcnow()
-DEBUG:pytesseract:['tesseract', '/tmp/tess_exrc13vx_input.PNG', '/tmp/tess_exrc13vx', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 1 (normal): 'Vault of Whispers' (len=17)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_hm3r1xpj_input.PNG', '/tmp/tess_hm3r1xpj', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 2 (inverted): 'Vault of Whispers' (len=17)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_pi1tlw6b_input.PNG', '/tmp/tess_pi1tlw6b', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 3 (Otsu): 'Vault of Whispers                      .' (len=40)
-INFO:sort.ocr_pipeline:✓ Consensus found (3/3 strategies agree): 'Vault of Whispers                      .'
-INFO:sort.ocr_pipeline:Final OCR result: 'Vault of Whispers                      .' (len=40)
-INFO:sort.ocr_pipeline:Final OCR result: 'Vault of Whispers                      .' (len=40)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_dh5v3a3q_input.PNG', '/tmp/tess_dh5v3a3q', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/', 'txt']
-INFO:sort.ocr_pipeline:OCR Result - Name: 'Vault of Whispers                      .', Collector: 'a 7'
-INFO:sort.ocr_pipeline:OCR - Normalized name: 'Vault of Whispers' (length: 17)
-INFO:sort.ocr_pipeline:OCR - Best match: 'Vault of Whispers' (score: 100.0)
-INFO:sort.api:Snapshot 2026-01-17T20:22:51.668Z OCR saved to data/snapshots/20260117-202251-668623_meta.json — Vault of Whispers                      .
-INFO:sort.api:Attempting to assign card: Vault of Whispers (scryfall_id=e85e4098-f872-4aa4-a71a-208b6090be28, confidence=1.00)
-INFO:sort.api:Card Vault of Whispers assigned to cell I1 (alpha_exact:V:Vault of Whispers)
-INFO:sort.api:Final assignment state: cell=I1, reason=alpha_exact:V:Vault of Whispers, warning=None
-INFO:sort.api:Creating assignment_data: {'cell': 'I1', 'reason': 'alpha_exact:V:Vault of Whispers', 'warning': None} (assigned_cell=I1, warning=None)
-INFO:sort.api:Snapshot response includes assignment: True
-INFO:sort.api:Assignment details: cell=I1
-INFO:     127.0.0.1:37946 - "GET /camera/snapshot HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:42596 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M400
-INFO:sort.motion:GCodeDriver <- ok
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:sort.api:SNAPSHOT: Taking snapshot at current position: X=17.000, Y=28.000, Z=130.000
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:42596 - "GET /status HTTP/1.1" 200 OK
-/home/baxterkrug/Documents/sort.me/main.py:1859: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  timestamp_dt = datetime.utcnow()
-DEBUG:pytesseract:['tesseract', '/tmp/tess_uwb90puh_input.PNG', '/tmp/tess_uwb90puh', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 1 (normal): 'Vault Sr Whispers y   i' (len=23)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_08zavfzt_input.PNG', '/tmp/tess_08zavfzt', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 2 (inverted): 'Vault Se Whispers y' (len=19)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_7bt0l6nf_input.PNG', '/tmp/tess_7bt0l6nf', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 3 (Otsu): 'Vault of Whispers oo' (len=20)
-WARNING:sort.ocr_pipeline:⚠ Weak consensus - longest contains common signature: 'Vault Sr Whispers y   i'
-INFO:sort.ocr_pipeline:Final OCR result: 'Vault Sr Whispers y   i' (len=23)
-INFO:sort.ocr_pipeline:Final OCR result: 'Vault Sr Whispers y   i' (len=23)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_h3bi5_uq_input.PNG', '/tmp/tess_h3bi5_uq', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/', 'txt']
-INFO:sort.ocr_pipeline:OCR Result - Name: 'Vault Sr Whispers y   i', Collector: 'senouN tGamesWe K'
-INFO:sort.ocr_pipeline:OCR - Normalized name: 'Vault Sr Whispers' (length: 17)
-INFO:sort.ocr_pipeline:OCR - Best match: 'Vault of Whispers' (score: 66.2)
-INFO:sort.api:Snapshot 2026-01-17T20:22:58.487Z OCR saved to data/snapshots/20260117-202258-487127_meta.json — Vault Sr Whispers y   i
-INFO:sort.api:Attempting to assign card: Vault of Whispers (scryfall_id=e85e4098-f872-4aa4-a71a-208b6090be28, confidence=0.66)
-INFO:sort.api:Card Vault of Whispers assigned to cell K3 (divert:low_confidence)
-INFO:sort.api:Final assignment state: cell=K3, reason=divert:low_confidence, warning=None
-INFO:sort.api:Creating assignment_data: {'cell': 'K3', 'reason': 'divert:low_confidence', 'warning': None} (assigned_cell=K3, warning=None)
-INFO:sort.api:Snapshot response includes assignment: True
-INFO:sort.api:Assignment details: cell=K3
-INFO:     127.0.0.1:37946 - "GET /camera/snapshot HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:42596 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M400
-INFO:sort.motion:GCodeDriver <- ok
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:sort.api:SNAPSHOT: Taking snapshot at current position: X=17.000, Y=28.000, Z=130.000
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:35632 - "GET /status HTTP/1.1" 200 OK
-/home/baxterkrug/Documents/sort.me/main.py:1859: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  timestamp_dt = datetime.utcnow()
-DEBUG:pytesseract:['tesseract', '/tmp/tess_ujobluj6_input.PNG', '/tmp/tess_ujobluj6', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 1 (normal): 'Vault of Whisper r 7     l' (len=26)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_8gd1xiji_input.PNG', '/tmp/tess_8gd1xiji', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 2 (inverted): 'Vault of Whisper r 7 bs     l' (len=29)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_6ue_kfyk_input.PNG', '/tmp/tess_6ue_kfyk', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 3 (Otsu): 'Vault of Whisper : -     !' (len=26)
-INFO:sort.ocr_pipeline:✓ Consensus found (3/3 strategies agree): 'Vault of Whisper r 7 bs     l'
-INFO:sort.ocr_pipeline:Final OCR result: 'Vault of Whisper r 7 bs     l' (len=29)
-INFO:sort.ocr_pipeline:Final OCR result: 'Vault of Whisper r 7 bs     l' (len=29)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_zfy4uxnt_input.PNG', '/tmp/tess_zfy4uxnt', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/', 'txt']
-INFO:sort.ocr_pipeline:OCR Result - Name: 'Vault of Whisper r 7 bs     l', Collector: 'yy'
-INFO:sort.ocr_pipeline:OCR - Normalized name: 'Vault of Whisper' (length: 16)
-INFO:sort.ocr_pipeline:OCR - Best match: 'Vault of Whispers' (score: 72.7)
-INFO:sort.api:Snapshot 2026-01-17T20:23:17.276Z OCR saved to data/snapshots/20260117-202317-276185_meta.json — Vault of Whisper r 7 bs     l
-INFO:sort.api:Attempting to assign card: Vault of Whispers (scryfall_id=e85e4098-f872-4aa4-a71a-208b6090be28, confidence=0.73)
-INFO:sort.api:Card Vault of Whispers assigned to cell I1 (alpha_exact:V:Vault of Whispers)
-INFO:sort.api:Final assignment state: cell=I1, reason=alpha_exact:V:Vault of Whispers, warning=None
-INFO:sort.api:Creating assignment_data: {'cell': 'I1', 'reason': 'alpha_exact:V:Vault of Whispers', 'warning': None} (assigned_cell=I1, warning=None)
-INFO:sort.api:Snapshot response includes assignment: True
-INFO:sort.api:Assignment details: cell=I1
-INFO:     127.0.0.1:37946 - "GET /camera/snapshot HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:35632 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.api:Moving to A1 (homing X and Y, then moving to A1 position)
-INFO:sort.motion:Homing X axis with G28 X
-INFO:sort.motion:GCodeDriver -> G28 X
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (17.0, 28.0, 130.0)
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:0 Y:2240 Z:52000 | ok
-INFO:sort.motion:X axis homed to position: 0.0
-INFO:sort.motion:Homing Y axis with G28 Y
-INFO:sort.motion:GCodeDriver -> G28 Y
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:130.0000 E:0.0000 Count X:0 Y:0 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:130.0000 E:0.0000 Count X:0 Y:0 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 130.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- (no response)
-INFO:sort.motion:Y axis homed to position: 0.0
-INFO:sort.motion:GCodeDriver -> G90
-G1 X17.000 Y28.000 Z130.000 F2400
-INFO:sort.motion:GCodeDriver <- ok
-INFO:sort.motion:GCodeDriver -> M400
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- ok
-INFO:sort.motion:Moved (XY) to cell A1 -> (17.0, 28.0, 130.0)
-INFO:     127.0.0.1:37946 - "POST /motion/goto/A1 HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (17.0, 28.0, 130.0)
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver -> M400
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
 WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M400
-WARNING:sort.motion:Serial connection error detected (TypeError): 'NoneType' object cannot be interpreted as an integer. Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-INFO:sort.motion:GCodeDriver (retry) <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-INFO:sort.motion:Serial reconnection successful
-INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:sort.api:SNAPSHOT: Taking snapshot at current position: X=17.000, Y=28.000, Z=130.000
-INFO:sort.motion:GCodeDriver (retry) <- (no response)
-INFO:sort.motion:Serial reconnection successful
-INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-/home/baxterkrug/Documents/sort.me/main.py:1859: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  timestamp_dt = datetime.utcnow()
-DEBUG:pytesseract:['tesseract', '/tmp/tess_54bp6i69_input.PNG', '/tmp/tess_54bp6i69', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 1 (normal): ', Vault of Whisper 7  7      7    !' (len=35)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_9us239x4_input.PNG', '/tmp/tess_9us239x4', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 2 (inverted): ', Vault of Whisper 7  7    l' (len=28)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_1acahasf_input.PNG', '/tmp/tess_1acahasf', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 3 (Otsu): ', Vault of Whisper 7    l' (len=25)
-INFO:sort.ocr_pipeline:✓ Consensus found (3/3 strategies agree): ', Vault of Whisper 7  7      7    !'
-INFO:sort.ocr_pipeline:Final OCR result: ', Vault of Whisper 7  7      7    !' (len=35)
-INFO:sort.ocr_pipeline:Final OCR result: ', Vault of Whisper 7  7      7    !' (len=35)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_n0khrfzp_input.PNG', '/tmp/tess_n0khrfzp', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/', 'txt']
-INFO:sort.ocr_pipeline:OCR Result - Name: ', Vault of Whisper 7  7      7    !', Collector: 'yy'
-INFO:sort.ocr_pipeline:OCR - Normalized name: 'Vault of Whisper' (length: 16)
-INFO:sort.ocr_pipeline:OCR - Best match: 'Vault of Whispers' (score: 72.7)
-INFO:sort.api:Snapshot 2026-01-17T20:24:06.676Z OCR saved to data/snapshots/20260117-202406-676108_meta.json — , Vault of Whisper 7  7      7    !
-INFO:sort.api:Attempting to assign card: Vault of Whispers (scryfall_id=e85e4098-f872-4aa4-a71a-208b6090be28, confidence=0.73)
-INFO:sort.api:Card Vault of Whispers assigned to cell I1 (alpha_exact:V:Vault of Whispers)
-INFO:sort.api:Final assignment state: cell=I1, reason=alpha_exact:V:Vault of Whispers, warning=None
-INFO:sort.api:Creating assignment_data: {'cell': 'I1', 'reason': 'alpha_exact:V:Vault of Whispers', 'warning': None} (assigned_cell=I1, warning=None)
-INFO:sort.api:Snapshot response includes assignment: True
-INFO:sort.api:Assignment details: cell=I1
-INFO:     127.0.0.1:53146 - "GET /camera/snapshot HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.api:Auto-sort: Homing Z-axis
-INFO:sort.motion:Homing Z axis with G28 Z
-INFO:sort.motion:GCodeDriver -> G28 Z
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-WARNING:sort.motion:Serial connection error detected (TypeError): 'NoneType' object cannot be interpreted as an integer. Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> G28 Z
-INFO:sort.motion:GCodeDriver (retry) <- (no response)
-INFO:sort.motion:Serial reconnection successful
-INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-ERROR:sort.motion:GCodeDriver retry also failed for cmd=G28 Z: 'NoneType' object cannot be interpreted as an integer
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 575, in read
-    buf = os.read(self.fd, size - len(read))
-TypeError: 'NoneType' object cannot be interpreted as an integer
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 257, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 575, in read
-    buf = os.read(self.fd, size - len(read))
-TypeError: 'NoneType' object cannot be interpreted as an integer
-ERROR:sort.api:Auto-sort motion sequence failed: 'NoneType' object cannot be interpreted as an integer
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 575, in read
-    buf = os.read(self.fd, size - len(read))
-TypeError: 'NoneType' object cannot be interpreted as an integer
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/main.py", line 884, in motion_home_z_and_extrude
-    await MOTION.home_z()
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 755, in home_z
-    await self.driver.send_gcode('G28 Z')
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 257, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 575, in read
-    buf = os.read(self.fd, size - len(read))
-TypeError: 'NoneType' object cannot be interpreted as an integer
-INFO:     127.0.0.1:53146 - "POST /motion/home_z_and_extrude HTTP/1.1" 200 OK
-INFO:sort.api:Moving to A1 (homing X and Y, then moving to A1 position)
-INFO:sort.motion:Homing X axis with G28 X
-INFO:sort.motion:GCodeDriver -> G28 X
-INFO:sort.motion:GCodeDriver (retry) <- (no response)
-INFO:sort.motion:Serial reconnection successful
-INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-INFO:sort.motion:X axis homed to position: 0.0
-INFO:sort.motion:Homing Y axis with G28 Y
-INFO:sort.motion:GCodeDriver -> G28 Y
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-WARNING:sort.motion:Serial connection error detected (TypeError): 'NoneType' object cannot be interpreted as an integer. Attempting to reconnect...
 INFO:sort.motion:GCodeDriver (retry) -> G28 Y
-INFO:sort.motion:GCodeDriver (retry) <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-INFO:sort.motion:Serial reconnection successful
-INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver (retry) <- (no response)
-INFO:sort.motion:Serial reconnection successful
-INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
-INFO:sort.motion:Y axis homed to position: 0.0
-INFO:sort.motion:GCodeDriver -> G90
-G1 X17.000 Y28.000 Z0.000 F2400
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- echo:busy: processing | echo:busy: processing | echo:busy: processing
-INFO:sort.motion:GCodeDriver -> M400
-INFO:sort.motion:GCodeDriver -> M114
-WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
 WARNING:sort.motion:Serial connection error detected (TypeError): 'NoneType' object cannot be interpreted as an integer. Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M400
-ERROR:sort.motion:GCodeDriver retry also failed for cmd=M114: (9, 'Bad file descriptor')
+INFO:sort.motion:GCodeDriver (retry) -> M114
+ERROR:sort.motion:GCodeDriver retry also failed for cmd=G28 Y: (9, 'Bad file descriptor')
 Traceback (most recent call last):
   File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
     lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
@@ -1368,180 +108,8 @@ Traceback (most recent call last):
     termios.tcdrain(self.fd)
     ~~~~~~~~~~~~~~~^^^^^^^^^
 termios.error: (9, 'Bad file descriptor')
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-ERROR:sort.motion:GCodeDriver retry also failed for cmd=M400: 'NoneType' object cannot be interpreted as an integer
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 575, in read
-    buf = os.read(self.fd, size - len(read))
-TypeError: 'NoneType' object cannot be interpreted as an integer
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 257, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 575, in read
-    buf = os.read(self.fd, size - len(read))
-TypeError: 'NoneType' object cannot be interpreted as an integer
-DEBUG:sort.motion:M400 wait failed in move_to_cell_xy: 'NoneType' object cannot be interpreted as an integer
-INFO:sort.motion:Moved (XY) to cell A1 -> (17.0, 28.0, 0.0)
-INFO:     127.0.0.1:53146 - "POST /motion/goto/A1 HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver (retry) <- X:0.0000 Y:28.0000 Z:5.0000 E:0.0000 Count X:0 Y:2240 Z:2000 | ok
-INFO:sort.motion:Serial reconnection successful
-INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:28.0000 Z:5.0000 E:0.0000 Count X:0 Y:2240 Z:2000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:28.0000 Z:5.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:28.0000', 'Z:5.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 5.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 28.000, 5.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:5.0000 E:0.0000 Count X:0 Y:0 Z:2000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:5.0000 E:0.0000 Count X:0 Y:0 Z:2000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:5.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:5.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 5.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 5.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M400
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:5.0000 E:0.0000 Count X:0 Y:0 Z:2000 | ok
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- ok
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:sort.api:SNAPSHOT: Taking snapshot at current position: X=0.000, Y=0.000, Z=145.000
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-/home/baxterkrug/Documents/sort.me/main.py:1859: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  timestamp_dt = datetime.utcnow()
-DEBUG:pytesseract:['tesseract', '/tmp/tess_jp9pglsc_input.PNG', '/tmp/tess_jp9pglsc', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 1 (normal): '. Lr -' (len=6)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_leb0j8sq_input.PNG', '/tmp/tess_leb0j8sq', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 2 (inverted): '7.' (len=2)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_ll8407o5_input.PNG', '/tmp/tess_ll8407o5', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 3 (Otsu): 'oS ' See' (len=8)
-WARNING:sort.ocr_pipeline:⚠ No consensus - using longest (≥8 chars): 'oS ' See'
-INFO:sort.ocr_pipeline:Final OCR result: 'oS ' See' (len=8)
-INFO:sort.ocr_pipeline:Final OCR result: 'oS ' See' (len=8)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_naxptulb_input.PNG', '/tmp/tess_naxptulb', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/', 'txt']
-INFO:sort.ocr_pipeline:OCR Result - Name: 'oS ' See', Collector: 'SS'
-INFO:sort.ocr_pipeline:OCR - Normalized name: 'See' (length: 3)
-INFO:sort.ocr_pipeline:OCR - Best match: 'Denethor, Stone Seer' (score: 67.5)
-INFO:sort.api:Snapshot 2026-01-17T20:24:33.868Z OCR saved to data/snapshots/20260117-202433-868469_meta.json — oS ' See
-INFO:sort.api:Attempting to assign card: Denethor, Stone Seer (scryfall_id=d32d3d8a-7450-4a29-abc7-f472426f0c28, confidence=0.68)
-INFO:sort.api:Card Denethor, Stone Seer assigned to cell K3 (divert:low_confidence)
-INFO:sort.api:Final assignment state: cell=K3, reason=divert:low_confidence, warning=None
-INFO:sort.api:Creating assignment_data: {'cell': 'K3', 'reason': 'divert:low_confidence', 'warning': None} (assigned_cell=K3, warning=None)
-INFO:sort.api:Snapshot response includes assignment: True
-INFO:sort.api:Assignment details: cell=K3
-INFO:     127.0.0.1:53146 - "GET /camera/snapshot HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M400
-INFO:sort.motion:GCodeDriver <- ok
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
-WARNING:sort.api:Z-axis too low for snapshot (0.0mm). Raising to safe height...
-INFO:sort.motion:GCodeDriver -> G0 X17.000 Y28.000 Z130.0 F1000
-INFO:sort.motion:GCodeDriver <- ok
-INFO:sort.motion:GCodeDriver -> M400
-INFO:sort.motion:GCodeDriver -> M114
-WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-WARNING:sort.motion:Serial connection error detected (TypeError): 'NoneType' object cannot be interpreted as an integer. Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M400
-ERROR:sort.motion:GCodeDriver retry also failed for cmd=M114: write failed: [Errno 9] Bad file descriptor
+INFO:     127.0.0.1:46546 - "POST /motion/home HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
 Traceback (most recent call last):
   File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
     lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
@@ -1556,829 +124,343 @@ Traceback (most recent call last):
         '(device disconnected or multiple access on port?)')
 serial.serialutil.SerialException: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
 
-During handling of the above exception, another exception occurred:
+The above exception was the direct cause of the following exception:
 
 Traceback (most recent call last):
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/fastapi/applications.py", line 1134, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib64/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/baxterkrug/Documents/sort.me/main.py", line 649, in dev_cache_control
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/fastapi/routing.py", line 125, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/fastapi/routing.py", line 111, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/fastapi/routing.py", line 391, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/baxterkrug/.local/lib/python3.13/site-packages/fastapi/routing.py", line 290, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/baxterkrug/Documents/sort.me/main.py", line 848, in motion_home
+    await MOTION.home_all()
+  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 508, in home_all
+    await self.driver.send_gcode('G28 Y')
   File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 254, in send_gcode
     await loop.run_in_executor(None, self._write_blocking, cmd)
   File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
     result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 217, in _write_blocking
-    self._serial.write(data)
-    ~~~~~~~~~~~~~~~~~~^^^^^^
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 655, in write
-    raise SerialException('write failed: {}'.format(e))
-serial.serialutil.SerialException: write failed: [Errno 9] Bad file descriptor
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-ERROR:sort.motion:GCodeDriver retry also failed for cmd=M400: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 575, in read
-    buf = os.read(self.fd, size - len(read))
-TypeError: 'NoneType' object cannot be interpreted as an integer
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 257, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 595, in read
-    raise SerialException(
-        'device reports readiness to read but returned no data '
-        '(device disconnected or multiple access on port?)')
-serial.serialutil.SerialException: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
-DEBUG:sort.api:M400 wait failed: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- ing
-DEBUG:sort.motion:Position parsing - Raw line: 'ing'
-DEBUG:sort.motion:Position parsing - After Count split: 'ing'
-DEBUG:sort.motion:Position parsing - Parts: ['ing']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver -> M114
-WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-WARNING:sort.motion:Serial connection error detected (TypeError): 'NoneType' object cannot be interpreted as an integer. Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-ERROR:sort.motion:GCodeDriver retry also failed for cmd=M114: write failed: [Errno 9] Bad file descriptor
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 595, in read
-    raise SerialException(
-        'device reports readiness to read but returned no data '
-        '(device disconnected or multiple access on port?)')
-serial.serialutil.SerialException: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 254, in send_gcode
-    await loop.run_in_executor(None, self._write_blocking, cmd)
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 217, in _write_blocking
-    self._serial.write(data)
-    ~~~~~~~~~~~~~~~~~~^^^^^^
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 655, in write
-    raise SerialException('write failed: {}'.format(e))
-serial.serialutil.SerialException: write failed: [Errno 9] Bad file descriptor
-DEBUG:sort.api:query_position while waiting for completion failed: write failed: [Errno 9] Bad file descriptor
-INFO:sort.motion:GCodeDriver -> M114
+  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 218, in _write_blocking
+    self._serial.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 673, in flush
+    termios.tcdrain(self.fd)
+    ~~~~~~~~~~~~~~~^^^^^^^^^
+termios.error: (9, 'Bad file descriptor')
 INFO:sort.motion:GCodeDriver (retry) <- (no response)
 INFO:sort.motion:Serial reconnection successful
 INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
 DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
 WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- (no response)
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver -> M114
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user | echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
 DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
 WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver -> M114
-WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-WARNING:sort.motion:Serial connection error detected (TypeError): 'NoneType' object cannot be interpreted as an integer. Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-ERROR:sort.motion:GCodeDriver retry also failed for cmd=M114: write failed: [Errno 9] Bad file descriptor
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 595, in read
-    raise SerialException(
-        'device reports readiness to read but returned no data '
-        '(device disconnected or multiple access on port?)')
-serial.serialutil.SerialException: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 254, in send_gcode
-    await loop.run_in_executor(None, self._write_blocking, cmd)
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 217, in _write_blocking
-    self._serial.write(data)
-    ~~~~~~~~~~~~~~~~~~^^^^^^
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 655, in write
-    raise SerialException('write failed: {}'.format(e))
-serial.serialutil.SerialException: write failed: [Errno 9] Bad file descriptor
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver (retry) <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-INFO:sort.motion:Serial reconnection successful
-INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:sort.api:Z-axis raised to safe height: 130.0mm
-INFO:sort.api:SNAPSHOT: Taking snapshot at current position: X=17.000, Y=28.000, Z=130.000
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-/home/baxterkrug/Documents/sort.me/main.py:1859: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-  timestamp_dt = datetime.utcnow()
-DEBUG:pytesseract:['tesseract', '/tmp/tess_835wevqz_input.PNG', '/tmp/tess_835wevqz', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 1 (normal): '/ault of Whispers         :' (len=27)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_mp808ys7_input.PNG', '/tmp/tess_mp808ys7', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 2 (inverted): '/ault of Whispers' (len=17)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_z5phd943_input.PNG', '/tmp/tess_z5phd943', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', "tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,'-./!?:", '-c', 'preserve_interword_spaces=1', 'txt']
-INFO:sort.ocr_pipeline:OCR Strategy 3 (Otsu): 'Jault of Whispers' (len=17)
-INFO:sort.ocr_pipeline:✓ Consensus found (2/3 strategies agree): '/ault of Whispers         :'
-INFO:sort.ocr_pipeline:Final OCR result: '/ault of Whispers         :' (len=27)
-INFO:sort.ocr_pipeline:Final OCR result: '/ault of Whispers         :' (len=27)
-DEBUG:pytesseract:['tesseract', '/tmp/tess_9qecy746_input.PNG', '/tmp/tess_9qecy746', '-l', 'eng', '--oem', '1', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/', 'txt']
-INFO:sort.ocr_pipeline:OCR Result - Name: '/ault of Whispers         :', Collector: ''
-INFO:sort.ocr_pipeline:OCR - Normalized name: 'ault of Whispers' (length: 16)
-INFO:sort.ocr_pipeline:OCR - Best match: 'Vault of Whispers' (score: 72.7)
-INFO:sort.api:Snapshot 2026-01-17T20:24:49.322Z OCR saved to data/snapshots/20260117-202449-322695_meta.json — /ault of Whispers         :
-INFO:sort.api:Attempting to assign card: Vault of Whispers (scryfall_id=e85e4098-f872-4aa4-a71a-208b6090be28, confidence=0.73)
-INFO:sort.api:Card Vault of Whispers assigned to cell I1 (alpha_exact:V:Vault of Whispers)
-INFO:sort.api:Final assignment state: cell=I1, reason=alpha_exact:V:Vault of Whispers, warning=None
-INFO:sort.api:Creating assignment_data: {'cell': 'I1', 'reason': 'alpha_exact:V:Vault of Whispers', 'warning': None} (assigned_cell=I1, warning=None)
-INFO:sort.api:Snapshot response includes assignment: True
-INFO:sort.api:Assignment details: cell=I1
-INFO:     127.0.0.1:53146 - "GET /camera/snapshot HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.api:Auto-sort: Homing Z-axis
-INFO:sort.motion:Homing Z axis with G28 Z
-INFO:sort.motion:GCodeDriver -> G28 Z
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 Count X:1360 Y:2240 Z:52000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:130.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:130.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 130.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 130.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
 DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
 WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-INFO:sort.motion:Z axis homed to position: 0.0
-INFO:sort.api:Auto-sort: Extruding 0.4mm to pick up card
-INFO:sort.motion:GCodeDriver extrude -> G91 | G1 E0.4000 F50 | G90
-INFO:sort.motion:GCodeDriver -> G91
-G1 E0.4000 F50
-G90
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
 DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
 WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-INFO:sort.api:Auto-sort: Raising to 130.0mm with shake pattern
-INFO:sort.motion:GCodeDriver -> G0 X0.000 Y0.000 Z60.0 F1000
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
 DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
 WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-INFO:sort.motion:GCodeDriver -> M400
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
 DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
 WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 Count X:1360 Y:2240 Z:0'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:17.0000 Y:28.0000 Z:0.0000 E:0.0000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:17.0000', 'Y:28.0000', 'Z:0.0000', 'E:0.0000']
-DEBUG:sort.motion:Position parsing - Found X: 17.000
-DEBUG:sort.motion:Position parsing - Found Y: 28.000
-DEBUG:sort.motion:Position parsing - Found Z: 0.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (17.000, 28.000, 0.000) found=True
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver -> M114
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver -> M114
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:46548 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver -> M114
+INFO:     127.0.0.1:49492 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49492 - "GET /static/app.js HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver -> M114
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
 DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
 WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
 INFO:sort.motion:GCodeDriver <- (no response)
 DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
 WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- echo:busy: processing
-DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: processing'
-DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'processing']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver <- (no response)
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
-WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
-WARNING:sort.api:Timed out waiting for motion completion (target=(0.0, 0.0, 60.0), last=(0.0, 0.0, 145.0))
-INFO:sort.motion:GCodeDriver -> G0 X0.000 Y0.000 Z30.0 F1000
-INFO:sort.motion:GCodeDriver -> M114
-WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> G0 X0.000 Y0.000 Z30.0 F1000
-WARNING:sort.motion:Serial connection error detected (SerialException): read failed: [Errno 9] Bad file descriptor. Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-ERROR:sort.motion:GCodeDriver retry also failed for cmd=G0 X0.000 Y0.000 Z30.0 F1000: write failed: [Errno 9] Bad file descriptor
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 595, in read
-    raise SerialException(
-        'device reports readiness to read but returned no data '
-        '(device disconnected or multiple access on port?)')
-serial.serialutil.SerialException: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 254, in send_gcode
-    await loop.run_in_executor(None, self._write_blocking, cmd)
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 217, in _write_blocking
-    self._serial.write(data)
-    ~~~~~~~~~~~~~~~~~~^^^^^^
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 655, in write
-    raise SerialException('write failed: {}'.format(e))
-serial.serialutil.SerialException: write failed: [Errno 9] Bad file descriptor
-ERROR:sort.api:Auto-sort motion sequence failed: write failed: [Errno 9] Bad file descriptor
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 595, in read
-    raise SerialException(
-        'device reports readiness to read but returned no data '
-        '(device disconnected or multiple access on port?)')
-serial.serialutil.SerialException: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/main.py", line 903, in motion_home_z_and_extrude
-    await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z30.0 F1000')   # Down 30mm to Z=30
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 254, in send_gcode
-    await loop.run_in_executor(None, self._write_blocking, cmd)
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 217, in _write_blocking
-    self._serial.write(data)
-    ~~~~~~~~~~~~~~~~~~^^^^^^
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 655, in write
-    raise SerialException('write failed: {}'.format(e))
-serial.serialutil.SerialException: write failed: [Errno 9] Bad file descriptor
-INFO:     127.0.0.1:53146 - "POST /motion/home_z_and_extrude HTTP/1.1" 200 OK
-INFO:sort.api:Moving to A1 (homing X and Y, then moving to A1 position)
-INFO:sort.motion:Homing X axis with G28 X
+INFO:sort.motion:Starting sequential homing: X -> Y -> Z
+INFO:sort.motion:Homing X axis...
 INFO:sort.motion:GCodeDriver -> G28 X
-INFO:sort.motion:GCodeDriver (retry) <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-INFO:sort.motion:Serial reconnection successful
-INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-WARNING:sort.motion:Serial connection error detected (SerialException): device reports readiness to read but returned no data (device disconnected or multiple access on port?). Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> G28 X
-WARNING:sort.motion:Serial connection error detected (TypeError): 'NoneType' object cannot be interpreted as an integer. Attempting to reconnect...
-INFO:sort.motion:GCodeDriver (retry) -> M114
-ERROR:sort.motion:GCodeDriver retry also failed for cmd=G28 X: write failed: [Errno 9] Bad file descriptor
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 595, in read
-    raise SerialException(
-        'device reports readiness to read but returned no data '
-        '(device disconnected or multiple access on port?)')
-serial.serialutil.SerialException: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 254, in send_gcode
-    await loop.run_in_executor(None, self._write_blocking, cmd)
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 217, in _write_blocking
-    self._serial.write(data)
-    ~~~~~~~~~~~~~~~~~~^^^^^^
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 655, in write
-    raise SerialException('write failed: {}'.format(e))
-serial.serialutil.SerialException: write failed: [Errno 9] Bad file descriptor
-ERROR:sort.api:Failed to home and move to A1: write failed: [Errno 9] Bad file descriptor
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 229, in send_gcode
-    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 194, in _read_lines_blocking
-    data = self._serial.read(1024)
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 595, in read
-    raise SerialException(
-        'device reports readiness to read but returned no data '
-        '(device disconnected or multiple access on port?)')
-serial.serialutil.SerialException: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/baxterkrug/Documents/sort.me/main.py", line 798, in motion_goto_cell
-    await ctrl.home_x()
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 737, in home_x
-    await self.driver.send_gcode('G28 X')
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 254, in send_gcode
-    await loop.run_in_executor(None, self._write_blocking, cmd)
-  File "/usr/lib64/python3.13/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-  File "/home/baxterkrug/Documents/sort.me/app/services/motion.py", line 217, in _write_blocking
-    self._serial.write(data)
-    ~~~~~~~~~~~~~~~~~~^^^^^^
-  File "/usr/lib/python3.13/site-packages/serial/serialposix.py", line 655, in write
-    raise SerialException('write failed: {}'.format(e))
-serial.serialutil.SerialException: write failed: [Errno 9] Bad file descriptor
-INFO:     127.0.0.1:53146 - "POST /motion/goto/A1 HTTP/1.1" 500 Internal Server Error
-INFO:sort.motion:GCodeDriver (retry) <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-INFO:sort.motion:Serial reconnection successful
-INFO:sort.motion:Position cache reset to safe position (0, 0, 145) after reconnection
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:37946 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+INFO:sort.motion:X axis homed
+INFO:sort.motion:Homing Y axis...
+INFO:sort.motion:GCodeDriver -> G28 Y
+INFO:sort.motion:GCodeDriver <- (no response)
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+INFO:sort.motion:Y axis homed
+INFO:sort.motion:Homing Z axis...
+INFO:sort.motion:GCodeDriver -> G28 Z
+INFO:sort.motion:GCodeDriver <- (no response)
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:36060 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+INFO:sort.motion:Z axis homed
+INFO:sort.motion:All axes homed. Position reset to (0.0, 0.0, 0.0)
+INFO:sort.motion:Starting sequential homing: X -> Y -> Z
+INFO:sort.motion:Homing X axis...
+INFO:sort.motion:GCodeDriver -> G28 X
+INFO:     127.0.0.1:49504 - "POST /motion/home HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- (no response)
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:36060 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+INFO:sort.motion:X axis homed
+INFO:sort.motion:Homing Y axis...
+INFO:sort.motion:GCodeDriver -> G28 Y
+INFO:sort.motion:GCodeDriver <- (no response)
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:36060 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+INFO:sort.motion:Y axis homed
+INFO:sort.motion:Homing Z axis...
+INFO:sort.motion:GCodeDriver -> G28 Z
+INFO:sort.motion:GCodeDriver <- (no response)
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:36060 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+INFO:sort.motion:Z axis homed
+INFO:sort.motion:All axes homed. Position reset to (0.0, 0.0, 0.0)
+INFO:sort.motion:Starting sequential homing: X -> Y -> Z
+INFO:sort.motion:Homing X axis...
+INFO:sort.motion:GCodeDriver -> G28 X
+INFO:     127.0.0.1:49492 - "POST /motion/home HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- (no response)
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:36060 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+INFO:sort.motion:X axis homed
+INFO:sort.motion:Homing Y axis...
+INFO:sort.motion:GCodeDriver -> G28 Y
+INFO:sort.motion:GCodeDriver <- (no response)
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+INFO:sort.motion:Y axis homed
+INFO:sort.motion:Homing Z axis...
+INFO:sort.motion:GCodeDriver -> G28 Z
+INFO:sort.motion:GCodeDriver <- (no response)
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+INFO:sort.motion:Z axis homed
+INFO:sort.motion:All axes homed. Position reset to (0.0, 0.0, 0.0)
+INFO:     127.0.0.1:49504 - "POST /motion/home HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- (no response)
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
 INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
-INFO:sort.motion:GCodeDriver -> M114
-INFO:sort.motion:GCodeDriver <- X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000 | ok
-DEBUG:sort.motion:Position parsing - Raw line: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 Count X:0 Y:0 Z:12000'
-DEBUG:sort.motion:Position parsing - After Count split: 'X:0.0000 Y:0.0000 Z:30.0000 E:0.4000 '
-DEBUG:sort.motion:Position parsing - Parts: ['X:0.0000', 'Y:0.0000', 'Z:30.0000', 'E:0.4000']
-DEBUG:sort.motion:Position parsing - Found X: 0.000
-DEBUG:sort.motion:Position parsing - Found Y: 0.000
-DEBUG:sort.motion:Position parsing - Found Z: 30.000
-DEBUG:sort.motion:Position parsing - Raw line: 'ok'
-DEBUG:sort.motion:Position parsing - After Count split: 'ok'
-DEBUG:sort.motion:Position parsing - Parts: ['ok']
-DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 30.000) found=True
-INFO:     127.0.0.1:53146 - "GET /status HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+INFO:sort.motion:GCodeDriver <- echo:busy: paused for user
+DEBUG:sort.motion:Position parsing - Raw line: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - After Count split: 'echo:busy: paused for user'
+DEBUG:sort.motion:Position parsing - Parts: ['echo:busy:', 'paused', 'for', 'user']
+DEBUG:sort.motion:Position parsing - Final result: (0.000, 0.000, 0.000) found=False
+WARNING:sort.motion:query_position: no X/Y/Z tokens in driver response; returning cached position (0.0, 0.0, 145.0)
+INFO:     127.0.0.1:49492 - "GET /status HTTP/1.1" 200 OK
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [239166]

@@ -260,9 +260,9 @@ async function beginAutoSort() {
     
     // Configuration constants
     const WAIT_STABILIZATION = 2000;
-    const WAIT_RETRY = 1000;
-    const WAIT_SNAPSHOT = 1500;
-    const WAIT_AFTER_MOTION = 2000;
+    const WAIT_RETRY = 500;  // Reduced from 1000ms to 500ms for faster retries
+    const WAIT_SNAPSHOT = 1000;  // Reduced from 1500ms to 1000ms for faster snapshots
+    const WAIT_AFTER_MOTION = 1500;  // Reduced from 2000ms to 1500ms for faster cycle
     const MAX_ATTEMPTS = 3;
     const MIN_CONFIDENCE_SCORE = 70;
     
@@ -406,6 +406,9 @@ async function beginAutoSort() {
             // 1. High confidence match (has identification.best)
             // 2. Low confidence match (diverted to K3)
             // 3. Unidentified cards (should go to ERR1/K3)
+            // 
+            // SAFETY: Card is ONLY grabbed after confirming valid assignment exists
+            // All retries above happen WITHOUT touching the card
             if (assignment && assignment.cell) {
                 const cardName = identification?.best?.name || 'Unknown card';
                 const reason = assignment.reason || 'unspecified';
@@ -414,6 +417,7 @@ async function beginAutoSort() {
                 consecutiveErrors = 0; // Reset consecutive error counter on success
                 
                 // Execute full pickup-and-delivery sequence (Z-axis pickup, move to cell, drop, return)
+                // NOTE: Card is grabbed HERE, after valid destination confirmed above
                 try {
                     const pickupResponse = await fetch('/motion/home_z_and_extrude', { method: 'POST' });
                     if (!pickupResponse.ok) {
