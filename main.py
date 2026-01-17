@@ -779,9 +779,23 @@ async def motion_goto_cell(cell_id: str) -> Dict[str, Any]:
 
     ctrl = MOTION
     if cell == "A1":
-        await ctrl.home_x()
-        await ctrl.home_y()
-        return {"ok": True, "cell": cell, "pos": ctrl.current, "action": "homed_to_A1"}
+        try:
+            LOG.info(f"Moving to A1 (homing X and Y)")
+            # Ensure Z is at safe height before homing XY
+            current_z = ctrl.current[2] if ctrl.current else 0.0
+            if current_z < 100.0:
+                LOG.info(f"Z is at {current_z}mm, raising to 145mm for safety")
+                async with ctrl.lock:
+                    await ctrl.driver.send_gcode('G0 Z145.0 F1000')
+                    ctrl.current = (ctrl.current[0], ctrl.current[1], 145.0)
+                await asyncio.sleep(0.5)  # Brief wait for movement
+            
+            await ctrl.home_x()
+            await ctrl.home_y()
+            return {"ok": True, "cell": cell, "pos": ctrl.current, "action": "homed_to_A1"}
+        except Exception as exc:
+            LOG.error(f"Failed to home to A1: {exc}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Failed to home to A1: {str(exc)}") from exc
 
     try:
         await ctrl.move_to_cell_xy(cell)
@@ -789,6 +803,7 @@ async def motion_goto_cell(cell_id: str) -> Dict[str, Any]:
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"Unknown cell: {cell}") from exc
     except Exception as exc:
+        LOG.error(f"Failed to move to {cell}: {exc}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
@@ -938,16 +953,28 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
 
                                 driver = MOTION.driver
                                 # Current safe Z to preserve during XY travel
-                                safe_z = float(MOTION.current[2]) if MOTION.current is not None else 0.0
+                                safe_z = float(MOTION.current[2]) if MOTION.current is not None else 145.0
 
                                 if hasattr(driver, 'send_gcode'):
-                                    # Use absolute positioning and send a G1 with only X and Y.
+                                    # CRITICAL: Ensure Z is at safe height BEFORE any XY movement
+                                    # This prevents collision with cards/obstacles during travel
+                                    if safe_z < 140.0:
+                                        LOG.warning("Auto-sort: Z=%.1f too low before XY move! Raising to 145mm", safe_z)
+                                        await driver.send_gcode('G0 Z145.0 F1000')
+                                        safe_z = 145.0
+                                        MOTION.current = (MOTION.current[0], MOTION.current[1], safe_z)
+                                        await asyncio.sleep(1.0)  # Wait for Z raise
+                                    
+                                    # Use absolute positioning and send G0 (rapid move) with ONLY X and Y
+                                    # G0 is safer than G1 because it's strictly for positioning, not extrusion
                                     try:
                                         await driver.send_gcode('G90')
                                     except Exception:
                                         pass
-                                    feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 800)))
-                                    await driver.send_gcode(f'G1 X{tx:.3f} Y{ty:.3f} F{feed}')
+                                    feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 1200)))
+                                    
+                                    # Send XY move with explicit Z to maintain safe height
+                                    await driver.send_gcode(f'G0 X{tx:.3f} Y{ty:.3f} Z{safe_z:.3f} F{feed}')
                                     # Update cached controller position to reflect the XY move
                                     MOTION.current = (tx, ty, safe_z)
                                     try:
@@ -998,9 +1025,10 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                         MOTION.current = (tx, ty, safe_z)
                                     
                                     # 8. Return to starting position
+                                    # CRITICAL: Ensure Z stays at safe height during return journey
                                     LOG.info("Auto-sort: Returning to start position (X=%.1f, Y=%.1f)", start_x, start_y)
-                                    feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 800)))
-                                    await driver.send_gcode(f'G1 X{start_x:.3f} Y{start_y:.3f} F{feed}')
+                                    feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 1200)))
+                                    await driver.send_gcode(f'G0 X{start_x:.3f} Y{start_y:.3f} Z{safe_z:.3f} F{feed}')
                                     MOTION.current = (start_x, start_y, safe_z)
                                     try:
                                         await _await_motion_completion(MOTION, (start_x, start_y, safe_z), tolerance=1.0, timeout=6.0)
@@ -2011,15 +2039,17 @@ async def camera_snapshot(
     return response_data
 
 
-@app.post("/camera/dual_snapshot")
-async def camera_dual_snapshot(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    offset = 44.0
-    if payload and "offset_mm" in payload:
-        try:
-            offset = float(payload["offset_mm"])
-        except Exception:
-            raise HTTPException(status_code=400, detail="offset_mm must be numeric")
-    return await ocr_pipeline.capture_dual_snapshot(offset_mm=offset)
+# @app.post("/camera/dual_snapshot")
+# async def camera_dual_snapshot(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+#     """DEPRECATED: Dual snapshot endpoint removed - orientation detection simplified"""
+#     raise HTTPException(status_code=410, detail="Dual snapshot endpoint deprecated - use /camera/snapshot instead")
+#     # offset = 44.0
+#     # if payload and "offset_mm" in payload:
+#     #     try:
+#     #         offset = float(payload["offset_mm"])
+#     #     except Exception:
+#     #         raise HTTPException(status_code=400, detail="offset_mm must be numeric")
+#     # return await ocr_pipeline.capture_dual_snapshot(offset_mm=offset)
 
 
 @app.get("/debug/alpha_map")
@@ -2619,18 +2649,20 @@ def assign_known_card(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 @app.post("/ocr/run")
 async def ocr_run(file: UploadFile = File(...)) -> Dict[str, Any]:
-    data = await file.read()
-    if not data:
-        raise HTTPException(status_code=400, detail="Empty upload")
-    try:
-        result = ocr_pipeline.run_ocr_from_bytes(data)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
-    ocr_map = result.get("ocr_map") or {}
-    embedding_info = card_id.embedding_matches_from_ocr(ocr_map, str(EMBEDDINGS_DIR))
-    meta_block = dict(result.get("ocr_meta") or {})
+    """DEPRECATED: OCR upload endpoint removed"""
+    raise HTTPException(status_code=410, detail="OCR upload endpoint deprecated - use /camera/snapshot instead")
+    # data = await file.read()
+    # if not data:
+    #     raise HTTPException(status_code=400, detail="Empty upload")
+    # try:
+    #     result = ocr_pipeline.run_ocr_from_bytes(data)
+    # except ValueError as exc:
+    #     raise HTTPException(status_code=400, detail=str(exc))
+    # except FileNotFoundError as exc:
+    #     raise HTTPException(status_code=404, detail=str(exc))
+    # ocr_map = result.get("ocr_map") or {}
+    # embedding_info = card_id.embedding_matches_from_ocr(ocr_map, str(EMBEDDINGS_DIR))
+    # meta_block = dict(result.get("ocr_meta") or {})
     meta_block["embedding"] = embedding_info
     result["ocr_meta"] = meta_block
     return {

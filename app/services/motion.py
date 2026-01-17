@@ -253,6 +253,13 @@ class GCodeDriver(MotionDriver):
                     else:
                         LOG.info("GCodeDriver (retry) <- (no response)")
                     LOG.info("Serial reconnection successful")
+                    
+                    # Clear position cache after reconnection to safe default
+                    # Assume Z=145 (safe height) to prevent collisions during recovery
+                    # X=0, Y=0 assumes we're at home position
+                    self._last_position = (0.0, 0.0, 145.0)
+                    LOG.info("Position cache reset to safe position (0, 0, 145) after reconnection")
+                    
                     return lines
                 except Exception as retry_exc:
                     LOG.exception("GCodeDriver retry also failed for cmd=%s: %s", cmd.strip(), retry_exc)

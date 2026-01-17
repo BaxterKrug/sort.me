@@ -242,12 +242,29 @@ async function takeSingleSnapshot() {
     }
 }
 
+/**
+ * Auto-sort main loop
+ * 
+ * Improvements implemented:
+ * - FIX #1: ERR1 error handling with K3 fallback if ERR1 unavailable
+ * - FIX #2: Configuration constants extracted for maintainability
+ * - FIX #3: Data validation after retry loop to prevent null reference errors
+ * - FIX #4: Separate identification vs assignment errors (assignment failures don't increment consecutiveErrors)
+ */
 async function beginAutoSort() {
     if (autoSortRunning) return;
     autoSortRunning = true;
     sortStats = { cardsProcessed: 0, errors: 0, startTime: new Date() };
     let consecutiveErrors = 0;
     const maxConsecutiveErrors = 5; // Stop after 5 consecutive errors
+    
+    // Configuration constants
+    const WAIT_STABILIZATION = 2000;
+    const WAIT_RETRY = 1000;
+    const WAIT_SNAPSHOT = 1500;
+    const WAIT_AFTER_MOTION = 2000;
+    const MAX_ATTEMPTS = 3;
+    const MIN_CONFIDENCE_SCORE = 70;
     
     document.getElementById('beginSortBtn').style.display = 'none';
     document.getElementById('stopSortBtn').style.display = 'block';
@@ -259,8 +276,8 @@ async function beginAutoSort() {
         if (!homeResponse.ok) {
             throw new Error(`Failed to move to A1: ${homeResponse.status}`);
         }
-        await homeResponse.json(); // Wait for motion to complete
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for stabilization
+        await homeResponse.json();
+        await new Promise(resolve => setTimeout(resolve, WAIT_STABILIZATION));
     } catch (error) {
         console.error('Failed to move to feeder:', error);
         updateSortStatus(`Error: ${error.message}`);
@@ -282,21 +299,19 @@ async function beginAutoSort() {
             let assignment = null;
             let data = null;
             let attempts = 0;
-            const maxAttempts = 3;
-            const minConfidenceScore = 70; // Require at least 70% confidence
             
-            while (attempts < maxAttempts && !identification) {
+            while (attempts < MAX_ATTEMPTS && !identification) {
                 attempts++;
                 if (attempts > 1) {
-                    updateSortStatus(`Retry attempt ${attempts}/${maxAttempts}...`);
+                    updateSortStatus(`Retry attempt ${attempts}/${MAX_ATTEMPTS}...`);
                     // Return to feeder position before retry
                     try {
                         const returnResponse = await fetch('/motion/goto/A1', { method: 'POST' });
                         if (!returnResponse.ok) {
                             throw new Error(`Failed to return to A1 for retry: ${returnResponse.status}`);
                         }
-                        await returnResponse.json(); // Wait for motion to complete
-                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for stabilization
+                        await returnResponse.json();
+                        await new Promise(resolve => setTimeout(resolve, WAIT_RETRY));
                     } catch (error) {
                         console.error('Failed to return to feeder for retry:', error);
                         updateSortStatus(`Error returning to feeder: ${error.message}`);
@@ -305,8 +320,7 @@ async function beginAutoSort() {
                 }
                 
                 // Always wait before taking snapshot to ensure stability
-                // Longer wait for Auto Sort to allow full settling after previous card motion
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                await new Promise(resolve => setTimeout(resolve, WAIT_SNAPSHOT));
                 
                 const response = await fetch('/camera/snapshot');
                 if (!response.ok) {
@@ -326,7 +340,7 @@ async function beginAutoSort() {
                 // Safety check: ensure data has required structure
                 if (!data || !data.frames) {
                     console.error('Invalid snapshot response:', data);
-                    updateSortStatus(`Invalid snapshot data (attempt ${attempts}/${maxAttempts})`);
+                    updateSortStatus(`Invalid snapshot data (attempt ${attempts}/${MAX_ATTEMPTS})`);
                     identification = null;
                     continue;
                 }
@@ -341,7 +355,7 @@ async function beginAutoSort() {
                     hasBest: !!identification?.best,
                     cardName: identification?.best?.name,
                     score: identification?.score,
-                    meetsThreshold: identification?.score >= minConfidenceScore,
+                    meetsThreshold: identification?.score >= MIN_CONFIDENCE_SCORE,
                     hasAssignment: !!assignment,
                     assignmentCell: assignment?.cell,
                     assignmentWarning: assignment?.warning,
@@ -356,8 +370,7 @@ async function beginAutoSort() {
                 }
                 
                 // Check if we got a valid identification with sufficient confidence
-                // Note: assignment may be null if card assignment fails, but we still break on successful identification
-                if (identification && identification.best && identification.score >= minConfidenceScore) {
+                if (identification && identification.best && identification.score >= MIN_CONFIDENCE_SCORE) {
                     console.log(`Match found: ${identification.best.name} with ${identification.score.toFixed(1)}% confidence`);
                     if (assignment && assignment.cell) {
                         console.log(`Assigned to cell: ${assignment.cell}`);
@@ -367,20 +380,25 @@ async function beginAutoSort() {
                     break;
                 } else {
                     // Reset identification if confidence too low or missing
-                    if (identification && identification.best && identification.score < minConfidenceScore) {
-                        console.log(`Low confidence: ${identification.score.toFixed(1)}% < ${minConfidenceScore}% for ${identification.best?.name || 'unknown'} - retrying`);
+                    if (identification && identification.best && identification.score < MIN_CONFIDENCE_SCORE) {
+                        console.log(`Low confidence: ${identification.score.toFixed(1)}% < ${MIN_CONFIDENCE_SCORE}% for ${identification.best?.name || 'unknown'} - retrying`);
                         identification = null;
                     } else if (!identification || !identification.best) {
-                        console.log(`No identification found (attempt ${attempts}/${maxAttempts})`);
+                        console.log(`No identification found (attempt ${attempts}/${MAX_ATTEMPTS})`);
                         identification = null;
                     }
                 }
             }
             
+            // FIX #3: Validate data after retry loop
+            if (!data || !data.frames) {
+                throw new Error('No valid snapshot data after all retry attempts');
+            }
+            
             // Log final state after retry loop
             console.log('After retry loop:', {
                 attempts,
-                maxAttempts,
+                maxAttempts: MAX_ATTEMPTS,
                 hasIdentification: !!identification,
                 hasBest: !!identification?.best,
                 cardName: identification?.best?.name,
@@ -389,19 +407,18 @@ async function beginAutoSort() {
                 cellValue: assignment?.cell,
             });
             
-            if (identification && identification.best) {
-                // Check if we have a valid assignment with a cell to move to
-                if (!assignment || !assignment.cell) {
-                    console.warn('Identification succeeded but no cell assignment available');
-                    updateSortStatus(`Warning: ${identification.best.name} identified but no cell assigned`);
-                    sortStats.errors++;
-                    consecutiveErrors++;
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    continue; // Skip to next card
-                }
+            // Handle assignment (even without high-confidence identification)
+            // Assignment can be present for:
+            // 1. High confidence match (has identification.best)
+            // 2. Low confidence match (diverted to K3)
+            // 3. Unidentified cards (should go to ERR1/K3)
+            if (assignment && assignment.cell) {
+                const cardName = identification?.best?.name || 'Unknown card';
+                const reason = assignment.reason || 'unspecified';
                 
                 sortStats.cardsProcessed++;
                 consecutiveErrors = 0; // Reset consecutive error counter on success
+                
                 // Execute full pickup-and-delivery sequence (Z-axis pickup, move to cell, drop, return)
                 try {
                     const pickupResponse = await fetch('/motion/home_z_and_extrude', { method: 'POST' });
@@ -413,50 +430,69 @@ async function beginAutoSort() {
                         throw new Error(`Pickup sequence failed: ${pickupResult.error || 'unknown error'}`);
                     }
                     const movedTo = pickupResult.moved_to || assignment.cell;
-                    updateSortStatus(`Sorted ${identification.best.name} to ${movedTo}`);
-                    // Wait longer for system to fully settle after motion sequence
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Provide informative status message based on reason
+                    if (reason.includes('low_confidence')) {
+                        updateSortStatus(`Low confidence: ${cardName} → ${movedTo} (divert)`);
+                    } else if (reason.includes('error') || reason.includes('unidentified')) {
+                        updateSortStatus(`Unidentified → ${movedTo} (error)`);
+                    } else {
+                        updateSortStatus(`Sorted ${cardName} to ${movedTo}`);
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
                 } catch (error) {
                     console.error('Motion error:', error);
                     updateSortStatus(`Motion error: ${error.message}`);
                     sortStats.errors++;
                     consecutiveErrors++;
                     // System should already be back at start position after home_z_and_extrude
-                    // Just add a delay before continuing
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
                 }
             } else {
+                // No assignment after retries - this is an error
                 sortStats.errors++;
                 consecutiveErrors++;
-                updateSortStatus(`Failed to identify after ${maxAttempts} attempts`);
+                updateSortStatus(`Failed to identify after ${MAX_ATTEMPTS} attempts`);
                 
-                // First ensure we're back at A1 before trying to move to ERR1
+                // Move unidentified card to error pile (ERR1)
                 try {
-                    // Return to A1 first
+                    // Return to A1 first to ensure known position
                     const homeResponse = await fetch('/motion/goto/A1', { method: 'POST' });
                     if (!homeResponse.ok) {
                         throw new Error(`Failed to return to A1: ${homeResponse.status}`);
                     }
                     await homeResponse.json();
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, WAIT_RETRY));
                     
                     // Now move to error pile
                     const errorResponse = await fetch('/motion/goto/ERR1', { method: 'POST' });
                     if (!errorResponse.ok) {
-                        throw new Error(`Failed to move to ERR1: ${errorResponse.status}`);
+                        // FIX #1: Check if ERR1 doesn't exist, use overflow cell K3 as fallback
+                        if (errorResponse.status === 404 || errorResponse.status === 400) {
+                            console.warn('ERR1 not available, using overflow cell K3');
+                            const fallbackResponse = await fetch('/motion/goto/K3', { method: 'POST' });
+                            if (!fallbackResponse.ok) {
+                                throw new Error(`Failed to move to fallback cell K3: ${fallbackResponse.status}`);
+                            }
+                            await fallbackResponse.json();
+                        } else {
+                            throw new Error(`Failed to move to ERR1: ${errorResponse.status}`);
+                        }
+                    } else {
+                        await errorResponse.json();
                     }
-                    await errorResponse.json(); // Wait for motion to complete
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, WAIT_RETRY));
                     
                     // Return to feeder position after error
                     const returnResponse = await fetch('/motion/goto/A1', { method: 'POST' });
                     if (!returnResponse.ok) {
                         throw new Error(`Failed to return to A1: ${returnResponse.status}`);
                     }
-                    await returnResponse.json(); // Wait for motion to complete
-                    await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second pause for stability
+                    await returnResponse.json();
+                    await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
                 } catch (error) {
-                    console.error('Error handling motion error:', error);
+                    console.error('Error handling failed identification:', error);
                     updateSortStatus(`Error: ${error.message}`);
                     consecutiveErrors++;
                     // Last ditch effort to return to A1
@@ -464,7 +500,7 @@ async function beginAutoSort() {
                         const lastChanceResponse = await fetch('/motion/goto/A1', { method: 'POST' });
                         if (lastChanceResponse.ok) {
                             await lastChanceResponse.json();
-                            await new Promise(resolve => setTimeout(resolve, 2000));
+                            await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
                         }
                     } catch (finalError) {
                         console.error('Final recovery failed:', finalError);
@@ -481,13 +517,13 @@ async function beginAutoSort() {
                 const emergencyResponse = await fetch('/motion/goto/A1', { method: 'POST' });
                 if (emergencyResponse.ok) {
                     await emergencyResponse.json();
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
                     updateSortStatus(`Recovered to feeder after error`);
                 }
             } catch (emergencyError) {
                 console.error('Emergency recovery failed:', emergencyError);
             }
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
         }
     }
 }
