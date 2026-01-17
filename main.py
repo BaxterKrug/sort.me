@@ -867,8 +867,8 @@ async def motion_home_z() -> Dict[str, Any]:
 @app.post("/motion/home_z_and_extrude")
 async def motion_home_z_and_extrude() -> Dict[str, Any]:
     """
-    Homes the Z-axis, extrudes 0.2mm, raises to safe height, moves to assigned cell,
-    lowers Z, retracts 0.2mm, raises Z, and returns to start position.
+    Homes the Z-axis, extrudes 0.4mm, raises to safe height, moves to assigned cell,
+    lowers Z, retracts 0.4mm, raises Z, and returns to start position.
     """
     try:
         # Save starting position
@@ -879,30 +879,30 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         LOG.info("Auto-sort: Homing Z-axis")
         await MOTION.home_z()
 
-        # 2. Extrude 0.2mm at 50 mm/min to pick up card
-        LOG.info("Auto-sort: Extruding 0.2mm to pick up card")
-        await MOTION.driver.extrude(0.2, 50.0)
+        # 2. Extrude 0.4mm at 50 mm/min to pick up card
+        LOG.info("Auto-sort: Extruding 0.4mm to pick up card")
+        await MOTION.driver.extrude(0.4, 50.0)
 
         # 3. Raise Z-axis to safe height with jerking motion to shake off extra cards
-        # Pattern: +40mm, -20mm, +40mm, -20mm, +95mm = 135mm total
+        # Pattern: +60mm, -30mm, +30mm, -20mm, +95mm = 135mm total
         # CRITICAL: Lock X and Y during all Z movements to prevent card damage
         LOG.info(f"Auto-sort: Raising to {SAFE_Z_HEIGHT}mm with shake pattern")
         current_x = float(MOTION.current[0])
         current_y = float(MOTION.current[1])
         
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z40.0 F1000')   # Up 40mm to Z=40
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z60.0 F1000')   # Up 60mm to Z=60
         try:
-            await _await_motion_completion(MOTION, (current_x, current_y, 40.0), tolerance=1.0, timeout=5.0)
+            await _await_motion_completion(MOTION, (current_x, current_y, 60.0), tolerance=1.0, timeout=5.0)
         except Exception:
             await asyncio.sleep(1.0)  # Fallback wait
         
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z20.0 F1000')   # Down 20mm to Z=20
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z30.0 F1000')   # Down 30mm to Z=30
         try:
-            await _await_motion_completion(MOTION, (current_x, current_y, 20.0), tolerance=1.0, timeout=5.0)
+            await _await_motion_completion(MOTION, (current_x, current_y, 30.0), tolerance=1.0, timeout=5.0)
         except Exception:
             await asyncio.sleep(1.0)
         
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z60.0 F1000')   # Up 40mm to Z=60
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z60.0 F1000')   # Up 30mm to Z=60
         try:
             await _await_motion_completion(MOTION, (current_x, current_y, 60.0), tolerance=1.0, timeout=5.0)
         except Exception:
@@ -914,7 +914,7 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         except Exception:
             await asyncio.sleep(1.0)
         
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z{SAFE_Z_HEIGHT} F1000')  # Up 90mm to Z=130 (safe height)
+        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z{SAFE_Z_HEIGHT} F1000')  # Up 95mm to Z=135 (safe height)
         LOG.info(f"Auto-sort: Reached safe height Z={SAFE_Z_HEIGHT}mm")
 
         # Ensure the motion controller's cached position reflects the raised Z.
@@ -1002,9 +1002,9 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                     except Exception:
                                         pass
                                     
-                                    # 6. Retract extruder by 0.2mm at 50 mm/min to release card
-                                    LOG.info("Auto-sort: Retracting extruder 0.2mm to release card")
-                                    await driver.extrude(-0.2, 50.0)
+                                    # 6. Retract extruder by 0.4mm at 50 mm/min to release card
+                                    LOG.info("Auto-sort: Retracting extruder 0.4mm to release card")
+                                    await driver.extrude(-0.4, 50.0)
                                     
                                     # Small delay to ensure retraction completes
                                     await asyncio.sleep(0.5)

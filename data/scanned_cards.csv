@@ -591,3 +591,26 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-01-17T18:01:21Z,594323b6-558d-4597-beb8-5346599ea571,A-Plate Armor,K3,divert:low_confidence,0.641
 2026-01-17T18:02:55Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,0.703
 2026-01-17T18:06:17Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,1.000
+2026-01-17T18:11:16Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,1.000
+2026-01-17T18:11:44Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,F1,alpha_exact:M:Mystic Sanctuary,0.703
+2026-01-17T18:12:07Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,K3,divert:low_confidence,0.672
+2026-01-17T18:12:19Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,K3,divert:low_confidence,0.636
+2026-01-17T18:12:31Z,bc9e38e6-a8a6-498c-b56b-861652182980,Soulstone Sanctuary // Soulstone Sanctuary,K3,divert:low_confidence,0.641
+2026-01-17T18:14:21Z,67652446-6d12-4e2a-bb51-ba685f2e79d1,Mystic Sanctuary,K3,divert:low_confidence,0.482
+2026-01-17T18:14:33Z,32da965c-6499-41e4-b16d-754e89cc8aa7,Seismic,K3,divert:low_confidence,0.519
+2026-01-17T18:34:34Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-17T18:35:14Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-17T18:35:32Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.91:Psychic Frog,1.000
+2026-01-17T18:36:08Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.91:Psychic Frog,0.713
+2026-01-17T18:37:11Z,6fb4744e-c3f3-4d8e-9f13-356841fa6aa6,Seatower Imprisonment,K3,divert:low_confidence,0.675
+2026-01-17T18:37:32Z,57a194b3-2899-4dee-977a-c77df0b94dfe,Seat of the Synod,B3,price:$0.59:Seat of the Synod,0.706
+2026-01-17T18:38:42Z,94352ffb-d716-484d-b018-4e1c033ef2f3,Roaring Furnace // Steaming Sauna,K3,divert:low_confidence,0.641
+2026-01-17T18:38:53Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,C1,price:$2.10:Great Furnace,1.000
+2026-01-17T18:39:29Z,94352ffb-d716-484d-b018-4e1c033ef2f3,Roaring Furnace // Steaming Sauna,K3,divert:low_confidence,0.641
+2026-01-17T18:39:41Z,e882c9f9-bf30-46b6-bedc-379d2c80e5cb,+2 Mace,K3,divert:low_confidence,0.540
+2026-01-17T18:42:35Z,94352ffb-d716-484d-b018-4e1c033ef2f3,Roaring Furnace // Steaming Sauna,K3,divert:low_confidence,0.641
+2026-01-17T18:42:46Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,K3,divert:low_confidence,0.667
+2026-01-17T18:44:28Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,C1,price:$2.13:Vault of Whispers,1.000
+2026-01-17T18:45:32Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,C1,price:$2.13:Vault of Whispers,1.000
+2026-01-17T18:46:33Z,3088a924-58c6-4ab7-baf0-842d6688fcec,Woodland Sleuth,K3,divert:low_confidence,0.675
+2026-01-17T18:47:03Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,C1,price:$2.13:Vault of Whispers,0.727
