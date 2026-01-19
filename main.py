@@ -875,8 +875,8 @@ async def motion_home_z() -> Dict[str, Any]:
 @app.post("/motion/home_z_and_extrude")
 async def motion_home_z_and_extrude() -> Dict[str, Any]:
     """
-    Homes the Z-axis, extrudes 0.4mm, raises to safe height, moves to assigned cell,
-    lowers Z, retracts 0.4mm, raises Z, and returns to start position.
+    Homes the Z-axis, extrudes 0.3mm, raises to safe height, moves to assigned cell,
+    lowers Z, retracts 0.3mm, raises Z, and returns to start position.
     """
     try:
         # Save starting position
@@ -887,9 +887,9 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         LOG.info("Auto-sort: Homing Z-axis")
         await MOTION.home_z()
 
-        # 2. Extrude 0.4mm at 50 mm/min to pick up card
-        LOG.info("Auto-sort: Extruding 0.4mm to pick up card")
-        await MOTION.driver.extrude(0.4, 50.0)
+        # 2. Extrude 0.3mm at 50 mm/min to pick up card
+        LOG.info("Auto-sort: Extruding 0.3mm to pick up card")
+        await MOTION.driver.extrude(0.3, 50.0)
 
         # 3. Raise Z-axis to safe height in one smooth motion
         # CRITICAL: Lock X and Y during Z movement to prevent card damage
@@ -990,10 +990,10 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                         pass
                                     
                                     # 6. Retract extruder to release card
-                                    # Increased retraction to ensure card drops
-                                    LOG.info("Auto-sort: Retracting extruder 0.6mm to release card")
+                                    # Retraction set to 0.3mm to release card
+                                    LOG.info("Auto-sort: Retracting extruder 0.3mm to release card")
                                     try:
-                                        await driver.extrude(-0.6, 50.0)
+                                        await driver.extrude(-0.3, 50.0)
                                         LOG.info("Auto-sort: Retraction command sent successfully")
                                     except Exception as retract_ex:
                                         LOG.error("Auto-sort: Retraction FAILED: %s", retract_ex, exc_info=True)
@@ -1179,10 +1179,10 @@ async def motion_status() -> Dict[str, Any]:
 @app.post("/extruder/extrude")
 async def extruder_extrude(request: Request) -> Dict[str, Any]:
     """Extrude a small amount to actuate an extruder/plunger.
-    Expects JSON body optional {amount: float, feed: float}. Defaults to 0.2mm @ 50 mm/min.
+    Expects JSON body optional {amount: float, feed: float}. Defaults to 0.3mm @ 50 mm/min.
     """
     payload = await request.json() if request is not None else {}
-    amount = float(payload.get('amount', 0.2) if isinstance(payload, dict) else 0.2)
+    amount = float(payload.get('amount', 0.3) if isinstance(payload, dict) else 0.3)
     feed = float(payload.get('feed', 50.0) if isinstance(payload, dict) else 50.0)
     try:
         await MOTION.driver.extrude(amount, feed)
@@ -1195,7 +1195,7 @@ async def extruder_extrude(request: Request) -> Dict[str, Any]:
 @app.post("/extruder/retract")
 async def extruder_retract(request: Request) -> Dict[str, Any]:
     payload = await request.json() if request is not None else {}
-    amount = float(payload.get('amount', 0.2) if isinstance(payload, dict) else 0.2)
+    amount = float(payload.get('amount', 0.3) if isinstance(payload, dict) else 0.3)
     feed = float(payload.get('feed', 50.0) if isinstance(payload, dict) else 50.0)
     try:
         await MOTION.driver.extrude(-abs(amount), feed)

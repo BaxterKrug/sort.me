@@ -661,3 +661,78 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-01-17T23:32:40Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,0.722
 2026-01-17T23:33:37Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
 2026-01-17T23:34:42Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,F3,alpha_exact:O:Ordeal of Thassa,1.000
+2026-01-17T23:41:24Z,ee668507-a903-47ed-834f-fe6247db0542,Bee Sting,K3,divert:low_confidence,0.641
+2026-01-17T23:41:34Z,7bd105f3-fa33-4490-aea9-b47ca121b664,Silverflame Squire // On Alert,K3,divert:low_confidence,0.641
+2026-01-17T23:41:43Z,ee668507-a903-47ed-834f-fe6247db0542,Bee Sting,K3,divert:low_confidence,0.641
+2026-01-17T23:42:39Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,1.000
+2026-01-17T23:42:55Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T23:48:28Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T23:49:01Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-17T23:50:20Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-17T23:51:36Z,a22ad436-215a-4da1-b12e-1faac474f948,Vault 13: Dweller's Journey,K3,divert:low_confidence,0.641
+2026-01-17T23:51:42Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
+2026-01-17T23:53:05Z,78028eda-61b0-408c-b3fc-adc968d39b47,Wall of Water,K3,divert:low_confidence,0.641
+2026-01-17T23:53:12Z,833a8604-92d5-443b-9bc0-bd91c973ef07,Mind Rot,K3,divert:low_confidence,0.641
+2026-01-17T23:53:19Z,57a194b3-2899-4dee-977a-c77df0b94dfe,Seat of the Synod,K3,divert:low_confidence,0.656
+2026-01-17T23:53:26Z,3b2e726b-f124-43f7-87e4-bb06bbe8e3d7,Fish,K3,divert:low_confidence,0.506
+2026-01-17T23:55:04Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,F3,alpha_exact:O:Ordeal of Thassa,1.000
+2026-01-17T23:56:26Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,D1,alpha_exact:G:Great Furnace,0.720
+2026-01-18T00:27:27Z,57a194b3-2899-4dee-977a-c77df0b94dfe,Seat of the Synod,B3,price:$0.59:Seat of the Synod,1.000
+2026-01-18T00:27:58Z,23d6dbd3-652f-4dc3-9453-24299332938d,Amnesia,K3,divert:low_confidence,0.550
+2026-01-18T00:28:05Z,5d59c8f2-f6af-40a6-8dfe-8cc45bf231ce,"Invasion of Ikoria // Zilortha, Apex of Ikoria",K3,divert:low_confidence,0.641
+2026-01-18T00:28:12Z,6c3da27e-4fdd-46ce-bb81-0b2dfec1c6ed,"A-Queza, Augur of Agonies",K3,divert:low_confidence,0.641
+2026-01-18T00:28:19Z,57a194b3-2899-4dee-977a-c77df0b94dfe,Seat of the Synod,B3,price:$0.59:Seat of the Synod,1.000
+2026-01-18T00:29:17Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,B2,price:$0.13:Ordeal of Thassa,1.000
+2026-01-18T00:30:12Z,74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1,Great Furnace,C1,price:$2.10:Great Furnace,1.000
+2026-01-18T00:31:04Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,C1,price:$2.13:Vault of Whispers,1.000
+2026-01-18T00:33:00Z,f78ab496-a19f-4c70-a56c-09a512d40c87,Ulcerate,K3,divert:low_confidence,0.579
+2026-01-18T00:33:49Z,2b6e1d03-ad24-4bde-ab3c-28f94e776a4e,Psychic Intrusion,K3,divert:low_confidence,0.641
+2026-01-18T00:33:56Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,C1,price:$5.91:Psychic Frog,1.000
+2026-01-18T00:34:50Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,K3,divert:low_confidence,0.675
+2026-01-18T00:34:58Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,B2,price:$0.13:Prescient Chimera,0.713
+2026-01-18T00:35:50Z,62584e4f-dac1-4d99-ac0a-6a2451603889,Soul Sear,K3,divert:low_confidence,0.675
+2026-01-18T00:36:18Z,d14eb0c1-7709-44da-ba7a-1aa033efb4f8,Flamewave Invoker,K3,divert:low_confidence,0.675
+2026-01-18T00:37:54Z,35d2ae77-b16c-4a01-84ce-5c78be5a54d8,Setessan Griffin,B1,price:$0.05:Setessan Griffin,1.000
+2026-01-18T00:38:43Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,B2,price:$0.13:Ordeal of Thassa,1.000
+2026-01-18T00:39:38Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,B2,price:$0.13:Ordeal of Thassa,1.000
+2026-01-19T04:20:49Z,a271351e-5d5e-443b-99a4-ebdc8a3c4923,Ward of Bones,K3,divert:low_confidence,0.641
+2026-01-19T04:20:58Z,3d3025a2-4a17-4137-ba0b-bd676c6f5f88,"Tinybones, the Pickpocket",K3,divert:low_confidence,0.641
+2026-01-19T04:21:07Z,b3198f96-f9d8-494f-a556-24ce3ad3895d,Read the Bones,K3,divert:low_confidence,0.600
+2026-01-19T04:21:24Z,b3198f96-f9d8-494f-a556-24ce3ad3895d,Read the Bones,G3,alpha_exact:R:Read the Bones,0.722
+2026-01-19T04:21:49Z,d50f89d4-56fd-492c-bd9a-28eab5a5b1aa,Naturalize 2,K3,divert:low_confidence,0.641
+2026-01-19T04:21:55Z,2f508a65-ff32-480a-b9c6-075074d0c3c3,Cloak of the Bat,K3,divert:low_confidence,0.641
+2026-01-19T04:22:01Z,b3198f96-f9d8-494f-a556-24ce3ad3895d,Read the Bones,K3,divert:low_confidence,0.692
+2026-01-19T04:22:07Z,a0fae55a-6edd-42ea-b909-ccc39a64a0ed,Eat to Extinction,K3,divert:low_confidence,0.641
+2026-01-19T04:22:14Z,d50f89d4-56fd-492c-bd9a-28eab5a5b1aa,Naturalize 2,K3,divert:low_confidence,0.641
+2026-01-19T04:22:20Z,15c710c9-86d6-4dc4-acf1-a291a6289784,Vivien on the Hunt // Vivien on the Hunt,K3,divert:low_confidence,0.641
+2026-01-19T04:22:26Z,c47ee6f6-50c1-4f56-b9ce-4c309bfb92ca,Freed from the Real,K3,divert:low_confidence,0.641
+2026-01-19T04:24:09Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,B1,price:no_price:Ordeal of Thassa,1.000
+2026-01-19T04:24:53Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,B1,price:no_price:Ordeal of Thassa,1.000
+2026-01-19T04:25:39Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,B2,price:$0.13:Prescient Chimera,1.000
+2026-01-19T04:26:52Z,57a194b3-2899-4dee-977a-c77df0b94dfe,Seat of the Synod,B3,price:$0.58:Seat of the Synod,1.000
+2026-01-19T04:29:38Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,B1,price:no_price:Psychic Frog,1.000
+2026-01-19T04:30:28Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,C1,price:$2.43:Vault of Whispers,1.000
+2026-01-19T04:31:20Z,5910a7f2-71a7-4e85-8feb-4a0da228eb15,Snake,K3,divert:low_confidence,0.506
+2026-01-19T04:31:26Z,cb530f9d-cf35-48a7-8711-f74b3d9a35a7,Furnace Skullbomb,K3,divert:low_confidence,0.675
+2026-01-19T04:31:31Z,43df9f41-944e-4cf3-ac80-524eadac221d,Deface,K3,divert:low_confidence,0.540
+2026-01-19T04:31:37Z,d6918d50-a4c3-40d8-9480-343f14773a69,Vengeful Possession,K3,divert:low_confidence,0.675
+2026-01-19T04:31:43Z,8f5228dc-ec9d-456f-a89c-1bc592a1bbab,Ettercap // Web Shot,K3,divert:low_confidence,0.675
+2026-01-19T04:31:50Z,29538ff4-e28f-44d9-af23-6796edd56268,Corpsejack Menace,K3,divert:low_confidence,0.563
+2026-01-19T04:51:53Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
+2026-01-19T04:52:11Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,0.706
+2026-01-19T04:52:29Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
+2026-01-19T04:52:54Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
+2026-01-19T05:03:22Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
+2026-01-19T05:04:15Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
+2026-01-19T05:07:33Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
+2026-01-19T05:07:55Z,e85e4098-f872-4aa4-a71a-208b6090be28,Vault of Whispers,I1,alpha_exact:V:Vault of Whispers,1.000
+2026-01-19T05:09:26Z,447bd736-6b47-440c-86ed-db54bd655274,Phobos,K3,divert:low_confidence,0.540
+2026-01-19T05:09:32Z,68924203-c3d9-41ce-8ca8-c6dd491eb3ca,Psychic Frog,G1,alpha_exact:P:Psychic Frog,1.000
+2026-01-19T05:10:46Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,F3,alpha_exact:O:Ordeal of Thassa,1.000
+2026-01-19T05:11:48Z,15e94825-98a8-40f1-8f61-83c79885fec0,Ox,K3,divert:low_confidence,0.675
+2026-01-19T05:11:55Z,f4bb655d-8d62-4a79-9a9d-7384d1cb2cc0,Prescient Chimera,G1,alpha_exact:P:Prescient Chimera,0.713
+2026-01-19T05:13:12Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,F3,alpha_exact:O:Ordeal of Thassa,1.000
+2026-01-19T05:14:30Z,57a194b3-2899-4dee-977a-c77df0b94dfe,Seat of the Synod,H1,alpha_exact:S:Seat of the Synod,1.000
+2026-01-19T05:15:59Z,b3198f96-f9d8-494f-a556-24ce3ad3895d,Read the Bones,K3,divert:low_confidence,0.692
+2026-01-19T05:16:05Z,b3198f96-f9d8-494f-a556-24ce3ad3895d,Read the Bones,K3,divert:low_confidence,0.692
+2026-01-19T05:16:11Z,d50f89d4-56fd-492c-bd9a-28eab5a5b1aa,Naturalize 2,K3,divert:low_confidence,0.641
