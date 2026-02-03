@@ -198,42 +198,69 @@ class CameraManager:
         except Exception:
             use_device = device
         
-        LOG.debug(f"Attempting to open camera device: {use_device}")
+        LOG.info(f"Opening camera device: {use_device}")
         
         # cv2.VideoCapture accepts either an int index or a string device path.
+        # Try multiple API backends for better compatibility
         api_prefs = [None]
         v4l2_pref = getattr(cv2, "CAP_V4L2", None)
+        any_pref = getattr(cv2, "CAP_ANY", None)
         if v4l2_pref is not None:
             api_prefs.append(v4l2_pref)
+        if any_pref is not None and any_pref not in api_prefs:
+            api_prefs.append(any_pref)
+            
         last_exc: Optional[Exception] = None
         cap: Optional[cv2.VideoCapture] = None
+        
         for api_pref in api_prefs:
             try:
                 if api_pref is None:
-                    LOG.debug(f"Trying to open camera {use_device} with default API")
+                    LOG.debug(f"Trying camera {use_device} with default API")
                     cap_candidate = cv2.VideoCapture(use_device) if isinstance(use_device, int) else cv2.VideoCapture(str(use_device))
                 else:
-                    LOG.debug(f"Trying to open camera {use_device} with API preference: {api_pref}")
+                    api_name = "V4L2" if api_pref == v4l2_pref else f"API_{api_pref}"
+                    LOG.debug(f"Trying camera {use_device} with {api_name}")
                     cap_candidate = cv2.VideoCapture(use_device, api_pref) if isinstance(use_device, int) else cv2.VideoCapture(str(use_device), api_pref)
+                    
+                if cap_candidate and cap_candidate.isOpened():
+                    # Verify we can actually read a frame
+                    ret, frame = cap_candidate.read()
+                    if ret and frame is not None:
+                        LOG.info(f"✓ Camera {use_device} opened successfully and verified working")
+                        cap = cap_candidate
+                        break
+                    else:
+                        LOG.warning(f"Camera {use_device} opened but failed to read test frame")
+                        try:
+                            cap_candidate.release()
+                        except Exception:
+                            pass
+                else:
+                    LOG.debug(f"Camera {use_device} failed to open with current API")
+                    if cap_candidate:
+                        try:
+                            cap_candidate.release()
+                        except Exception:
+                            pass
+                            
             except Exception as exc:  # pragma: no cover - depends on system drivers
-                LOG.debug(f"Failed to create VideoCapture for {use_device}: {exc}")
+                LOG.debug(f"Exception opening camera {use_device}: {exc}")
                 last_exc = exc
                 continue
-            if cap_candidate and cap_candidate.isOpened():
-                LOG.debug(f"Successfully opened camera {use_device}")
-                cap = cap_candidate
-                break
-            if cap_candidate:
-                try:
-                    cap_candidate.release()
-                except Exception:
-                    pass
+                
         if not cap or not cap.isOpened():
             if last_exc is not None:
                 self._last_error = f"Camera open failed for {device}: {last_exc}"
             else:
                 self._last_error = f"Unable to open camera device {device} (device may not exist or be in use)"
             LOG.error(self._last_error)
+            LOG.error("Troubleshooting steps:")
+            LOG.error(f"  1. Check device exists: ls -la /dev/video*")
+            LOG.error(f"  2. Check permissions: groups (should include 'video')")
+            LOG.error(f"  3. Check device is not in use: lsof /dev/video*")
+            LOG.error(f"  4. Try different device index in config.yaml")
+            
             fallback = self._cfg.get("fallback_image")
             if fallback:
                 LOG.warning("Camera device %s unavailable, will use fallback image %s", device, fallback)
@@ -322,8 +349,20 @@ def list_devices(max_index: int = 10) -> Dict[str, Any]:
     """
     candidates = []
     
-    # Probe numeric indices - this is more reliable than parsing device paths
+    # First, check for V4L2 devices on Linux
     LOG.info(f"Scanning camera devices 0-{max_index}...")
+    
+    # On Linux, also check /dev/video* devices
+    import os
+    import glob
+    video_devices = []
+    try:
+        video_devices = sorted(glob.glob("/dev/video*"))
+        LOG.info(f"Found {len(video_devices)} /dev/video* devices: {video_devices}")
+    except Exception as e:
+        LOG.debug(f"Could not enumerate /dev/video* devices: {e}")
+    
+    # Probe numeric indices - this is more reliable than parsing device paths
     for i in range(0, max_index + 1):
         available = False
         width = None
@@ -333,8 +372,11 @@ def list_devices(max_index: int = 10) -> Dict[str, Any]:
         
         try:
             # Try opening with numeric index
+            LOG.debug(f"Attempting to open camera {i}...")
             cap = cv2.VideoCapture(int(i))
+            
             if cap and cap.isOpened():
+                LOG.debug(f"Camera {i} opened successfully")
                 available = True
                 # Try to get camera properties
                 try:
@@ -347,19 +389,25 @@ def list_devices(max_index: int = 10) -> Dict[str, Any]:
                         backend = "V4L2"
                     elif backend_id == cv2.CAP_ANY:
                         backend = "Any"
+                    LOG.debug(f"Camera {i} properties: {width}x{height} @ {fps}fps, backend={backend}")
                 except Exception as e:
                     LOG.debug(f"Could not get properties for camera {i}: {e}")
                     pass
                 
                 # Try to actually read a frame to verify it works
                 try:
+                    LOG.debug(f"Attempting to read test frame from camera {i}...")
                     ret, frame = cap.read()
                     if not ret or frame is None:
-                        LOG.warning(f"Camera {i} opened but failed to read frame")
+                        LOG.warning(f"Camera {i} opened but failed to read frame (ret={ret}, frame is None={frame is None})")
                         available = False
+                    else:
+                        LOG.debug(f"Camera {i} test frame read successfully: shape={frame.shape}")
                 except Exception as e:
                     LOG.warning(f"Camera {i} opened but failed to read: {e}")
                     available = False
+            else:
+                LOG.debug(f"Camera {i} failed to open or is not available")
                     
             try:
                 cap.release()
@@ -379,12 +427,19 @@ def list_devices(max_index: int = 10) -> Dict[str, Any]:
                 'fps': fps if fps and fps > 0 else "unknown",
                 'backend': backend,
                 'device_index': i,
-                'path': f"/dev/video{i}"
+                'path': f"/dev/video{i}" if i < len(video_devices) else f"camera{i}"
             }
             candidates.append(device_info)
-            LOG.info(f"Found camera {i}: {device_info['resolution']} @ {device_info['fps']}fps ({backend})")
+            LOG.info(f"✓ Found camera {i}: {device_info['resolution']} @ {device_info['fps']}fps ({backend})")
 
-    LOG.info(f"Camera scan complete: found {len(candidates)} available camera(s)")
+    LOG.info(f"Camera scan complete: found {len(candidates)} available camera(s) out of {max_index + 1} checked")
+    
+    if len(candidates) == 0:
+        LOG.error("No cameras detected! Check:")
+        LOG.error("  1. Camera is connected and powered")
+        LOG.error("  2. User is in 'video' group (run: groups)")
+        LOG.error("  3. /dev/video* devices exist (run: ls -la /dev/video*)")
+        LOG.error(f"  4. OpenCV can access cameras (cv2.__version__={cv2.__version__})")
     
     # Sort by device index to get consistent ordering
     candidates.sort(key=lambda x: x['device_index'])

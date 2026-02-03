@@ -736,3 +736,8 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-01-19T05:15:59Z,b3198f96-f9d8-494f-a556-24ce3ad3895d,Read the Bones,K3,divert:low_confidence,0.692
 2026-01-19T05:16:05Z,b3198f96-f9d8-494f-a556-24ce3ad3895d,Read the Bones,K3,divert:low_confidence,0.692
 2026-01-19T05:16:11Z,d50f89d4-56fd-492c-bd9a-28eab5a5b1aa,Naturalize 2,K3,divert:low_confidence,0.641
+2026-01-22T03:26:35Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,F3,alpha_exact:O:Ordeal of Thassa,1.000
+2026-01-22T03:27:52Z,194b7a1c-291a-470e-9a40-61b72a46793b,Garenbrig Carver // Shield's Might,K3,divert:low_confidence,0.641
+2026-01-22T03:27:58Z,d24b6640-ef2f-4c92-beb3-afdf78f9c2d5,Nature's Claim,F2,alpha_exact:N:Nature's Claim,0.722
+2026-01-22T03:29:07Z,6aea6702-16a8-4073-9c83-fbea20a5fd32,Bristlepack Sentry,B2,alpha_exact:B:Bristlepack Sentry,1.000
+2026-01-22T03:30:01Z,fa764244-c5d5-4f27-9c56-866566a1404a,Ordeal of Thassa,F3,alpha_exact:O:Ordeal of Thassa,1.000

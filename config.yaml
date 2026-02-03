@@ -258,7 +258,7 @@ sorting:
         kaldheim: E3
         "*": K2
 camera:
-  device: 1  # Working camera device on /dev/video1
+  device: 0  # Working camera device on /dev/video0
   resolution:
   - 1280
   - 720
