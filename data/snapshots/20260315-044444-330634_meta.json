@@ -1,0 +1,144 @@
+{
+  "timestamp": "20260315-044444-330634",
+  "border": {
+    "found": false,
+    "area": 124465.5,
+    "margin_px": 10
+  },
+  "rotation": {
+    "method": "fixed_90_ccw",
+    "degrees": 90
+  },
+  "zone_ocr": {
+    "name": "_ \u00a9 Br",
+    "collector": "eC",
+    "oracle": "",
+    "type_line": ""
+  },
+  "identification": {
+    "best": {
+      "id": "90ba37ee-159f-421f-8d37-a7b5f1b562f0",
+      "name": "Brackish Trudge",
+      "set": "stx",
+      "collector_number": "65"
+    },
+    "score": 67.5,
+    "candidates": [
+      {
+        "card": {
+          "id": "90ba37ee-159f-421f-8d37-a7b5f1b562f0",
+          "name": "Brackish Trudge",
+          "set": "stx",
+          "collector_number": "65"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0,
+        "collector_score": 0.0,
+        "total_score": 67.5
+      },
+      {
+        "card": {
+          "id": "7c9b5baf-6163-48a9-b58d-195edfeb437d",
+          "name": "Battle Brawler",
+          "set": "frf",
+          "collector_number": "63"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0,
+        "collector_score": 0.0,
+        "total_score": 67.5
+      },
+      {
+        "card": {
+          "id": "0e44f7ff-1cfa-4bc4-a0f7-9d71ba48a97a",
+          "name": "Brood Birthing",
+          "set": "roe",
+          "collector_number": "138"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0,
+        "collector_score": 0.0,
+        "total_score": 67.5
+      },
+      {
+        "card": {
+          "id": "66940466-8e9d-4a85-bfb0-e92189b7a121",
+          "name": "Shock Brigade",
+          "set": "tdm",
+          "collector_number": "120"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0,
+        "collector_score": 0.0,
+        "total_score": 67.5
+      },
+      {
+        "card": {
+          "id": "2a1e7796-fbfb-4976-879f-bb748429d5c7",
+          "name": "Brine Hag",
+          "set": "leg",
+          "collector_number": "49"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0,
+        "collector_score": 0.0,
+        "total_score": 67.5
+      },
+      {
+        "card": {
+          "id": "723ec2ef-aa82-449d-88b0-405d06454fc2",
+          "name": "Break Ties",
+          "set": "mh2",
+          "collector_number": "8"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0,
+        "collector_score": 0.0,
+        "total_score": 67.5
+      },
+      {
+        "card": {
+          "id": "73e348dd-2d8a-4ee6-a834-2d5861566043",
+          "name": "Breaking Point",
+          "set": "ddk",
+          "collector_number": "67"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0,
+        "collector_score": 0.0,
+        "total_score": 67.5
+      },
+      {
+        "card": {
+          "id": "765ec2c9-8ffe-488a-bebe-e5dd63825a8c",
+          "name": "Breaking Point",
+          "set": "jud",
+          "collector_number": "81"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0,
+        "collector_score": 0.0,
+        "total_score": 67.5
+      },
+      {
+        "card": {
+          "id": "677166cf-4e1e-43ac-a67b-afaf33c0d14e",
+          "name": "Treefolk Umbra",
+          "set": "mh1",
+          "collector_number": "185"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0,
+        "collector_score": 0.0,
+        "total_score": 67.5
+      }
+    ],
+    "debug": {
+      "ocr_name": "Br",
+      "ocr_oracle": "",
+      "ocr_collector": "eC",
+      "num_cards_in_db": 110210,
+      "ocr_query": "Br\nec"
+    }
+  }
+}

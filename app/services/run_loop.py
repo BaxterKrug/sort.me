@@ -5,14 +5,15 @@ from typing import Any, Dict, List, Optional
 
 import yaml  # type: ignore[import-not-found]
 
-from services.assign import Card, Config, SystemState, assign_card, load_config
-from services import camera as camera_svc
-from services import feeder_monitor as feeder_vision
-from services import motion as motion_svc
-from services import sort_session
+from app.services.assign import Card, Config, SystemState, assign_card, load_config
+from app.services import camera as camera_svc
+from app.services import feeder_monitor as feeder_vision
+from app.services import motion as motion_svc
+from app.services import qr_scanner as qr_svc
+from app.services import sort_session
 
 try:  # optional event bus
-    from services import events  # type: ignore
+    from app.services import events  # type: ignore
 except Exception:  # pragma: no cover - events module is optional
     events = None  # type: ignore
 
@@ -37,12 +38,212 @@ try:
 except Exception as exc:
     LOG.warning("Feeder monitor configuration failed: %s", exc)
 
+try:
+    qr_svc.configure_from_cfg(CFG, CAMERA_CFG)
+except Exception as exc:
+    LOG.warning("QR scanner configuration failed: %s", exc)
+
 # Track feeder ordering and inventory so we can exhaust one feeder before
 # advancing to the next when running on real hardware.
 _FEEDER_SEQUENCE: List[str] = []
 _active_feeder: Optional[str] = None
 _feeder_index: int = 0
 _FEEDER_DETECTION: Dict[str, bool] = {}
+
+# Track processed QR codes to avoid re-executing commands
+_processed_qr_codes: Dict[str, str] = {}  # cell -> last processed QR data
+
+
+def parse_qr_command(qr_data: str) -> Dict[str, Any]:
+    """Parse QR code data into a command structure.
+    
+    Expected formats:
+        - "A1 endstep" - Cell A1 end of stack, advance to next feeder
+        - "A1" - Simple cell identifier (defaults to endstep behavior)
+        - "endstep" - Generic end of stack command
+        - "FEEDER_A1_END" - Legacy format for end of stack
+        - "FEEDER_A1_REFILL" - Legacy format for refill command
+        
+    Args:
+        qr_data: Raw string data from QR code
+        
+    Returns:
+        Dict with keys:
+            - cell: Optional cell identifier (e.g., "A1")
+            - command: Command to execute (e.g., "endstep")
+            - raw: Original QR data
+    """
+    import re
+    
+    if not qr_data:
+        return {"cell": None, "command": None, "raw": qr_data}
+    
+    data_upper = qr_data.strip().upper()
+    result = {"cell": None, "command": "endstep", "raw": qr_data}  # Default to endstep
+    
+    # Handle legacy "FEEDER_XX_END" or "FEEDER_XX_REFILL" format
+    feeder_pattern = re.compile(r'^FEEDER_([A-Z]+\d+)_(\w+)$')
+    match = feeder_pattern.match(data_upper)
+    if match:
+        result["cell"] = match.group(1)
+        cmd_word = match.group(2).lower()
+        # Map legacy command names to new ones
+        if cmd_word in ("end", "endstep", "empty"):
+            result["command"] = "endstep"
+        elif cmd_word in ("refill", "reload", "full"):
+            result["command"] = "refill"
+        else:
+            result["command"] = cmd_word
+        return result
+    
+    parts = data_upper.split()
+    
+    if len(parts) == 0:
+        return result
+    
+    # Check if first part is a cell identifier (letter + number pattern)
+    cell_pattern = re.compile(r'^[A-Z]+\d+$')
+    
+    if cell_pattern.match(parts[0]):
+        result["cell"] = parts[0]
+        if len(parts) > 1:
+            result["command"] = parts[1].lower()
+    else:
+        # First part is probably a command
+        result["command"] = parts[0].lower()
+        if len(parts) > 1 and cell_pattern.match(parts[1]):
+            result["cell"] = parts[1]
+    
+    return result
+
+
+async def execute_qr_command(qr_data: str, detected_cell: str) -> Dict[str, Any]:
+    """Execute a command parsed from QR code data.
+    
+    Args:
+        qr_data: Raw QR code data string
+        detected_cell: Cell where QR code was detected
+        
+    Returns:
+        Dict with execution results
+    """
+    global _active_feeder, _processed_qr_codes, _feeder_index
+    
+    # Parse the command
+    cmd = parse_qr_command(qr_data)
+    cell = cmd.get("cell") or detected_cell
+    command = cmd.get("command", "endstep")
+    
+    result = {
+        "cell": cell,
+        "command": command,
+        "executed": False,
+        "message": "",
+    }
+    
+    # Check if we've already processed this exact QR code for this cell
+    last_processed = _processed_qr_codes.get(cell)
+    if last_processed == qr_data:
+        result["message"] = f"QR code already processed for {cell}"
+        return result
+    
+    LOG.info("Executing QR command: %s for cell %s (raw: %s)", command, cell, qr_data)
+    
+    if command == "endstep":
+        # End of stack - mark feeder as empty and advance to next
+        state.feeder_counts[cell] = 0
+        _FEEDER_DETECTION[cell] = False
+        
+        # Find the next feeder after the detected cell
+        next_feeder = None
+        if cell in _FEEDER_SEQUENCE:
+            # Set feeder index to point after the detected cell
+            try:
+                cell_idx = _FEEDER_SEQUENCE.index(cell)
+                _feeder_index = cell_idx + 1  # Start search from next cell
+            except ValueError:
+                pass
+        
+        # Find next available feeder
+        next_feeder = _advance_to_next_feeder()
+        if next_feeder:
+            _active_feeder = next_feeder
+            LOG.info("Advanced to next feeder: %s", next_feeder)
+            result["message"] = f"Advanced from {cell} to {next_feeder}"
+            result["next_feeder"] = next_feeder
+            
+            # Move to the next feeder position
+            try:
+                if not motion_svc.is_demo_mode():
+                    LOG.info("Moving to next feeder position: %s", next_feeder)
+                    ctrl = motion_svc.get_controller()
+                    await ctrl.move_to_cell_xy(next_feeder)
+                    result["moved"] = True
+            except Exception as move_exc:
+                LOG.warning("Failed to move to next feeder %s: %s", next_feeder, move_exc)
+                result["move_error"] = str(move_exc)
+        else:
+            _active_feeder = None
+            LOG.warning("No more feeders available after %s", cell)
+            result["message"] = f"No more feeders available after {cell}"
+        
+        result["executed"] = True
+        _processed_qr_codes[cell] = qr_data
+        
+        # Publish event if available
+        if events:
+            try:
+                events.publish("qr_command", {"cell": cell, "command": command, "result": result})
+            except Exception:
+                pass
+    
+    elif command == "refill":
+        # Mark feeder as refilled
+        capacity = 120  # Default capacity
+        cell_cfg = CFG.cells.get(cell)
+        if cell_cfg:
+            capacity = getattr(cell_cfg, 'capacity', 120) or 120
+        state.feeder_counts[cell] = capacity
+        _FEEDER_DETECTION[cell] = True
+        result["executed"] = True
+        result["message"] = f"Refilled {cell} with {capacity} cards"
+        _processed_qr_codes[cell] = qr_data
+        LOG.info("Feeder %s refilled via QR command with %d cards", cell, capacity)
+    
+    elif command == "pause":
+        # Pause the sorting operation
+        state.paused = True
+        result["executed"] = True
+        result["message"] = "Sorting paused"
+        _processed_qr_codes[cell] = qr_data
+        LOG.info("Sorting paused via QR command")
+    
+    elif command == "resume":
+        # Resume the sorting operation
+        state.paused = False
+        result["executed"] = True
+        result["message"] = "Sorting resumed"
+        _processed_qr_codes[cell] = qr_data
+        LOG.info("Sorting resumed via QR command")
+    
+    else:
+        result["message"] = f"Unknown command: {command}"
+        LOG.warning("Unknown QR command: %s", command)
+    
+    return result
+
+
+def reset_qr_command_state(cell: Optional[str] = None) -> None:
+    """Reset the processed QR code state to allow re-execution.
+    
+    Args:
+        cell: Specific cell to reset, or None to reset all.
+    """
+    global _processed_qr_codes
+    if cell:
+        _processed_qr_codes.pop(cell, None)
+    else:
+        _processed_qr_codes.clear()
 
 
 def _cell_sort_key(cell_id: str) -> tuple:
@@ -71,10 +272,20 @@ def _initial_feeder_stock(cell_id: str) -> int:
 def _initialize_feeder_state() -> None:
     global _FEEDER_SEQUENCE, _feeder_index, _active_feeder
     feeders: List[str] = []
-    if CFG.feeder_re:
+    
+    # Priority 1: Use explicit feeder_sequence from config (includes tagged cells)
+    if CFG.feeder_sequence:
+        feeders = list(CFG.feeder_sequence)
+        LOG.info("Using feeder sequence from config: %s", feeders)
+    # Priority 2: Fall back to feeder regex pattern
+    elif CFG.feeder_re:
         feeders = [cid for cid in CFG.cells.keys() if CFG.feeder_re.search(cid)]
+        LOG.info("Using feeder regex pattern: %s", feeders)
+    # Priority 3: Fall back to cells starting with 'A'
     if not feeders:
         feeders = [cid for cid in CFG.cells.keys() if str(cid).upper().startswith('A')]
+        LOG.info("Falling back to 'A' prefix for feeders: %s", feeders)
+    
     _FEEDER_SEQUENCE = sorted(dict.fromkeys(feeders), key=_cell_sort_key)
     _feeder_index = 0
     _active_feeder = None
@@ -102,37 +313,83 @@ def set_feeder_inventory(updates: Dict[str, int]) -> None:
         _active_feeder = None
 
 
-def feeders_remaining() -> Dict[str, int]:
-    """Return a snapshot of remaining cards per tracked feeder."""
-    return {cid: state.feeder_remaining(cid) or 0 for cid in _FEEDER_SEQUENCE}
-
-
-async def _refresh_feeder_detections(cells: Optional[List[str]] = None) -> Dict[str, Dict[str, Any]]:
+async def _refresh_feeder_detections(cells: Optional[List[str]] = None) -> Dict[str, Any]:
+    """Check feeder status using visual monitoring and QR code detection.
+    
+    Args:
+        cells: Optional list of cell IDs to check. If None, checks all feeders.
+        
+    Returns:
+        Dictionary mapping cell IDs to detection results.
+    """
+    global _active_feeder
     monitor = feeder_vision.get_monitor()
-    if not monitor or not getattr(monitor, "enabled", False):
-        return {}
-    try:
-        results = await monitor.measure(target_cells=cells)
-    except Exception as exc:
-        LOG.warning("Feeder vision check failed: %s", exc)
-        return {}
+    scanner = qr_svc.get_scanner()
+    
+    results = {}
+    
+    # Check visual fill detection
+    if monitor and getattr(monitor, "enabled", False):
+        try:
+            results = await monitor.measure(target_cells=cells)
+        except Exception as exc:
+            LOG.warning("Feeder vision check failed: %s", exc)
 
-    for cid, data in results.items():
-        empty = bool(data.get("empty"))
-        _FEEDER_DETECTION[cid] = not empty
-        if empty:
-            if state.feeder_counts.get(cid, 0) != 0:
-                LOG.info("Feeder %s detected empty via camera", cid)
-            state.feeder_counts[cid] = 0
-        else:
-            if state.feeder_counts.get(cid, 0) == 0:
-                LOG.info("Feeder %s detected as refilled via camera", cid)
-                state.feeder_counts[cid] = 1
-                state.counts_by_cell[cid] = 1
+        for cid, data in results.items():
+            empty = bool(data.get("empty"))
+            _FEEDER_DETECTION[cid] = not empty
+            if empty:
+                if state.feeder_counts.get(cid, 0) != 0:
+                    LOG.info("Feeder %s detected empty via camera", cid)
+                state.feeder_counts[cid] = 0
+            else:
+                if state.feeder_counts.get(cid, 0) == 0:
+                    LOG.info("Feeder %s detected as refilled via camera", cid)
+                    state.feeder_counts[cid] = 1
+                    state.counts_by_cell[cid] = 1
+    
+    # Check QR code detection and execute commands (simplified full-frame scanner)
+    if scanner and getattr(scanner, "enabled", False):
+        try:
+            qr_result = await scanner.scan()  # Scan full frame for single QR
+        except Exception as exc:
+            LOG.warning("QR scanner check failed: %s", exc)
+            qr_result = {}
+        
+        # Reset processed QR codes when QR code fully disappears to allow re-detection
+        # This happens when the scanner's stable tracking has been cleared (QR absent for N frames)
+        if scanner.is_stable_cleared() and _processed_qr_codes:
+            LOG.debug("QR code fully disappeared, clearing processed state for re-detection")
+            _processed_qr_codes.clear()
+        
+        # If QR code is detected with stable reading, execute the command
+        if qr_result.get("stable") and qr_result.get("is_new_stable"):
+            qr_data = qr_result.get("data", "")
+            cell_from_qr = qr_result.get("cell")  # Cell parsed from QR data
+            command = qr_result.get("command", "endstep")
+            
+            if qr_data:
+                # Use cell from QR code, or active feeder as fallback
+                target_cell = cell_from_qr or _active_feeder
+                
+                LOG.info("QR command detected: '%s' (cell=%s, cmd=%s)", qr_data, target_cell, command)
+                
+                # Execute the command
+                cmd_result = await execute_qr_command(qr_data, target_cell or "A1")
+                
+                # Add to results
+                if target_cell:
+                    if target_cell not in results:
+                        results[target_cell] = {}
+                    results[target_cell]["qr_detected"] = True
+                    results[target_cell]["qr_data"] = qr_data
+                    results[target_cell]["qr_command"] = cmd_result
+    
     return results
 
 
 def _advance_to_next_feeder() -> Optional[str]:
+    """Find and return the next feeder cell with remaining cards."""
     global _feeder_index
     if not _FEEDER_SEQUENCE:
         return None
@@ -147,6 +404,11 @@ def _advance_to_next_feeder() -> Optional[str]:
         if remaining is None or remaining > 0:
             return cid
     return None
+
+
+def feeders_remaining() -> Dict[str, int]:
+    """Return a snapshot of remaining cards per tracked feeder."""
+    return {cid: state.feeder_remaining(cid) or 0 for cid in _FEEDER_SEQUENCE}
 
 
 def _ensure_active_feeder() -> Optional[str]:
@@ -179,41 +441,34 @@ def _mark_feeder_decrement(cell_id: str) -> None:
 
 _initialize_feeder_state()
 
-# configure motion controller with positions from CFG.cells (if available)
+# configure motion controller with positions from grid.positions in raw config
 try:
     ctrl = motion_svc.get_controller()
-    # build mapping cid -> {x,y,z} from CFG.cells (Cell objects or dicts)
     cells_map = {}
-    for cid, c in CFG.cells.items():
-        # support both dataclass-like objects and plain dicts
-        try:
-            x_val = getattr(c, "x", None)
-            y_val = getattr(c, "y", None)
-            z_val = getattr(c, "z", None)
-        except Exception:
-            x_val = y_val = z_val = None
-        if x_val is None or y_val is None or z_val is None:
-            if isinstance(c, dict):
-                x_val = c.get("x", x_val)
-                y_val = c.get("y", y_val)
-                z_val = c.get("z", z_val if z_val is not None else 0.0)
-        try:
-            x = float(x_val) if x_val is not None else 0.0
-        except Exception:
-            x = 0.0
-        try:
-            y = float(y_val) if y_val is not None else 0.0
-        except Exception:
-            y = 0.0
-        try:
-            z = float(z_val) if z_val is not None else 0.0
-        except Exception:
-            z = 0.0
-        cells_map[cid] = {"x": x, "y": y, "z": z}
+    
+    # Load grid positions from raw config
+    grid_cfg = _RAW_CFG.get("grid", {}) if isinstance(_RAW_CFG, dict) else {}
+    grid_positions = grid_cfg.get("positions", {}) if isinstance(grid_cfg, dict) else {}
+    
+    # Build cells_map from grid positions
+    for cid in CFG.cells.keys():
+        if cid in grid_positions:
+            pos = grid_positions[cid]
+            if isinstance(pos, (list, tuple)) and len(pos) >= 2:
+                x, y = float(pos[0]), float(pos[1])
+                z = float(pos[2]) if len(pos) >= 3 else 0.0
+                cells_map[cid] = {"x": x, "y": y, "z": z}
+            else:
+                LOG.warning("Cell %s has invalid position format in grid.positions: %s", cid, pos)
+                cells_map[cid] = {"x": 0.0, "y": 0.0, "z": 0.0}
+        else:
+            LOG.warning("Cell %s not found in grid.positions, defaulting to (0,0,0)", cid)
+            cells_map[cid] = {"x": 0.0, "y": 0.0, "z": 0.0}
+    
     ctrl.configure_cells(cells_map)
-    LOG.info("Motion controller configured from CFG")
+    LOG.info("Motion controller configured from grid.positions (%d cells)", len(cells_map))
 except Exception as e:
-    LOG.warning("Failed to configure motion controller from CFG: %s", e)
+    LOG.warning("Failed to configure motion controller: %s", e)
 
 # make an async handler so callers can schedule it safely
 async def _handle_card_identified_async(meta: dict):

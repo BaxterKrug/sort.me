@@ -2,3 +2,5 @@ easyocr
 torch
 torchvision
 faiss-cpu
+# QR code generation (for creating feeder end markers)
+qrcode[pil]>=7.4.2

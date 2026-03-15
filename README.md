@@ -54,6 +54,7 @@ The system includes a web-based control interface for monitoring camera feed, co
 
 ### Advanced Features
 - **Feeder Monitoring**: Automatic detection of cards in feeder bins
+- **QR Code Detection**: End-of-feeder markers for automatic feeder advancement (see [QR_CODE_SETUP.md](QR_CODE_SETUP.md))
 - **Auto-sort Loop**: Continuous sorting with automatic feeder advancement
 - **Confidence Thresholds**: Configurable handling of low-confidence identifications
 - **Capacity Management**: Cell overflow detection and handling

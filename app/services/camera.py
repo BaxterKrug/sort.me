@@ -294,8 +294,14 @@ class CameraManager:
             return self._load_fallback_frame()
         ok, frame = cap.read()
         if not ok or frame is None:
-            LOG.warning("Camera read failed; using fallback frame")
+            LOG.warning("Camera read failed (possible USB disconnect); releasing capture and using fallback")
             self._last_error = "Camera read failed"
+            # Release the broken capture so _ensure_capture_locked will reopen it next call
+            try:
+                cap.release()
+            except Exception:
+                pass
+            self._capture = None
             return self._load_fallback_frame()
         self._last_frame = frame
         self._last_ts = time.time()
@@ -304,15 +310,19 @@ class CameraManager:
 
     def _load_fallback_frame(self) -> np.ndarray:
         fb = self._cfg.get("fallback_image")
-        if not fb:
-            raise RuntimeError("No camera frame available and no fallback image configured")
-        frame = cv2.imread(fb, cv2.IMREAD_COLOR)
-        if frame is None:
-            raise RuntimeError(f"Fallback image could not be loaded: {fb}")
-        self._last_frame = frame
-        self._last_ts = time.time()
-        self._last_error = None
-        return frame
+        if fb:
+            frame = cv2.imread(fb, cv2.IMREAD_COLOR)
+            if frame is not None:
+                self._last_frame = frame
+                self._last_ts = time.time()
+                self._last_error = None
+                return frame
+            LOG.warning("Fallback image could not be loaded: %s", fb)
+        # Use last cached frame if available (e.g. after USB camera disconnect)
+        if self._last_frame is not None:
+            LOG.warning("Camera unavailable; returning last cached frame")
+            return self._last_frame
+        raise RuntimeError("No camera frame available and no fallback image configured")
 
     def grab_frame_sync(self, max_age: float = 0.0) -> np.ndarray:
         with self._lock:

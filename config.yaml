@@ -3,8 +3,8 @@ use_fake_hardware: false
 
 alpha_exact:
   letter_to_cell:
-    A: B1
-    B: B2
+    A: H1
+    B: H2
     C: B3
     D: C1
     E: C2
@@ -21,8 +21,8 @@ alpha_exact:
     P: G1
     Q: G2
     R: G3
-    S: H1
-    T: H2
+    S: B1
+    T: B2
     U: H3
     V: I1
     W: I2
@@ -141,43 +141,43 @@ grid:
   row_spacing: 104.0    # mm between number rows (1, 2, 3)
   positions:
     # Row 1 (Y = 0 + 28 = 28)
-    A1: [17, 28]       # X = 0+17, Y = 0+28 (reference point)
-    B1: [123, 28]      # X = 106+17, Y = 0+28
-    C1: [229, 28]      # X = 212+17, Y = 0+28
-    D1: [335, 28]      # X = 318+17, Y = 0+28
-    E1: [441, 28]      # X = 424+17, Y = 0+28
-    F1: [547, 28]      # X = 530+17, Y = 0+28
-    G1: [653, 28]      # X = 636+17, Y = 0+28
-    H1: [759, 28]      # X = 742+17, Y = 0+28
-    I1: [865, 28]      # X = 848+17, Y = 0+28
-    J1: [971, 28]      # X = 954+17, Y = 0+28
-    K1: [1077, 28]     # X = 1060+17, Y = 0+28
+    A1: [10, 28]       # X = 0+12, Y = 0+28 (reference point)
+    B1: [116, 28]      # X = 106+12, Y = 0+28
+    C1: [222, 28]      # X = 212+12, Y = 0+28
+    D1: [328, 28]      # X = 318+12, Y = 0+28
+    E1: [434, 28]      # X = 424+12, Y = 0+28
+    F1: [540, 28]      # X = 530+12, Y = 0+28
+    G1: [646, 28]      # X = 636+12, Y = 0+28
+    H1: [752, 28]      # X = 742+12, Y = 0+28
+    I1: [858, 28]      # X = 848+12, Y = 0+28
+    J1: [964, 28]      # X = 954+12, Y = 0+28
+    K1: [1070, 28]     # X = 1060+12, Y = 0+28
     # Row 2 (Y = 135 + 28 = 163)
-    A2: [17, 163]      # X = 0+17, Y = 135+28
-    B2: [123, 163]     # X = 106+17, Y = 135+28
-    C2: [229, 163]     # X = 212+17, Y = 135+28
-    D2: [335, 163]     # X = 318+17, Y = 135+28
-    E2: [441, 163]     # X = 424+17, Y = 135+28
-    F2: [547, 163]     # X = 530+17, Y = 135+28
-    G2: [653, 163]     # X = 636+17, Y = 135+28
-    H2: [759, 163]     # X = 742+17, Y = 135+28
-    I2: [865, 163]     # X = 848+17, Y = 135+28
-    J2: [971, 163]     # X = 954+17, Y = 135+28
-    K2: [1077, 163]    # X = 1060+17, Y = 135+28
+    A2: [10, 160]      # X = 0+12, Y = 135+28
+    B2: [116, 160]     # X = 106+12, Y = 135+28
+    C2: [222, 160]     # X = 212+12, Y = 135+28
+    D2: [328, 160]     # X = 318+12, Y = 135+28
+    E2: [434, 160]     # X = 424+12, Y = 135+28
+    F2: [540, 160]     # X = 530+12, Y = 135+28
+    G2: [646, 160]     # X = 636+12, Y = 135+28
+    H2: [752, 160]     # X = 742+12, Y = 135+28
+    I2: [858, 160]     # X = 848+12, Y = 135+28
+    J2: [964, 160]     # X = 954+12, Y = 135+28
+    K2: [1070, 160]    # X = 1060+12, Y = 135+28
     # Row 3 (Y = 270 + 28 = 298)
-    A3: [17, 298]      # X = 0+17, Y = 270+28
-    B3: [123, 298]     # X = 106+17, Y = 270+28
-    C3: [229, 298]     # X = 212+17, Y = 270+28
-    D3: [335, 298]     # X = 318+17, Y = 270+28
-    E3: [441, 298]     # X = 424+17, Y = 270+28
-    F3: [547, 298]     # X = 530+17, Y = 270+28
-    G3: [653, 298]     # X = 636+17, Y = 270+28
-    H3: [759, 298]     # X = 742+17, Y = 270+28
-    I3: [865, 298]     # X = 848+17, Y = 270+28
-    J3: [971, 298]     # X = 954+17, Y = 270+28
-    K3: [1077, 298]    # X = 1060+17, Y = 270+28
+    A3: [10, 292]      # X = 0+12, Y = 270+28
+    B3: [116, 292]     # X = 106+12, Y = 270+28
+    C3: [222, 292]     # X = 212+12, Y = 270+28
+    D3: [328, 292]     # X = 318+12, Y = 270+28
+    E3: [434, 292]     # X = 424+12, Y = 270+28
+    F3: [540, 292]     # X = 530+12, Y = 270+28
+    G3: [646, 292]     # X = 636+12, Y = 270+28
+    H3: [752, 292]     # X = 742+12, Y = 270+28
+    I3: [858, 292]     # X = 848+12, Y = 270+28
+    J3: [964, 292]     # X = 954+12, Y = 270+28
+    K3: [1070, 292]    # X = 1060+12, Y = 270+28
     # Error pile position (offset from grid)
-    ERR1: [1117, 356]  # X = 1100+17, Y = 328+28
+    ERR1: [1070, 292]  # X = 1100+12, Y = 328+28
 feeder:
   reserve_pattern: ^A\d+$
 gcode:
@@ -186,9 +186,9 @@ gcode:
   mcodes:
   # Vacuum/extruder test commands removed. Use plunger or raw gcode send if needed.
 motion:
-  default_speed: 1600.0     # Default movement speed in mm/min (doubled from 800)
-  rapid_speed: 2400.0       # Fast positioning speed for non-critical moves (doubled from 1200)
-  homing_speed: 800.0       # Speed for homing operations (doubled from 400)
+  default_speed: 3200.0     # Default movement speed in mm/min
+  rapid_speed: 4800.0       # Fast positioning speed for non-critical moves
+  homing_speed: 800.0       # Speed for homing operations (kept conservative for safety)
 overflow:
   cells:
   - K3
@@ -258,7 +258,7 @@ sorting:
         kaldheim: E3
         "*": K2
 camera:
-  device: 0  # Working camera device on /dev/video0
+  device: 4  # Use USB webcam at /dev/video4
   resolution:
   - 1280
   - 720
@@ -287,3 +287,17 @@ camera:
     - 1.0
     empty_threshold: 0.05
     history: 5
+  # QR code detection for end-of-feeder markers
+  # Place QR codes at the bottom of feeder cells to signal when empty
+  # QR code detection - scans full frame for QR codes
+  # The machine knows which cell it's positioned at, so we just detect if a QR code is present
+  qr_codes:
+  - cell: A1
+    history: 3  # Require 3 consecutive detections for stable result
+    expected_data: "FEEDER_A1_END"  # Verify QR content matches this cell
+  - cell: A2
+    history: 3
+    expected_data: "FEEDER_A2_END"
+  - cell: A3
+    history: 3
+    expected_data: "FEEDER_A3_END"

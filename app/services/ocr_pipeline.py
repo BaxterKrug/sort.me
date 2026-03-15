@@ -1161,6 +1161,28 @@ def prepare_single_snapshot_artifacts(
     name_zone = card_portrait[0:name_zone_height, :].copy()
     collector_zone = card_portrait[-collector_zone_height:, :].copy()
     
+    # Save the actual card with zone overlays for debugging
+    debug_dir = Path("data/snapshots")
+    if debug_dir.exists():
+        try:
+            # Create a copy with zone rectangles drawn
+            card_with_zones = card_portrait.copy()
+            if len(card_with_zones.shape) == 2:
+                card_with_zones = cv2.cvtColor(card_with_zones, cv2.COLOR_GRAY2BGR)
+            cv2.rectangle(card_with_zones, (0, 0), (w-1, name_zone_height-1), (0, 255, 0), 3)
+            cv2.rectangle(card_with_zones, (0, h-collector_zone_height), (w-1, h-1), (255, 0, 0), 3)
+            cv2.putText(card_with_zones, "NAME ZONE", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+            cv2.putText(card_with_zones, "COLLECTOR ZONE", (10, h-collector_zone_height+30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 0), 2)
+            cv2.imwrite(str(debug_dir / "debug_card_with_zones.jpg"), card_with_zones)
+            
+            # Also save the raw extracted zones
+            cv2.imwrite(str(debug_dir / "debug_name_zone_raw.jpg"), name_zone)
+            cv2.imwrite(str(debug_dir / "debug_collector_zone_raw.jpg"), collector_zone)
+            
+            LOG.info(f"Card dimensions: {w}x{h}, Name zone: 0-{name_zone_height}, Collector zone: {h-collector_zone_height}-{h}")
+        except Exception as e:
+            LOG.warning(f"Failed to save debug zones: {e}")
+    
     # Run OCR
     ocr_result = _extract_zone_text(name_zone, collector_zone)
     
@@ -1301,45 +1323,64 @@ def _extract_zone_text(name_zone: np.ndarray, collector_zone: np.ndarray) -> Dic
         # Try multiple OCR strategies and use consensus voting
         results = []
         
-        # Strategy 1: Normal grayscale with PSM 7 (single line)
-        name_config_1 = (
-            '--oem 1 --psm 7 '
-            '-c tessedit_char_whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,\'-./!?:" '
-            '-c preserve_interword_spaces=1'
-        )
-        try:
-            text_1 = pytesseract.image_to_string(name_prepared, config=name_config_1, lang="eng").strip()
-            LOG.info(f"OCR Strategy 1 (normal): '{text_1}' (len={len(text_1)})")
-            results.append(('normal', text_1))
-        except Exception as e:
-            LOG.warning(f"OCR Strategy 1 failed: {e}")
+        # Try different PSM modes without restrictive character whitelist
+        configs = [
+            ('psm6', '--oem 1 --psm 6 -c preserve_interword_spaces=1'),  # Uniform block of text
+            ('psm7', '--oem 1 --psm 7 -c preserve_interword_spaces=1'),  # Single line
+            ('psm13', '--oem 1 --psm 13'),  # Raw line (no assumptions)
+            ('psm3', '--oem 1 --psm 3 -c preserve_interword_spaces=1'),  # Fully automatic
+        ]
         
-        # Strategy 2: Inverted image (for white text on dark/textured background)
+        # Strategy 1: Try different PSM modes on normal grayscale
+        for psm_name, config in configs:
+            try:
+                text = pytesseract.image_to_string(name_prepared, config=config, lang="eng").strip()
+                if text:  # Only log and save if we got something
+                    LOG.info(f"OCR Strategy {psm_name}: '{text}' (len={len(text)})")
+                    results.append((psm_name, text))
+            except Exception as e:
+                LOG.debug(f"OCR Strategy {psm_name} failed: {e}")
+        
+        # Strategy 2: Inverted image with best PSM modes
         try:
             name_inverted = cv2.bitwise_not(name_prepared)
             if debug_dir.exists():
                 cv2.imwrite(str(debug_dir / "debug_name_inverted.jpg"), name_inverted)
-            text_2 = pytesseract.image_to_string(name_inverted, config=name_config_1, lang="eng").strip()
-            LOG.info(f"OCR Strategy 2 (inverted): '{text_2}' (len={len(text_2)})")
-            results.append(('inverted', text_2))
+            
+            for psm_name, config in configs[:2]:  # Try PSM 6 and 7 on inverted
+                try:
+                    text = pytesseract.image_to_string(name_inverted, config=config, lang="eng").strip()
+                    if text:
+                        LOG.info(f"OCR Strategy {psm_name}_inv: '{text}' (len={len(text)})")
+                        results.append((f'{psm_name}_inv', text))
+                except Exception:
+                    pass
         except Exception as e:
-            LOG.warning(f"OCR Strategy 2 failed: {e}")
+            LOG.debug(f"Inverted strategy failed: {e}")
         
         # Strategy 3: Binary threshold with Otsu's method
         try:
             _, name_binary = cv2.threshold(name_prepared, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
             if debug_dir.exists():
                 cv2.imwrite(str(debug_dir / "debug_name_otsu.jpg"), name_binary)
-            text_3 = pytesseract.image_to_string(name_binary, config=name_config_1, lang="eng").strip()
-            LOG.info(f"OCR Strategy 3 (Otsu): '{text_3}' (len={len(text_3)})")
-            results.append(('otsu', text_3))
+            
+            for psm_name, config in configs[:2]:  # Try PSM 6 and 7 on binary
+                try:
+                    text = pytesseract.image_to_string(name_binary, config=config, lang="eng").strip()
+                    if text:
+                        LOG.info(f"OCR Strategy {psm_name}_otsu: '{text}' (len={len(text)})")
+                        results.append((f'{psm_name}_otsu', text))
+                except Exception:
+                    pass
         except Exception as e:
-            LOG.warning(f"OCR Strategy 3 failed: {e}")
+            LOG.debug(f"Binary threshold strategy failed: {e}")
         
         # Consensus voting: pick the result that appears most similar across strategies
-        # Require stronger agreement for more reliable results
+        # relaxed for debugging
         name_text = ""
-        if len(results) >= 2:
+        if not results:
+            LOG.warning("✗ No OCR strategies returned any text")
+        elif len(results) >= 2:
             # Check for consensus by comparing normalized first 10 characters
             from collections import Counter
             import re
@@ -1349,7 +1390,7 @@ def _extract_zone_text(name_zone: np.ndarray, collector_zone: np.ndarray) -> Dic
                 cleaned = re.sub(r'\s+', ' ', text.strip()).lower()
                 # Take first 10 chars as signature (or full text if shorter)
                 sig = cleaned[:10] if len(cleaned) >= 10 else cleaned
-                if len(sig) >= 5:  # Only consider if at least 5 chars
+                if len(sig) >= 3:  # Lowered from 5 to 3 for debugging
                     normalized_results.append((sig, text, strategy, cleaned))
             
             # Count matching signatures
@@ -1363,40 +1404,37 @@ def _extract_zone_text(name_zone: np.ndarray, collector_zone: np.ndarray) -> Dic
                     name_text = max(matching, key=len)
                     LOG.info(f"✓ Consensus found ({count}/{len(results)} strategies agree): '{name_text}'")
                 else:
-                    # No clear consensus - check if results are similar enough
-                    # If longest result is ≥10 chars and contains most common sig, accept it
+                    # No clear consensus - use longest result if ≥5 chars
                     longest = max((text for _, text in results), key=len, default="")
-                    longest_cleaned = re.sub(r'\s+', ' ', longest.strip()).lower()
                     
-                    if len(longest) >= 10 and most_common_sig in longest_cleaned:
+                    if len(longest) >= 5:  # Lowered from 8
                         name_text = longest
-                        LOG.warning(f"⚠ Weak consensus - longest contains common signature: '{name_text}'")
-                    elif len(longest) >= 8:
-                        name_text = longest
-                        LOG.warning(f"⚠ No consensus - using longest (≥8 chars): '{name_text}'")
+                        LOG.warning(f"⚠ No consensus - using longest (≥5 chars): '{name_text}'")
                     else:
-                        name_text = ""
-                        LOG.warning(f"✗ No consensus and all results too short - rejecting")
+                        # Last resort: take anything ≥3 chars
+                        if len(longest) >= 3:
+                            name_text = longest
+                            LOG.warning(f"⚠⚠ Taking longest result (≥3 chars): '{name_text}'")
+                        else:
+                            name_text = ""
+                            LOG.warning(f"✗ All results too short (< 3 chars) - rejecting")
             else:
                 # All results too short - reject
-                LOG.warning(f"✗ All OCR results < 5 chars - rejecting")
+                LOG.warning(f"✗ All OCR results < 3 chars - rejecting")
                 name_text = ""
-        elif results:
-            # Only one strategy succeeded - accept if long enough
-            if len(results[0][1]) >= 8:
+        else:
+            # Only one strategy succeeded - accept if ≥3 chars
+            if len(results[0][1]) >= 3:
                 name_text = results[0][1]
-                LOG.info(f"Single strategy result (≥8 chars): '{name_text}'")
+                LOG.info(f"Single strategy result (≥3 chars): '{name_text}'")
             else:
                 name_text = ""
-                LOG.warning(f"✗ Single strategy result too short - rejecting")
+                LOG.warning(f"✗ Single strategy result too short (< 3 chars) - rejecting")
         
-        LOG.info(f"Final OCR result: '{name_text}' (len={len(name_text)})")
+        LOG.info(f"Final name OCR result: '{name_text}' (len={len(name_text)})")
         result["name"] = name_text
         
-        LOG.info(f"Final OCR result: '{name_text}' (len={len(name_text)})")
-        result["name"] = name_text
-        
-        # Prepare and OCR collector zone with optimized config
+        # Prepare and OCR collector zone - try multiple PSM modes
         collector_prepared = _prepare_region_slice(collector_zone, "collector")
         
         # Save debug image
@@ -1406,14 +1444,30 @@ def _extract_zone_text(name_zone: np.ndarray, collector_zone: np.ndarray) -> Dic
             except Exception:
                 pass
         
-        # Enhanced config for collector numbers:
-        # More restrictive whitelist for collector numbers (letters, digits, slashes)
-        collector_config = (
-            '--oem 1 --psm 7 '
-            f'-c tessedit_char_whitelist="{COLLECTOR_CHAR_WHITELIST}"'
-        )
-        collector_text = pytesseract.image_to_string(collector_prepared, config=collector_config, lang="eng")
-        result["collector"] = collector_text.strip()
+        # Try multiple PSM modes for collector number
+        collector_results = []
+        collector_configs = [
+            ('psm7', '--oem 1 --psm 7'),  # Single line
+            ('psm6', '--oem 1 --psm 6'),  # Uniform block
+            ('psm13', '--oem 1 --psm 13'),  # Raw line
+        ]
+        
+        for psm_name, config in collector_configs:
+            try:
+                text = pytesseract.image_to_string(collector_prepared, config=config, lang="eng").strip()
+                if text:
+                    LOG.info(f"Collector OCR {psm_name}: '{text}' (len={len(text)})")
+                    collector_results.append(text)
+            except Exception:
+                pass
+        
+        # Use first non-empty result or longest
+        if collector_results:
+            result["collector"] = max(collector_results, key=len)
+            LOG.info(f"Final collector OCR: '{result['collector']}'")
+        else:
+            result["collector"] = ""
+            LOG.warning("✗ No collector OCR results")
     except Exception as exc:
         LOG.warning("Zone OCR failed: %s", exc)
     
@@ -1421,6 +1475,12 @@ def _extract_zone_text(name_zone: np.ndarray, collector_zone: np.ndarray) -> Dic
 
 def _find_card_database() -> Optional[Path]:
     """Find the card database JSON file."""
+    # First check for cards_metadata.json in data/embeddings
+    cards_metadata = Path("data/embeddings/cards_metadata.json")
+    if cards_metadata.exists():
+        return cards_metadata
+    
+    # Fall back to oracle-cards pattern
     data_dir = Path("data")
     for json_file in data_dir.glob("oracle-cards-*.json"):
         return json_file

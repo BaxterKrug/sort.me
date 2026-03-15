@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import shutil
+import time
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
@@ -26,6 +27,7 @@ from app.services import camera as camera_svc
 from app.services import motion
 from app.services import feeder_monitor
 from app.services import ocr_pipeline
+from app.services import qr_scanner
 from app.services import sort_session
 from app.services.assign import (
     DEFAULT_SORT_MODE,
@@ -130,6 +132,11 @@ try:
 except Exception as exc:  # pragma: no cover - best effort on startup
     LOG.warning("Feeder monitor configuration failed: %s", exc)
 
+try:
+    qr_scanner.configure_from_cfg(CFG, camera_cfg)
+except Exception as exc:  # pragma: no cover - best effort on startup
+    LOG.warning("QR scanner configuration failed: %s", exc)
+
 MOTION = get_controller()
 SESSION = sort_session.get_manager()
 ERROR_LOG: List[Dict[str, Any]] = []
@@ -143,7 +150,7 @@ CAMERA_FOCUS_Z = 130.0
 # Auto-sort loop control
 AUTO_SORT_RUNNING = False
 AUTO_SORT_TASK: Optional[asyncio.Task] = None
-AUTO_SORT_STATS = {"cards_processed": 0, "errors": 0, "started_at": None}
+AUTO_SORT_STATS = {"cards_processed": 0, "errors": 0, "skipped": 0, "started_at": None}
 
 # Snapshot protection to prevent concurrent requests
 SNAPSHOT_IN_PROGRESS = False
@@ -899,7 +906,8 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
         current_x = float(MOTION.current[0])
         current_y = float(MOTION.current[1])
     
-        await MOTION.driver.send_gcode(f'G0 X{current_x:.3f} Y{current_y:.3f} Z{target_safe_z:.3f} F1000')
+        # Z-only move: never move X/Y at the same time as Z
+        await MOTION.driver.send_gcode(f'G0 Z{target_safe_z:.3f} F1000')
         LOG.info(f"Auto-sort: Reached safe height Z={target_safe_z}mm")
 
         # Ensure the motion controller's cached position reflects the raised Z.
@@ -954,7 +962,7 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                     if safe_z < SAFE_Z_THRESHOLD:
                                         # Cap raising to camera focal constraint
                                         target_safe_z = min(SAFE_Z_HEIGHT, CAMERA_FOCUS_Z)
-                                        LOG.warning(f"Auto-sort: Z={safe_z:.1f} too low before XY move! Raising to {target_safe_z}mm", safe_z)
+                                        LOG.warning("Auto-sort: Z=%.1f too low before XY move! Raising to %.1fmm", safe_z, target_safe_z)
                                         await driver.send_gcode(f'G0 Z{target_safe_z:.3f} F1000')
                                         safe_z = target_safe_z
                                         MOTION.current = (MOTION.current[0], MOTION.current[1], safe_z)
@@ -968,8 +976,8 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                         pass
                                     feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 1200)))
                                     
-                                    # Send XY move with explicit Z to maintain safe height
-                                    await driver.send_gcode(f'G0 X{tx:.3f} Y{ty:.3f} Z{safe_z:.3f} F{feed}')
+                                    # XY-only move: Z is already at safe height, do not include Z
+                                    await driver.send_gcode(f'G0 X{tx:.3f} Y{ty:.3f} F{feed}')
                                     # Update cached controller position to reflect the XY move
                                     MOTION.current = (tx, ty, safe_z)
                                     try:
@@ -981,38 +989,69 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                     # 5. Lower Z by 100mm after reaching the target cell to deposit card
                                     LOG.info("Auto-sort: Lowering Z by 100mm to deposit card")
                                     new_z = safe_z - 100.0
-                                    # Lock X and Y during Z movement
-                                    await driver.send_gcode(f'G1 X{tx:.3f} Y{ty:.3f} Z{new_z:.3f} F1000')
+                                    # Z-only move: never move X/Y at the same time as Z
+                                    await driver.send_gcode(f'G0 Z{new_z:.3f} F1000')
                                     MOTION.current = (tx, ty, new_z)
                                     try:
                                         await _await_motion_completion(MOTION, (tx, ty, new_z), tolerance=1.0, timeout=6.0)
                                     except Exception:
                                         pass
                                     
-                                    # 6. Retract extruder to release card
-                                    # Retraction set to 0.3mm to release card
-                                    LOG.info("Auto-sort: Retracting extruder 0.3mm to release card")
-                                    try:
-                                        await driver.extrude(-0.3, 50.0)
-                                        LOG.info("Auto-sort: Retraction command sent successfully")
-                                    except Exception as retract_ex:
-                                        LOG.error("Auto-sort: Retraction FAILED: %s", retract_ex, exc_info=True)
-                                        raise
+                                    # 6. Retract extruder to release card (WITH RETRY LOGIC)
+                                    # Retraction increased to 0.5mm and feed rate to 100 for more reliable release
+                                    # Critical: This must succeed or the card stays stuck on the nozzle
+                                    retract_succeeded = False
+                                    for retract_attempt in range(3):  # Try up to 3 times
+                                        try:
+                                            LOG.info("Auto-sort: Retraction attempt %d - retracting extruder 0.5mm @ 100mm/min", retract_attempt + 1)
+                                            await driver.extrude(-0.5, 100.0)
+                                            LOG.info("Auto-sort: ✓ Retraction command sent successfully")
+                                            retract_succeeded = True
+                                            # Small delay to ensure retraction mechanically completes
+                                            await asyncio.sleep(0.4)
+                                            break
+                                        except Exception as retract_ex:
+                                            LOG.error("Auto-sort: Retraction attempt %d FAILED: %s", retract_attempt + 1, retract_ex)
+                                            if retract_attempt < 2:  # Not the last attempt
+                                                LOG.warning("Auto-sort: Retrying retraction in 0.5s...")
+                                                await asyncio.sleep(0.5)
+                                            else:
+                                                # Last attempt failed - try emergency retraction with different params
+                                                LOG.error("Auto-sort: All retraction attempts failed! Trying emergency retraction...")
+                                                try:
+                                                    # Emergency: larger retract amount and slower feed
+                                                    await driver.extrude(-1.0, 80.0)
+                                                    LOG.warning("Auto-sort: Emergency retraction succeeded")
+                                                    retract_succeeded = True
+                                                    await asyncio.sleep(0.5)
+                                                except Exception as emerg_ex:
+                                                    LOG.critical("Auto-sort: EMERGENCY RETRACTION FAILED: %s - Card may be stuck!", emerg_ex)
                                     
-                                    # Small delay to ensure retraction completes
-                                    await asyncio.sleep(0.3)
+                                    if not retract_succeeded:
+                                        LOG.critical("Auto-sort: Card release FAILED after all retries - card likely stuck on nozzle")
+                                        # Don't raise - allow operation to continue with extra Z jog to try dislodging card
                                     
-                                    # 6b. Small upward jog to help release card
-                                    LOG.info("Auto-sort: Small upward jog to help release card")
-                                    jog_z = new_z + 5.0  # Raise 5mm to help card drop
-                                    await driver.send_gcode(f'G0 X{tx:.3f} Y{ty:.3f} Z{jog_z:.3f} F500')
-                                    await asyncio.sleep(0.2)
+                                    # 6b. Upward jog to help release card
+                                    # If retraction failed, use more aggressive movement to try dislodging the card
+                                    if retract_succeeded:
+                                        LOG.info("Auto-sort: Small upward jog (5mm) to help release card")
+                                        jog_z = new_z + 5.0  # Raise 5mm to help card drop
+                                        await driver.send_gcode(f'G0 Z{jog_z:.3f} F500')
+                                        await asyncio.sleep(0.2)
+                                    else:
+                                        # Retraction failed - use aggressive shake to dislodge card
+                                        LOG.warning("Auto-sort: Using AGGRESSIVE jog sequence to dislodge stuck card")
+                                        for shake_i in range(3):
+                                            jog_z = new_z + 10.0 if shake_i % 2 == 0 else new_z + 5.0
+                                            await driver.send_gcode(f'G0 Z{jog_z:.3f} F800')
+                                            await asyncio.sleep(0.15)
+                                        LOG.info("Auto-sort: Aggressive shake sequence complete")
                                     
                                     # 7. Raise Z by 100mm back to safe height (130mm)
                                     # CRITICAL: Must complete before XY move to avoid collision
-                                    # Lock X and Y during Z movement
+                                    # Z-only move: never move X/Y at the same time as Z
                                     LOG.info("Auto-sort: Raising Z back to safe height")
-                                    await driver.send_gcode(f'G0 X{tx:.3f} Y{ty:.3f} Z{safe_z:.3f} F1000')
+                                    await driver.send_gcode(f'G0 Z{safe_z:.3f} F1000')
                                     
                                     # Wait for Z raise with extended timeout and mandatory completion
                                     z_raised = False
@@ -1032,28 +1071,43 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                         LOG.error("Z raise did not complete after retries! Adding emergency delay")
                                         await asyncio.sleep(3.0)  # Extra time for Z to complete
                                         MOTION.current = (tx, ty, safe_z)
-                                    
-                                    # 8. Return to starting position
-                                    # CRITICAL: Ensure Z stays at safe height during return journey
-                                    LOG.info("Auto-sort: Returning to start position (X=%.1f, Y=%.1f)", start_x, start_y)
-                                    feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 1200)))
-                                    await driver.send_gcode(f'G0 X{start_x:.3f} Y{start_y:.3f} Z{safe_z:.3f} F{feed}')
-                                    MOTION.current = (start_x, start_y, safe_z)
-                                    try:
-                                        await _await_motion_completion(MOTION, (start_x, start_y, safe_z), tolerance=1.0, timeout=6.0)
-                                    except Exception as e:
-                                        LOG.warning("Return to start completion wait failed: %s", e)
-                                        pass
                                 else:
                                     # Fallback to controller helper which may include Z;
                                     # the controller's move_to_cell_xy should preserve Z.
                                     await MOTION.move_to_cell_xy(target)
-
+                                
+                                # Mark success if we got here without exceptions
                                 moved_cell = target
-                                LOG.info("Auto-sort: Successfully completed motion sequence for cell %s", target)
+                                
                             except Exception as mex:
+                                # Log cell move error but continue to ensure return-to-start
                                 move_error = str(mex)
                                 LOG.warning("Failed to move to assigned cell %s: %s", target, mex, exc_info=True)
+                            finally:
+                                # CRITICAL: Return to starting position - ALWAYS execute for safety
+                                # This runs even if there was an exception during cell move/deposit
+                                if hasattr(MOTION, 'driver') and hasattr(MOTION.driver, 'send_gcode'):
+                                    try:
+                                        LOG.info("Auto-sort: Returning to start position (X=%.1f, Y=%.1f)", start_x, start_y)
+                                        feed = int(getattr(MOTION, 'rapid_speed', getattr(MOTION, 'default_speed', 1200)))
+                                        # Ensure Z is at safe height before XY move
+                                        current_z = float(MOTION.current[2]) if MOTION.current else safe_z
+                                        if current_z < SAFE_Z_THRESHOLD:
+                                            LOG.warning("Z too low (%.1f) before return - raising to safe height first", current_z)
+                                            await MOTION.driver.send_gcode(f'G0 Z{safe_z:.3f} F1000')
+                                            await asyncio.sleep(1.0)
+                                        # XY-only move: Z was already raised to safe height above
+                                        await MOTION.driver.send_gcode(f'G0 X{start_x:.3f} Y{start_y:.3f} F{feed}')
+                                        MOTION.current = (start_x, start_y, safe_z)
+                                        try:
+                                            await _await_motion_completion(MOTION, (start_x, start_y, safe_z), tolerance=1.0, timeout=6.0)
+                                        except Exception as e:
+                                            LOG.warning("Return to start completion wait failed: %s", e)
+                                    except Exception as return_ex:
+                                        LOG.critical("FAILED TO RETURN TO START: %s - machine may be in unsafe position!", return_ex, exc_info=True)
+                            
+                            if moved_cell:
+                                LOG.info("Auto-sort: Successfully completed motion sequence for cell %s", moved_cell)
                         else:
                             LOG.debug("Assigned cell from CSV not in config: %s", target)
         except Exception as exc:
@@ -1257,6 +1311,107 @@ async def plunger_up() -> Dict[str, Any]:
     return {"ok": True}
 
 
+@app.post("/extruder/test_retract")
+async def extruder_test_retract() -> Dict[str, Any]:
+    """Test endpoint to diagnose extruder retraction issues.
+    
+    Performs a retraction test with detailed logging to help identify
+    why card release might be failing during auto-sort operations.
+    """
+    LOG.info("=== EXTRUDER RETRACTION TEST STARTED ===")
+    results = {
+        "attempts": [],
+        "overall_success": False,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    
+    # Test 1: Standard retraction (matches auto-sort parameters)
+    LOG.info("Test 1: Standard retraction (0.5mm @ 100mm/min)")
+    try:
+        start_time = time.time()
+        await MOTION.driver.extrude(-0.5, 100.0)
+        elapsed = time.time() - start_time
+        results["attempts"].append({
+            "test": "standard",
+            "amount_mm": -0.5,
+            "feed_mm_min": 100.0,
+            "success": True,
+            "elapsed_s": elapsed,
+            "error": None
+        })
+        LOG.info("✓ Test 1 PASSED (%.3fs)", elapsed)
+        results["overall_success"] = True
+    except Exception as ex:
+        results["attempts"].append({
+            "test": "standard",
+            "amount_mm": -0.5,
+            "feed_mm_min": 100.0,
+            "success": False,
+            "elapsed_s": 0,
+            "error": str(ex)
+        })
+        LOG.error("✗ Test 1 FAILED: %s", ex)
+    
+    await asyncio.sleep(0.5)
+    
+    # Test 2: Slower retraction (more reliable but slower)
+    LOG.info("Test 2: Slower retraction (0.5mm @ 50mm/min)")
+    try:
+        start_time = time.time()
+        await MOTION.driver.extrude(-0.5, 50.0)
+        elapsed = time.time() - start_time
+        results["attempts"].append({
+            "test": "slow",
+            "amount_mm": -0.5,
+            "feed_mm_min": 50.0,
+            "success": True,
+            "elapsed_s": elapsed,
+            "error": None
+        })
+        LOG.info("✓ Test 2 PASSED (%.3fs)", elapsed)
+    except Exception as ex:
+        results["attempts"].append({
+            "test": "slow",
+            "amount_mm": -0.5,
+            "feed_mm_min": 50.0,
+            "success": False,
+            "elapsed_s": 0,
+            "error": str(ex)
+        })
+        LOG.error("✗ Test 2 FAILED: %s", ex)
+    
+    await asyncio.sleep(0.5)
+    
+    # Test 3: Larger retraction (emergency fallback)
+    LOG.info("Test 3: Larger retraction (1.0mm @ 80mm/min)")
+    try:
+        start_time = time.time()
+        await MOTION.driver.extrude(-1.0, 80.0)
+        elapsed = time.time() - start_time
+        results["attempts"].append({
+            "test": "emergency",
+            "amount_mm": -1.0,
+            "feed_mm_min": 80.0,
+            "success": True,
+            "elapsed_s": elapsed,
+            "error": None
+        })
+        LOG.info("✓ Test 3 PASSED (%.3fs)", elapsed)
+    except Exception as ex:
+        results["attempts"].append({
+            "test": "emergency",
+            "amount_mm": -1.0,
+            "feed_mm_min": 80.0,
+            "success": False,
+            "elapsed_s": 0,
+            "error": str(ex)
+        })
+        LOG.error("✗ Test 3 FAILED: %s", ex)
+    
+    LOG.info("=== EXTRUDER RETRACTION TEST COMPLETE ===")
+    LOG.info("Overall success: %s", results["overall_success"])
+    
+    return results
 
 
 # /vacuum endpoints removed
@@ -1747,6 +1902,7 @@ async def camera_snapshot(
     max_age: float = 0.0,
 ) -> Dict[str, Any]:
     """Capture a single snapshot for card identification (no dual-frame compositing)."""
+    LOG.info("=== SNAPSHOT ENDPOINT v2 with QR detection ===")
     cam = camera_svc.get_manager()
     
     # Check camera status first
@@ -1805,9 +1961,9 @@ async def camera_snapshot(
             LOG.warning(f"Z-axis too low for snapshot ({measured_start[2]:.1f}mm). Raising to safe height...")
             try:
                 # Raise Z to safe height before any XY movement
-                # Include X,Y in command to prevent drift
+                # Z-only move: never move X/Y at the same time as Z
                 target_safe_z = min(SAFE_Z_HEIGHT, CAMERA_FOCUS_Z)
-                await ctrl.driver.send_gcode(f'G0 X{measured_start[0]:.3f} Y{measured_start[1]:.3f} Z{target_safe_z:.3f} F1000')
+                await ctrl.driver.send_gcode(f'G0 Z{target_safe_z:.3f} F1000')
                 await _await_motion_completion(ctrl, (measured_start[0], measured_start[1], target_safe_z), tolerance=1.0, timeout=8.0)
                 measured_start = (measured_start[0], measured_start[1], target_safe_z)
                 ctrl.current = measured_start
@@ -1851,6 +2007,104 @@ async def camera_snapshot(
 
     if frame is None:
         raise HTTPException(status_code=503, detail="Snapshot frame unavailable")
+
+    # ============================================================
+    # QR CODE DETECTION - Check for feeder end-of-stack markers
+    # If a QR code is present, execute the command and return early
+    # ============================================================
+    qr_detected_info = None
+    try:
+        scanner = qr_scanner.get_scanner()
+        LOG.info("Snapshot: QR scanner - scanner=%s, enabled=%s", 
+                scanner is not None, scanner.enabled if scanner else "N/A")
+        if scanner and scanner.enabled:
+            # Scan the captured frame for QR codes
+            qr_result = await scanner.scan(frame=frame)
+            LOG.info("Snapshot: QR scan result - detected=%s, data='%s', stable=%s", 
+                    qr_result.get("detected"), qr_result.get("data"), qr_result.get("stable"))
+            
+            if qr_result.get("detected"):
+                qr_data = qr_result.get("data", "")
+                LOG.info("Snapshot: QR code detected '%s' (%d/%d for stable)", 
+                        qr_data, qr_result.get("history_count", 0), qr_result.get("required_count", 3))
+                
+                # Keep scanning until QR becomes stable or disappears
+                max_stability_attempts = 10
+                for stability_attempt in range(max_stability_attempts):
+                    if qr_result.get("stable") and qr_result.get("is_new_stable"):
+                        # QR is now stable - execute the command
+                        qr_cell = qr_result.get("cell")
+                        qr_command = qr_result.get("command", "endstep")
+                        
+                        LOG.info("Snapshot: QR stable after %d scans: '%s' (cell=%s, cmd=%s)", 
+                                stability_attempt + 1, qr_data, qr_cell, qr_command)
+                        
+                        qr_detected_info = {
+                            "detected": True,
+                            "data": qr_data,
+                            "cell": qr_cell,
+                            "command": qr_command,
+                            "stable": True,
+                            "executed": False,
+                            "message": None,
+                        }
+                        
+                        if qr_command == "endstep":
+                            try:
+                                from app.services import run_loop
+                                cmd_result = await run_loop.execute_qr_command(qr_data, qr_cell or "A1")
+                                LOG.info("Snapshot: QR endstep executed: %s", cmd_result.get("message", ""))
+                                qr_detected_info["executed"] = True
+                                qr_detected_info["message"] = cmd_result.get("message", "Feeder advanced")
+                                qr_detected_info["next_feeder"] = cmd_result.get("next_feeder")
+                            except Exception as qr_exec_exc:
+                                LOG.warning("Snapshot: Failed to execute QR command: %s", qr_exec_exc)
+                                qr_detected_info["message"] = f"Command failed: {qr_exec_exc}"
+                        elif qr_command == "refill":
+                            try:
+                                from app.services import run_loop
+                                cmd_result = await run_loop.execute_qr_command(qr_data, qr_cell or "A1")
+                                LOG.info("Snapshot: QR refill executed: %s", cmd_result.get("message", ""))
+                                qr_detected_info["executed"] = True
+                                qr_detected_info["message"] = cmd_result.get("message", "Feeder refilled")
+                            except Exception as qr_exec_exc:
+                                LOG.warning("Snapshot: Failed to execute QR refill: %s", qr_exec_exc)
+                                qr_detected_info["message"] = f"Refill failed: {qr_exec_exc}"
+                        break  # Exit stability loop
+                    
+                    elif qr_result.get("stable") and not qr_result.get("is_new_stable"):
+                        # QR is stable but already processed
+                        LOG.debug("Snapshot: QR '%s' already processed, skipping execution", qr_data)
+                        qr_detected_info = {
+                            "detected": True,
+                            "data": qr_data,
+                            "cell": qr_result.get("cell"),
+                            "command": qr_result.get("command", "endstep"),
+                            "stable": True,
+                            "executed": False,
+                            "message": "QR code already processed",
+                        }
+                        break
+                    
+                    elif not qr_result.get("detected"):
+                        # QR disappeared
+                        LOG.info("Snapshot: QR disappeared before reaching stability")
+                        break
+                    
+                    else:
+                        # QR detected but not stable yet - scan again
+                        await asyncio.sleep(0.1)
+                        # Capture fresh frame for next scan
+                        fresh_frame = await asyncio.get_running_loop().run_in_executor(
+                            None, cam.grab_frame_sync, 0.0)
+                        qr_result = await scanner.scan(frame=fresh_frame)
+                        LOG.debug("Snapshot: QR stability check %d/%d: '%s' (%d/%d)", 
+                                 stability_attempt + 2, max_stability_attempts,
+                                 qr_result.get("data", ""), 
+                                 qr_result.get("history_count", 0),
+                                 qr_result.get("required_count", 3))
+    except Exception as qr_exc:
+        LOG.warning("Snapshot: QR scan error (non-fatal): %s", qr_exc)
 
     timestamp_dt = datetime.utcnow()
     timestamp_slug = timestamp_dt.strftime("%Y%m%d-%H%M%S-%f")
@@ -2026,6 +2280,12 @@ async def camera_snapshot(
         "processing": processing_meta,
         "assignment": assignment_data,
     }
+    
+    # Include QR detection info if a QR code was found
+    if qr_detected_info:
+        response_data["qr_code"] = qr_detected_info
+        LOG.info("Snapshot response includes QR detection: %s (executed=%s)", 
+                 qr_detected_info.get("data"), qr_detected_info.get("executed"))
     
     LOG.info("Snapshot response includes assignment: %s", bool(response_data.get("assignment")))
     if response_data.get("assignment"):
@@ -2638,6 +2898,170 @@ def assign_known_card(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# QR Code Scanner endpoints
+# ---------------------------------------------------------------------------
+
+
+@app.get("/qr/status")
+async def qr_status() -> Dict[str, Any]:
+    """Get QR scanner configuration and status."""
+    scanner = qr_scanner.get_scanner()
+    
+    if not scanner:
+        return {
+            "enabled": False,
+            "configured": False,
+            "message": "QR scanner not configured"
+        }
+    
+    cells = []
+    for region in scanner.regions:
+        cells.append({
+            "cell": region.cell,
+            "expected_data": region.expected_data,
+            "history": region.history,
+        })
+    
+    return {
+        "enabled": scanner.enabled,
+        "configured": True,
+        "scan_mode": "full_frame",
+        "cells": cells,
+        "cell_count": len(cells),
+        "last_results": scanner.last_results,
+    }
+
+
+@app.get("/qr/scan")
+async def qr_scan(cells: Optional[str] = None) -> Dict[str, Any]:
+    """Scan for QR codes in configured regions.
+    
+    Args:
+        cells: Optional comma-separated list of cell IDs to scan (e.g., "A1,A2,A3")
+    """
+    scanner = qr_scanner.get_scanner()
+    
+    if not scanner or not scanner.enabled:
+        raise HTTPException(
+            status_code=503,
+            detail="QR scanner not configured or disabled"
+        )
+    
+    target_cells = None
+    if cells:
+        target_cells = [c.strip().upper() for c in cells.split(",") if c.strip()]
+    
+    try:
+        results = await scanner.scan(target_cells=target_cells)
+    except Exception as exc:
+        LOG.error("QR scan failed: %s", exc)
+        raise HTTPException(status_code=500, detail=f"QR scan failed: {exc}")
+    
+    return {
+        "success": True,
+        "results": results,
+        "count": len(results),
+    }
+
+
+@app.post("/qr/reset")
+async def qr_reset(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Reset QR detection history for one or all cells.
+    
+    Args:
+        payload: Optional dict with "cell" key to reset specific cell
+    """
+    scanner = qr_scanner.get_scanner()
+    
+    if not scanner:
+        raise HTTPException(
+            status_code=503,
+            detail="QR scanner not configured"
+        )
+    
+    cell = None
+    if payload and "cell" in payload:
+        cell = str(payload["cell"]).strip().upper()
+    
+    scanner.reset_history(cell=cell)
+    
+    return {
+        "success": True,
+        "message": f"Reset QR detection history for {cell if cell else 'all cells'}"
+    }
+
+
+@app.get("/feeders/status")
+async def feeders_status() -> Dict[str, Any]:
+    """Get current feeder state including active feeder and remaining counts."""
+    from app.services import run_loop
+    
+    return {
+        "active_feeder": run_loop._active_feeder,
+        "feeder_sequence": run_loop._FEEDER_SEQUENCE,
+        "feeder_counts": run_loop.feeders_remaining(),
+        "feeder_detection": dict(run_loop._FEEDER_DETECTION),
+    }
+
+
+@app.post("/feeders/refresh")
+async def feeders_refresh(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Manually trigger feeder detection refresh (for testing auto-advance).
+    
+    Args:
+        payload: Optional dict with "cells" list to refresh specific cells
+    """
+    from app.services import run_loop
+    
+    cells = None
+    if payload and "cells" in payload:
+        cells = [str(c).strip().upper() for c in payload["cells"]]
+    
+    try:
+        results = await run_loop._refresh_feeder_detections(cells)
+    except Exception as exc:
+        LOG.error("Feeder refresh failed: %s", exc)
+        raise HTTPException(status_code=500, detail=f"Feeder refresh failed: {exc}")
+    
+    return {
+        "success": True,
+        "results": results,
+        "active_feeder": run_loop._active_feeder,
+        "feeder_counts": run_loop.feeders_remaining(),
+    }
+
+
+@app.post("/feeders/set_active")
+async def feeders_set_active(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Set the active feeder (for testing purposes).
+    
+    Args:
+        payload: Dict with "cell" key specifying the feeder cell ID
+    """
+    from app.services import run_loop
+    
+    if "cell" not in payload:
+        raise HTTPException(status_code=400, detail="Missing 'cell' in request payload")
+    
+    cell = str(payload["cell"]).strip().upper()
+    
+    if cell not in run_loop._FEEDER_SEQUENCE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cell '{cell}' is not in feeder sequence: {run_loop._FEEDER_SEQUENCE}"
+        )
+    
+    run_loop._active_feeder = cell
+    LOG.info("Active feeder manually set to: %s", cell)
+    
+    return {
+        "success": True,
+        "active_feeder": run_loop._active_feeder,
+        "message": f"Active feeder set to {cell}"
+    }
+
+
+# ---------------------------------------------------------------------------
 # Upload endpoints (OCR experiments)
 # ---------------------------------------------------------------------------
 
@@ -2684,6 +3108,8 @@ async def _auto_sort_loop():
     """
     Continuously captures snapshots, identifies cards, and moves them to assigned cells.
     Runs until AUTO_SORT_RUNNING is set to False.
+    
+    Also checks for QR codes to handle feeder end-of-stack commands.
     """
     global AUTO_SORT_RUNNING, AUTO_SORT_STATS
     
@@ -2691,12 +3117,86 @@ async def _auto_sort_loop():
     AUTO_SORT_STATS["started_at"] = datetime.utcnow().isoformat(timespec="seconds")
     AUTO_SORT_STATS["cards_processed"] = 0
     AUTO_SORT_STATS["errors"] = 0
+    AUTO_SORT_STATS["skipped"] = 0
     
     # Small delay to ensure camera is ready
     await asyncio.sleep(1.0)
     
     while AUTO_SORT_RUNNING:
         try:
+            # Step 0: Check for QR code commands (e.g., "A1 endstep" to advance feeder)
+            # This allows QR codes on empty feeders to trigger feeder advancement
+            # IMPORTANT: If QR is detected but not yet stable, keep scanning until stable or gone
+            try:
+                scanner = qr_scanner.get_scanner()
+                LOG.info("Auto-sort: QR scanner check - scanner=%s, enabled=%s", 
+                        scanner is not None, scanner.enabled if scanner else "N/A")
+                if scanner and scanner.enabled:
+                    qr_result = await scanner.scan()
+                    LOG.info("Auto-sort: QR scan result - detected=%s, data='%s', stable=%s", 
+                            qr_result.get("detected"), qr_result.get("data"), qr_result.get("stable"))
+                    
+                    # If any QR detected (even if not stable yet), wait for stability
+                    if qr_result.get("detected"):
+                        qr_data = qr_result.get("data", "")
+                        LOG.info("Auto-sort: QR detected '%s' (%d/%d for stable), waiting for stability...", 
+                                qr_data, qr_result.get("history_count", 0), qr_result.get("required_count", 3))
+                        
+                        # Keep scanning until QR becomes stable or disappears
+                        max_stability_attempts = 10  # Max attempts to reach stability
+                        for stability_attempt in range(max_stability_attempts):
+                            if qr_result.get("stable") and qr_result.get("is_new_stable"):
+                                # QR is now stable - execute the command
+                                qr_cell = qr_result.get("cell")
+                                qr_command = qr_result.get("command", "endstep")
+                                
+                                LOG.info("Auto-sort: QR stable after %d scans: '%s' (cell=%s, cmd=%s)", 
+                                        stability_attempt + 1, qr_data, qr_cell, qr_command)
+                                
+                                if qr_command == "endstep":
+                                    try:
+                                        from app.services import run_loop
+                                        cmd_result = await run_loop.execute_qr_command(qr_data, qr_cell or "A1")
+                                        LOG.info("Auto-sort: QR endstep executed: %s", cmd_result.get("message", ""))
+                                        AUTO_SORT_STATS["skipped"] += 1
+                                        await asyncio.sleep(1.0)
+                                    except Exception as qr_exec_exc:
+                                        LOG.warning("Auto-sort: Failed to execute QR command: %s", qr_exec_exc)
+                                elif qr_command == "pause":
+                                    LOG.info("Auto-sort: Pausing via QR command")
+                                    AUTO_SORT_RUNNING = False
+                                break  # Exit stability loop
+                            
+                            elif qr_result.get("stable") and not qr_result.get("is_new_stable"):
+                                # QR is stable but already processed - skip
+                                LOG.debug("Auto-sort: QR '%s' already processed, skipping", qr_data)
+                                break
+                            
+                            elif not qr_result.get("detected"):
+                                # QR disappeared - proceed to card scanning
+                                LOG.info("Auto-sort: QR disappeared before reaching stability, proceeding to card scan")
+                                break
+                            
+                            else:
+                                # QR detected but not stable yet - scan again
+                                await asyncio.sleep(0.1)  # Small delay between scans
+                                qr_result = await scanner.scan()
+                                LOG.debug("Auto-sort: QR stability check %d/%d: '%s' (%d/%d)", 
+                                         stability_attempt + 2, max_stability_attempts,
+                                         qr_result.get("data", ""), 
+                                         qr_result.get("history_count", 0),
+                                         qr_result.get("required_count", 3))
+                        
+                        # If we executed a command, continue to next cycle
+                        if qr_result.get("stable") and qr_result.get("is_new_stable"):
+                            continue
+                        # If QR was already processed, also continue (don't try to scan as card)
+                        if qr_result.get("stable") and not qr_result.get("is_new_stable"):
+                            await asyncio.sleep(0.5)
+                            continue
+            except Exception as qr_exc:
+                LOG.warning("Auto-sort: QR scan error (non-fatal): %s", qr_exc)
+            
             # SAFETY CHECK: Ensure Z is at home (0) before attempting to scan a new card
             # This prevents trying to scan while holding a card from a previous failed attempt
             current_pos = MOTION.current
@@ -2761,19 +3261,20 @@ async def _auto_sort_loop():
             # Require minimum confidence threshold (same as frontend: 70%)
             min_confidence = 70.0
             if confidence_score < min_confidence:
-                LOG.error(
-                    "Auto-sort: Identification confidence too low: %.1f%% < %.1f%% for card '%s'. STOPPING AUTO-SORT.",
+                LOG.warning(
+                    "Auto-sort: Identification confidence too low: %.1f%% < %.1f%% for card '%s'. SKIPPING this card.",
                     confidence_score, min_confidence, card_name or "unknown"
                 )
-                AUTO_SORT_STATS["errors"] += 1
-                AUTO_SORT_RUNNING = False  # Stop the loop to prevent damage
-                break
+                AUTO_SORT_STATS["skipped"] += 1
+                await asyncio.sleep(2.0)  # Wait before next attempt
+                continue  # Skip this card, don't stop the entire loop
             
             if not card_name and not scryfall_id:
-                LOG.error("Auto-sort: Could not identify card from snapshot. STOPPING AUTO-SORT for safety.")
-                AUTO_SORT_STATS["errors"] += 1
-                AUTO_SORT_RUNNING = False  # Stop the loop to prevent damage
-                break
+                LOG.warning("Auto-sort: Could not identify card from snapshot (OCR failed). SKIPPING this card.")
+                LOG.warning("Auto-sort: Total skipped so far: %d", AUTO_SORT_STATS["skipped"] + 1)
+                AUTO_SORT_STATS["skipped"] += 1
+                await asyncio.sleep(2.0)  # Wait before next attempt
+                continue  # Skip this card, don't stop the entire loop
             
             LOG.info(
                 "Auto-sort: Identified card: %s (ID: %s) with %.1f%% confidence", 
@@ -2843,8 +3344,9 @@ async def _auto_sort_loop():
             AUTO_SORT_STATS["errors"] += 1
             await asyncio.sleep(2.0)  # Reduced from 3.0s to 2.0s for faster error recovery
     
-    LOG.info("Auto-sort loop stopped (processed: %d, errors: %d)", 
-             AUTO_SORT_STATS["cards_processed"], 
+    LOG.info("Auto-sort loop stopped (processed: %d, skipped: %d, errors: %d)", 
+             AUTO_SORT_STATS["cards_processed"],
+             AUTO_SORT_STATS["skipped"],
              AUTO_SORT_STATS["errors"])
 
 

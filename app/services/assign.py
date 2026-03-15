@@ -71,6 +71,7 @@ class Config:
     # cells & feeder rule
     cells: Dict[str, Cell]
     feeder_re: Optional[re.Pattern]
+    feeder_sequence: List[str]  # Explicit sequence of feeder cell IDs
 
     # mapping & overflow
     letter_to_cell: Dict[str, str]   # 'A'..'Z' -> cell_id (alpha mode shortcut)
@@ -109,9 +110,25 @@ def load_config(yaml_dict: dict) -> Config:
             tags=[str(t) for t in c.get("tags", [])]
         )
 
-    # feeder regex
-    feeder_pat = yaml_dict.get("feeder", {}).get("reserve_pattern")
+    # feeder configuration
+    feeder_cfg = yaml_dict.get("feeder", {})
+    feeder_pat = feeder_cfg.get("reserve_pattern")
     feeder_re = re.compile(feeder_pat) if feeder_pat else None
+    
+    # Build feeder sequence: explicit list > tagged cells > regex pattern
+    feeder_sequence: List[str] = []
+    explicit_seq = feeder_cfg.get("sequence")
+    if explicit_seq and isinstance(explicit_seq, list):
+        # Use explicit sequence from config
+        feeder_sequence = [str(cid).upper() for cid in explicit_seq if str(cid).upper() in cell_map]
+    
+    if not feeder_sequence:
+        # Fall back to cells tagged as 'feeder'
+        feeder_sequence = [cid for cid, cell in cell_map.items() if 'feeder' in cell.tags]
+    
+    if not feeder_sequence and feeder_re:
+        # Fall back to regex pattern
+        feeder_sequence = [cid for cid in cell_map.keys() if feeder_re.search(cid)]
 
     # mapping (manual only)
     base_alpha_map = {k.upper(): str(v).upper() for k, v in yaml_dict["alpha_exact"]["letter_to_cell"].items()}
@@ -165,6 +182,7 @@ def load_config(yaml_dict: dict) -> Config:
         near_full_thresh=float(sorting_cfg.get("near_full_threshold", 0.90)),
         cells=cell_map,
         feeder_re=feeder_re,
+        feeder_sequence=feeder_sequence,
         letter_to_cell=letter_to_cell,
         overflow_cells=overflow_cells,
         default_sort_mode=default_sort_mode,

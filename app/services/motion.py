@@ -210,8 +210,13 @@ class GCodeDriver(MotionDriver):
             pass  # Some serial implementations might not have is_open
         
         deadline = time.time() + timeout
+        # Hard cap: busy messages can extend the deadline but never beyond this absolute limit.
+        # This prevents the loop from blocking for minutes when hardware is slow/unresponsive.
+        max_deadline = time.time() + max(timeout * 10, 30.0)
         buff = b""
         last_busy_time = time.time()  # Track last echo:busy message
+        paused_for_user_count = 0  # Track consecutive "paused for user" messages
+        last_resume_sent = 0  # Timestamp of last M108 resume command
         
         try:
             while time.time() < deadline:
@@ -226,10 +231,27 @@ class GCodeDriver(MotionDriver):
                             # Check if this is a completion line (ok, error, alarm)
                             # Ignore echo:busy messages - they indicate still processing
                             if text.lower().startswith('echo:busy'):
-                                # Extend deadline when we get busy messages - firmware is still working
+                                # Extend deadline when we get busy messages, but never past max_deadline
                                 last_busy_time = time.time()
-                                deadline = max(deadline, last_busy_time + timeout)
-                                LOG.debug("Firmware busy, extending deadline")
+                                deadline = min(max(deadline, last_busy_time + timeout), max_deadline)
+                                
+                                # CRITICAL: Detect "paused for user" state and try to resume
+                                # This happens when firmware enters a wait state (filament change, etc.)
+                                if 'paused for user' in text.lower():
+                                    paused_for_user_count += 1
+                                    # Send M108 (Acknowledge/Resume) after seeing this a few times
+                                    # Only send every 2 seconds to avoid flooding
+                                    if paused_for_user_count >= 3 and (time.time() - last_resume_sent) > 2.0:
+                                        LOG.warning("Firmware paused for user - sending M108 to resume")
+                                        try:
+                                            self._serial.write(b'M108\n')
+                                            self._serial.flush()
+                                            last_resume_sent = time.time()
+                                            paused_for_user_count = 0  # Reset counter
+                                        except Exception as e:
+                                            LOG.error("Failed to send M108 resume: %s", e)
+                                else:
+                                    LOG.debug("Firmware busy, extending deadline")
                                 continue
                             if text.lower().startswith('ok') or text.lower().startswith('error') or text.lower().startswith('alarm'):
                                 return lines
@@ -330,15 +352,26 @@ class GCodeDriver(MotionDriver):
             raise
 
     async def extrude(self, amount_mm: float, feed: float = 50.0) -> None:
-        """Send a relative extruder move: G91, G1 E{amount} F{feed}, G90."""
+        """Send a relative extruder move: G91, G1 E{amount} F{feed}, G90.
+        
+        Args:
+            amount_mm: Amount to extrude (positive) or retract (negative) in millimeters
+            feed: Feed rate in mm/min
+        
+        Raises:
+            Exception: If the extrude command fails to execute
+        """
         try:
             amt = float(amount_mm)
             fd = int(feed)
             cmd = f'G91\nG1 E{amt:.4f} F{fd}\nG90'
-            LOG.info("GCodeDriver extrude -> %s", cmd.replace('\n', ' | '))
-            await self.send_gcode(cmd, wait_ok=True, timeout=2.0)
-        except Exception:
-            LOG.exception("extrude failed for amount=%s feed=%s", amount_mm, feed)
+            LOG.info("GCodeDriver extrude -> %s (%.2fmm @ %dmm/min)", cmd.replace('\n', ' | '), amt, fd)
+            # Increased timeout from 2.0s to 5.0s for more reliability
+            # Extruder commands can be slow, especially on some firmware
+            await self.send_gcode(cmd, wait_ok=True, timeout=5.0)
+            LOG.debug("GCodeDriver extrude completed successfully")
+        except Exception as ex:
+            LOG.exception("extrude FAILED for amount=%.4fmm feed=%dmm/min: %s", amount_mm, feed, ex)
             raise
 
     async def query_position(self) -> Tuple[float, float, float]:
@@ -358,17 +391,45 @@ class GCodeDriver(MotionDriver):
             try:
                 parts = actual_position_part.replace(',', ' ').split()
                 LOG.debug("Position parsing - Parts: %s", parts)
+                
+                # Count how many axes are present in this line
+                # Valid M114 responses should have at least X and Y (and usually Z)
+                # Single-axis lines like "Z:52000" are likely step counts, not positions
+                axes_in_line = sum(1 for p in parts if p.startswith(('X:', 'Y:', 'Z:')))
+                
+                # SAFETY: Require at least 2 axes in a line to consider it valid
+                # This prevents parsing step counter messages like "Z:52000" as positions
+                if axes_in_line < 2:
+                    LOG.debug("Position parsing - Skipping line with only %d axis (likely status msg)", axes_in_line)
+                    continue
+                
                 for p in parts:
                     if p.startswith('X:') and x == 0.0:  # Only parse first occurrence
-                        x = float(p.split(':',1)[1])
+                        val = float(p.split(':',1)[1])
+                        # SAFETY: Reject unreasonably large values (>1000mm, likely step counts)
+                        if abs(val) > 1000.0:
+                            LOG.warning("Position parsing - Rejecting X:%.1f (exceeds safety limit, likely step count)", val)
+                            continue
+                        x = val
                         found = True
                         LOG.debug("Position parsing - Found X: %.3f", x)
                     elif p.startswith('Y:') and y == 0.0:  # Only parse first occurrence
-                        y = float(p.split(':',1)[1])
+                        val = float(p.split(':',1)[1])
+                        # SAFETY: Reject unreasonably large values (>500mm, likely step counts)
+                        if abs(val) > 500.0:
+                            LOG.warning("Position parsing - Rejecting Y:%.1f (exceeds safety limit, likely step count)", val)
+                            continue
+                        y = val
                         found = True
                         LOG.debug("Position parsing - Found Y: %.3f", y)
                     elif p.startswith('Z:') and z == 0.0:  # Only parse first occurrence
-                        z = float(p.split(':',1)[1])
+                        val = float(p.split(':',1)[1])
+                        # SAFETY: Reject unreasonably large values (>300mm, likely step counts not positions)
+                        # Step counts can be 52000+ while real Z positions are typically 0-250mm
+                        if abs(val) > 300.0:
+                            LOG.warning("Position parsing - Rejecting Z:%.1f (exceeds safety limit, likely step count)", val)
+                            continue
+                        z = val
                         found = True
                         LOG.debug("Position parsing - Found Z: %.3f", z)
             except Exception as e:
@@ -385,16 +446,54 @@ class GCodeDriver(MotionDriver):
         return (x, y, z)
 
     async def move_absolute(self, x: float, y: float, z: float, speed: float) -> None:
-        # ensure absolute mode and send G1 with feedrate in mm/min
+        # ensure absolute mode and send moves safely (Z-first if needed)
+        
+        # CRITICAL SAFETY: Validate coordinates before sending to prevent machine damage
+        # Working envelope: X=920mm, Y=320mm, Z=250mm with safety margins
+        x_val = float(x)
+        y_val = float(y)
+        z_val = float(z)
+        
+        # Check for obviously invalid values (step counts, bad parsing, etc.)
+        if abs(x_val) > 1000.0:
+            raise ValueError(f"X position {x_val:.1f}mm exceeds safety limit (max 1000mm). Refusing move to prevent damage.")
+        if abs(y_val) > 500.0:
+            raise ValueError(f"Y position {y_val:.1f}mm exceeds safety limit (max 500mm). Refusing move to prevent damage.")
+        if abs(z_val) > 300.0:
+            raise ValueError(f"Z position {z_val:.1f}mm exceeds safety limit (max 300mm). Refusing move to prevent damage.")
+        
+        # Warn if approaching limits but allow (for calibration flexibility)
+        if x_val < -10.0 or x_val > 950.0:
+            LOG.warning("X position %.1fmm is outside normal working area (0-920mm)", x_val)
+        if y_val < -10.0 or y_val > 350.0:
+            LOG.warning("Y position %.1fmm is outside normal working area (0-320mm)", y_val)
+        if z_val < -10.0 or z_val > 270.0:
+            LOG.warning("Z position %.1fmm is outside normal working area (0-250mm)", z_val)
+        
         feed = int(speed)
-        cmd = f'G90\nG1 X{float(x):.3f} Y{float(y):.3f} Z{float(z):.3f} F{feed}'
-        await self.send_gcode(cmd, wait_ok=True, timeout=5.0)
-        # Cache the last commanded position so callers can fall back when
-        # position reporting via M114 is unavailable or unparseable.
-        try:
-            self._last_position = (float(x), float(y), float(z))
-        except Exception:
-            pass
+        
+        # Get current position to determine if Z needs to move first
+        cur_x, cur_y, cur_z = self._last_position
+        
+        # SAFETY: If we need to raise Z, do that FIRST before any XY movement
+        # This prevents collisions with obstacles/cards during travel
+        if z_val > cur_z + 1.0:  # Need to raise Z (with 1mm tolerance)
+            LOG.debug("move_absolute: Raising Z first (%.1f -> %.1f) before XY move", cur_z, z_val)
+            # First raise Z while keeping X/Y locked
+            cmd_z = f'G90\nG1 X{cur_x:.3f} Y{cur_y:.3f} Z{z_val:.3f} F{feed}'
+            await self.send_gcode(cmd_z, wait_ok=True, timeout=5.0)
+            self._last_position = (cur_x, cur_y, z_val)
+            
+            # Then move X/Y at the raised Z height
+            if abs(x_val - cur_x) > 0.1 or abs(y_val - cur_y) > 0.1:
+                cmd_xy = f'G90\nG1 X{x_val:.3f} Y{y_val:.3f} Z{z_val:.3f} F{feed}'
+                await self.send_gcode(cmd_xy, wait_ok=True, timeout=5.0)
+                self._last_position = (x_val, y_val, z_val)
+        else:
+            # Z is already at or above target, or we're lowering - safe to move all axes together
+            cmd = f'G90\nG1 X{x_val:.3f} Y{y_val:.3f} Z{z_val:.3f} F{feed}'
+            await self.send_gcode(cmd, wait_ok=True, timeout=5.0)
+            self._last_position = (x_val, y_val, z_val)
 
     async def set_speed(self, speed: float) -> None:
         # store as feedrate; not all firmwares support a global feedrate set command
@@ -413,10 +512,34 @@ class GCodeDriver(MotionDriver):
     async def plunger_down(self) -> None:
         cmd = str((self.mcodes or {}).get('plunger_down', 'M110')).strip()
         await self.send_gcode(cmd)
+        # Wait for plunger command to complete to prevent buffer buildup
+        try:
+            await self.send_gcode('M400', wait_ok=True, timeout=2.0)
+        except Exception:
+            pass  # M400 timeout is not critical here
 
     async def plunger_up(self) -> None:
         cmd = str((self.mcodes or {}).get('plunger_up', 'M111')).strip()
         await self.send_gcode(cmd)
+        # Wait for plunger command to complete to prevent buffer buildup
+        try:
+            await self.send_gcode('M400', wait_ok=True, timeout=2.0)
+        except Exception:
+            pass  # M400 timeout is not critical here
+
+    async def clear_paused_state(self) -> None:
+        """
+        Send M108 to clear any 'paused for user' state in the firmware.
+        This is a no-op if firmware is not paused.
+        Call this before starting critical operations to prevent getting stuck.
+        """
+        try:
+            # M108 breaks the wait for user input in Marlin
+            # It's safe to send even if not paused - firmware will just ignore it
+            await self.send_gcode('M108', wait_ok=False, timeout=0.5)
+            LOG.debug("Sent M108 to clear any paused state")
+        except Exception as exc:
+            LOG.debug("M108 clear_paused_state: %s (may be normal)", exc)
 
     async def stop(self) -> None:
         # send feedhold (soft stop) if supported; GRBL: '!' for feed hold, or use ctrl-x
@@ -804,6 +927,9 @@ class MotionController:
             await self.driver.send_gcode('G28 X', wait_ok=True, timeout=10.0)
             # Update position - assume it went to X=0 after homing
             self.current = (0.0, self.current[1], self.current[2])
+            # Also update driver's cached position to prevent stale values
+            if hasattr(self.driver, '_last_position'):
+                self.driver._last_position = self.current
             LOG.info("X axis homed to position: 0.0")
 
     async def home_y(self) -> None:
@@ -813,6 +939,9 @@ class MotionController:
             await self.driver.send_gcode('G28 Y', wait_ok=True, timeout=10.0)
             # Update position - assume it went to Y=0 after homing
             self.current = (self.current[0], 0.0, self.current[2])
+            # Also update driver's cached position to prevent stale values
+            if hasattr(self.driver, '_last_position'):
+                self.driver._last_position = self.current
             LOG.info("Y axis homed to position: 0.0")
 
     async def home_z(self) -> None:
@@ -822,6 +951,9 @@ class MotionController:
             await self.driver.send_gcode('G28 Z', wait_ok=True, timeout=10.0)
             # Update position - assume it went to Z=0 after homing
             self.current = (self.current[0], self.current[1], 0.0)
+            # Also update driver's cached position to prevent stale values
+            if hasattr(self.driver, '_last_position'):
+                self.driver._last_position = self.current
             LOG.info("Z axis homed to position: 0.0")
 
     async def get_limit_switch_status(self) -> Dict[str, bool]:
@@ -1148,6 +1280,13 @@ class MotionController:
         sp = float(speed or self.default_speed)
         await self.driver.set_speed(sp)
         await self.driver.move_absolute(x, y, z, sp)
+        # CRITICAL: Wait for movement to complete before proceeding
+        # Without this, commands pile up in firmware buffer and cause failures after ~30 operations
+        try:
+            if hasattr(self.driver, 'send_gcode'):
+                await self.driver.send_gcode('M400', wait_ok=True, timeout=10.0)
+        except Exception as exc:
+            LOG.warning("M400 wait failed in _move_head_locked: %s", exc)
         self.current = (x, y, z)
 
     async def _move_to_cell_safe_locked(self, cell_id: str, clearance: float) -> Tuple[float, float, float]:
@@ -1201,6 +1340,8 @@ class MotionController:
                 await self.driver.plunger_up()
             except Exception as exc:
                 LOG.warning("plunger_up failed after pick: %s", exc)
+        # Wait for plunger to fully retract and secure card before moving
+        await asyncio.sleep(0.15)
         self.current = (safe_x, safe_y, lift_target)
 
     async def _place_card_to_cell_locked(self, cell_id: str, place_z_offset: float) -> None:
@@ -1212,13 +1353,16 @@ class MotionController:
             await self.driver.plunger_down()
         except AttributeError:
             LOG.debug("Driver lacks plunger_down during place")
-        # vacuum release removed
-        await asyncio.sleep(0.05)
+        # Wait for plunger to engage and card to release - increased from 0.05s to 0.3s
+        # This ensures the card has time to drop before retracting
+        await asyncio.sleep(0.3)
         if hasattr(self.driver, 'plunger_up'):
             try:
                 await self.driver.plunger_up()
             except Exception as exc:
                 LOG.warning("plunger_up failed after place: %s", exc)
+        # Additional delay to ensure plunger fully retracts before moving
+        await asyncio.sleep(0.15)
         lift_target = max(base_z + self.place_clearance, self.return_clearance)
         await self._move_head_locked(safe_x, safe_y, lift_target, self.default_speed / 2)
         self.current = (safe_x, safe_y, lift_target)
@@ -1258,11 +1402,36 @@ class MotionController:
             start = time.time()
             pick_offset = pick_z_offset if pick_z_offset is not None else self.pick_depth_offset
             place_offset = place_z_offset if place_z_offset is not None else self.place_drop_offset
+            
+            # CRITICAL: Clear any "paused for user" state before starting
+            # This can happen after many plunger operations and causes the system to hang
+            try:
+                if hasattr(self.driver, 'clear_paused_state'):
+                    await self.driver.clear_paused_state()
+            except Exception as exc:
+                LOG.debug("clear_paused_state before transfer: %s", exc)
+            
+            # CRITICAL: Sync with firmware before starting transfer to clear any pending commands
+            # This prevents buffer overflow issues after many operations (~30+ cards)
+            try:
+                if hasattr(self.driver, 'send_gcode'):
+                    await self.driver.send_gcode('M400', wait_ok=True, timeout=10.0)
+            except Exception as exc:
+                LOG.warning("Pre-transfer M400 sync failed: %s", exc)
+            
             await self._pick_card_from_cell_locked(from_cell, pick_offset)
             await self._move_to_cell_safe_locked(to_cell, self.place_clearance)
             await asyncio.sleep(0.02)
             await self._place_card_to_cell_locked(to_cell, place_offset)
             await self._move_to_cell_safe_locked(from_cell, self.pick_clearance)
+            
+            # Final sync to ensure all operations completed before returning
+            try:
+                if hasattr(self.driver, 'send_gcode'):
+                    await self.driver.send_gcode('M400', wait_ok=True, timeout=10.0)
+            except Exception as exc:
+                LOG.warning("Post-transfer M400 sync failed: %s", exc)
+            
             end = time.time()
             LOG.info("Transfer %s -> %s took %.3fs", from_cell, to_cell, end - start)
             return {"from": from_cell, "to": to_cell, "duration_s": end - start, "current_pos": self.current}

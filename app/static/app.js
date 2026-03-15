@@ -168,6 +168,54 @@ async function takeSingleSnapshot() {
         const response = await fetch('/camera/snapshot');
         const data = await response.json();
         
+        // Check for QR code detection first
+        const qrCode = data.qr_code;
+        if (qrCode && qrCode.detected) {
+            // Extract column letter from cell (e.g., "A1" -> "A")
+            const cellLetter = qrCode.cell ? qrCode.cell.charAt(0) : '';
+            const commandLabel = qrCode.command === 'endstep' ? 'End of Column' : qrCode.command;
+            
+            // Show QR detection result
+            let qrHtml = `
+                <div class="card-result" style="border-color: #00ff9f;">
+                    <h3 style="color: #00ff9f;">📱 QR Code Detected</h3>
+                    <div class="card-info">
+                        <div class="card-info-row">
+                            <span class="card-info-label">QR Data:</span>
+                            <span class="card-info-value">${qrCode.data || 'Unknown'}</span>
+                        </div>
+                        ${qrCode.cell ? `
+                        <div class="card-info-row">
+                            <span class="card-info-label">Column:</span>
+                            <span class="card-info-value" style="font-size: 1.2em; font-weight: bold;">${cellLetter}</span>
+                        </div>
+                        ` : ''}
+                        <div class="card-info-row">
+                            <span class="card-info-label">Command:</span>
+                            <span class="card-info-value">${commandLabel}</span>
+                        </div>
+                        <div class="card-info-row">
+                            <span class="card-info-label">Executed:</span>
+                            <span class="card-info-value" style="color: ${qrCode.executed ? '#00ff9f' : '#ffa500'};">
+                                ${qrCode.executed ? 'Yes' : 'No'}
+                            </span>
+                        </div>
+                    </div>
+                    ${qrCode.message ? `<div class="card-destination" style="background: #1a3a2a; border-color: #00ff9f;">📦 ${qrCode.message}</div>` : ''}
+                </div>
+            `;
+            
+            resultDiv.innerHTML = qrHtml;
+            
+            // Show popup alert for column completion
+            if (qrCode.command === 'endstep' && qrCode.cell) {
+                setTimeout(() => {
+                    alert(`Column ${cellLetter} is DONE!\n\nAdvanced from ${qrCode.cell} to next column.`);
+                }, 100);
+            }
+            return;
+        }
+        
         // Try multiple paths to find identification (zone_ocr has both orientation results)
         const zoneOcr = data.processing?.zone_ocr;
         const identification = zoneOcr?.identification || data.processing?.identification;
@@ -261,8 +309,8 @@ async function beginAutoSort() {
     // Configuration constants
     const WAIT_STABILIZATION = 2000;
     const WAIT_RETRY = 300;  // Reduced to 300ms for faster retries (was 500ms)
-    const WAIT_SNAPSHOT = 1000;  // Reduced from 1500ms to 1000ms for faster snapshots
-    const WAIT_AFTER_MOTION = 1500;  // Reduced from 2000ms to 1500ms for faster cycle
+    const WAIT_SNAPSHOT = 500;  // Reduced from 1500ms to 1000ms for faster snapshots
+    const WAIT_AFTER_MOTION = 1000;  // Reduced from 2000ms to 1500ms for faster cycle
     const MAX_ATTEMPTS = 7;  // Increased from 3 to 7 attempts for better identification
     const MIN_CONFIDENCE_SCORE = 70;
     
@@ -300,6 +348,7 @@ async function beginAutoSort() {
             let assignment = null;
             let data = null;
             let attempts = 0;
+            let qrHandled = false;
             
             while (attempts < MAX_ATTEMPTS && !identification) {
                 attempts++;
@@ -338,6 +387,36 @@ async function beginAutoSort() {
                     identification = null;
                     continue;
                 }
+                
+                // === QR CODE CHECK (first attempt only) ===
+                // Before trying to identify a card, check if a QR code command is present.
+                // The /camera/snapshot endpoint already executes the QR command server-side
+                // (e.g., advances feeder for endstep). We just need to react in the UI loop.
+                if (attempts === 1) {
+                    const qr = data.qr_code;
+                    if (qr && qr.detected && qr.stable) {
+                        const cellLetter = qr.cell ? qr.cell.charAt(0) : '?';
+                        console.log('QR code detected in auto-sort loop:', qr);
+                        if (qr.command === 'endstep') {
+                            updateSortStatus(`QR: Column ${cellLetter} complete — waiting for feeder to advance…`);
+                            if (qr.cell) {
+                                setTimeout(() => {
+                                    alert(`Column ${cellLetter} is DONE!\n\nAdvanced to next column.`);
+                                }, 100);
+                            }
+                            // Wait for feeder mechanism to physically advance before next card
+                            await new Promise(resolve => setTimeout(resolve, WAIT_STABILIZATION));
+                            qrHandled = true;
+                            break;
+                        } else if (qr.command === 'pause') {
+                            updateSortStatus('QR: Pause command received — stopping auto-sort');
+                            stopAutoSort();
+                            qrHandled = true;
+                            break;
+                        }
+                    }
+                }
+                // === END QR CHECK ===
                 
                 // Get identification from data.processing (where it's actually stored)
                 identification = data.processing?.identification;
@@ -383,6 +462,9 @@ async function beginAutoSort() {
                     }
                 }
             }
+            
+            // If a QR command was handled, skip card pickup and go to next loop iteration
+            if (qrHandled) continue;
             
             // FIX #3: Validate data after retry loop
             if (!data || !data.frames) {
