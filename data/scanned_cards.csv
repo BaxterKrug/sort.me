@@ -1489,3 +1489,23 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-03-15T07:07:38Z,b39db7a3-028e-4c01-8ff9-64d2a1397379,Lexivore,K3,divert:low_confidence,0.675
 2026-03-15T07:07:57Z,12306750-86d6-4f70-820a-365894884e56,Daru Encampment,K3,divert:low_confidence,0.675
 2026-03-15T07:08:09Z,2dd197f8-ced0-461a-9672-2720a7b70803,Merseine,K3,divert:low_confidence,0.506
+2026-03-27T15:38:08Z,3d89c9be-2489-47e4-8e53-f980c82442b4,Norin the Wary // Norin the Wary,K3,divert:low_confidence,0.641
+2026-03-27T15:38:19Z,a051b622-fa1d-4694-aef7-0fcdd7bff8d2,Pull from the Deep,K3,divert:low_confidence,0.641
+2026-03-27T15:38:25Z,097d7838-ae58-4306-ba0f-e914601b31b6,Brave the Elements,H2,alpha_exact:B:Brave the Elements,0.706
+2026-03-27T15:38:41Z,3d89c9be-2489-47e4-8e53-f980c82442b4,Norin the Wary // Norin the Wary,K3,divert:low_confidence,0.641
+2026-03-27T15:38:45Z,3d89c9be-2489-47e4-8e53-f980c82442b4,Norin the Wary // Norin the Wary,K3,divert:low_confidence,0.641
+2026-03-27T15:38:50Z,097d7838-ae58-4306-ba0f-e914601b31b6,Brave the Elements,H2,alpha_exact:B:Brave the Elements,0.708
+2026-03-27T15:39:48Z,0f350255-930a-41da-a58b-55beb66da7bd,Burst Lightning,H2,alpha_exact:B:Burst Lightning,0.713
+2026-03-27T15:40:44Z,51bb2a46-8b4e-4793-9414-228d6baa7040,Photo Op,K3,divert:low_confidence,0.641
+2026-03-27T15:40:49Z,a222b6a5-27b9-4a8a-a727-ad113808ca7d,A-Exhibition Magician,K3,divert:low_confidence,0.641
+2026-03-27T15:40:56Z,c9136d3a-4dec-4cc4-ad01-e0e4eb714c71,Eumidian Lifeseed,K3,divert:low_confidence,0.675
+2026-03-27T15:41:01Z,fcb0e068-16d0-4e1c-acad-0a6d34148c5a,Clergy en-Vec,K3,divert:low_confidence,0.641
+2026-03-27T15:41:05Z,0f350255-930a-41da-a58b-55beb66da7bd,Burst Lightning,H2,alpha_exact:B:Burst Lightning,1.000
+2026-03-27T15:42:01Z,92fab6e3-29a5-42e0-872e-5c2f4f72bfc5,Spore Burst,K3,divert:low_confidence,0.641
+2026-03-27T15:42:05Z,0f350255-930a-41da-a58b-55beb66da7bd,Burst Lightning,H2,alpha_exact:B:Burst Lightning,1.000
+2026-03-27T15:43:03Z,0f350255-930a-41da-a58b-55beb66da7bd,Burst Lightning,H2,alpha_exact:B:Burst Lightning,1.000
+2026-03-27T15:53:54Z,52688a03-26a4-40ff-8a99-a268113a9802,Carnage Altar,B3,alpha_exact:C:Carnage Altar,1.000
+2026-03-27T15:54:10Z,52688a03-26a4-40ff-8a99-a268113a9802,Carnage Altar,B1,price:no_price:Carnage Altar,0.713
+2026-03-27T15:54:30Z,52688a03-26a4-40ff-8a99-a268113a9802,Carnage Altar,B3,alpha_exact:C:Carnage Altar,0.713
+2026-03-27T15:54:45Z,52688a03-26a4-40ff-8a99-a268113a9802,Carnage Altar,B3,alpha_exact:C:Carnage Altar,1.000
+2026-03-27T15:55:34Z,52688a03-26a4-40ff-8a99-a268113a9802,Carnage Altar,B3,alpha_exact:C:Carnage Altar,1.000
