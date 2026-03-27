@@ -1298,6 +1298,35 @@ async def motion_calibrate() -> Dict[str, Any]:
     return {"ok": True, "message": "Calibration complete", "pos": MOTION.current}
 
 
+@app.post("/motion/calibrate_sorter")
+async def motion_calibrate_sorter() -> Dict[str, Any]:
+    """Full sorter calibration: home all axes, raise Z to focal length, move to A1."""
+    try:
+        # 1. Home all axes
+        LOG.info("Calibrate sorter: homing all axes")
+        await MOTION.home_all()
+
+        # 2. Raise Z to focal / safe height
+        target_z = min(SAFE_Z_HEIGHT, CAMERA_FOCUS_Z)
+        LOG.info(f"Calibrate sorter: raising Z to {target_z}mm")
+        async with MOTION.lock:
+            await MOTION.driver.send_gcode(f'G0 Z{target_z:.3f} F1000')
+            MOTION.current = (MOTION.current[0], MOTION.current[1], target_z)
+
+        # 3. Move XY to cell A1
+        LOG.info("Calibrate sorter: moving to cell A1")
+        await MOTION.move_to_cell_xy('A1')
+
+        return {
+            "ok": True,
+            "message": "Sorter calibrated: homed, Z at focal length, positioned at A1",
+            "pos": MOTION.current,
+        }
+    except Exception as exc:
+        LOG.error(f"Calibrate sorter failed: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Calibration failed: {str(exc)}") from exc
+
+
 @app.post("/motion/save_a1_reference")
 async def motion_save_a1_reference() -> Dict[str, Any]:
     result = await MOTION.save_a1_reference()

@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Error changing sort mode:', error);
             }
+            initializeCellGrid();
         });
     }
 });
@@ -51,6 +52,8 @@ function initializeCellGrid() {
     grid.innerHTML = '';
     const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
     const rows = 3; // Only 3 rows
+    const sortType = document.getElementById('sortType');
+    const isPrice = sortType && sortType.value === 'price';
     // Each row contains cells from all letters for that row number
     for (let row = 1; row <= rows; row++) {
         for (let letter of letters) {
@@ -59,10 +62,18 @@ function initializeCellGrid() {
             button.className = 'cell-button';
             button.textContent = cellId;
             button.onclick = () => goToCell(cellId);
-            if (['A1', 'A2', 'A3'].includes(cellId)) {
-                button.classList.add('feeder');
+            if (isPrice) {
+                // Price sort: top row highlighted
+                if (row === 1) {
+                    button.classList.add('feeder');
+                }
+            } else {
+                // Alphabetical sort: left column highlighted
+                if (letter === 'A') {
+                    button.classList.add('feeder');
+                }
             }
-            if (cellId === 'K3') {
+            if (!isPrice && cellId === 'K3') {
                 button.classList.add('overflow');
             }
             grid.appendChild(button);
@@ -142,6 +153,28 @@ async function homeMotion() {
     } catch (error) {
         console.error('Home failed:', error);
         alert('Homing failed');
+    }
+}
+
+async function calibrateSorter() {
+    const btn = document.getElementById('calibrateSorterBtn');
+    const statusDiv = document.getElementById('calibrateStatus');
+    btn.disabled = true;
+    statusDiv.innerHTML = '<p style="text-align:center; color:#00d9ff;">Calibrating...</p>';
+    try {
+        const response = await fetch('/motion/calibrate_sorter', { method: 'POST' });
+        const data = await response.json();
+        if (data.ok) {
+            statusDiv.innerHTML = '<p style="color:#00ff88;">Calibration complete &mdash; homed, Z at focal length, at A1</p>';
+        } else {
+            statusDiv.innerHTML = '<p style="color:#ff4444;">Calibration failed: ' + (data.detail || 'Unknown error') + '</p>';
+        }
+        console.log('Calibrate sorter result:', data);
+    } catch (error) {
+        console.error('Calibrate sorter failed:', error);
+        statusDiv.innerHTML = '<p style="color:#ff4444;">Calibration failed: ' + error.message + '</p>';
+    } finally {
+        btn.disabled = false;
     }
 }
 
