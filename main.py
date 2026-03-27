@@ -733,6 +733,11 @@ def sorting_set_mode(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]
     active_id = STATE.active_sort_mode or CFG.default_sort_mode or DEFAULT_SORT_MODE
     mode_cfg = CFG.sort_modes.get(active_id)
     label = mode_cfg.label if mode_cfg else active_id
+
+    # Reinitialize feeder sequence when mode changes (e.g. price mode uses row-1 feeders)
+    from app.services import run_loop
+    run_loop.reinitialize_feeders_for_mode(active_id)
+
     return {"ok": True, "active": active_id, "label": label}
 
 

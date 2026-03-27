@@ -168,6 +168,7 @@ async def execute_qr_command(qr_data: str, detected_cell: str) -> Dict[str, Any]
         next_feeder = _advance_to_next_feeder()
         if next_feeder:
             _active_feeder = next_feeder
+            state.active_feeder = next_feeder
             LOG.info("Advanced to next feeder: %s", next_feeder)
             result["message"] = f"Advanced from {cell} to {next_feeder}"
             result["next_feeder"] = next_feeder
@@ -184,6 +185,7 @@ async def execute_qr_command(qr_data: str, detected_cell: str) -> Dict[str, Any]
                 result["move_error"] = str(move_exc)
         else:
             _active_feeder = None
+            state.active_feeder = None
             LOG.info("Sort complete - all feeders processed after %s", cell)
             result["message"] = f"Sort complete - all feeders processed"
             result["sort_complete"] = True
@@ -290,6 +292,7 @@ def _initialize_feeder_state() -> None:
     _FEEDER_SEQUENCE = sorted(dict.fromkeys(feeders), key=_cell_sort_key)
     _feeder_index = 0
     _active_feeder = None
+    state.active_feeder = None
     for cid in _FEEDER_SEQUENCE:
         stock = _initial_feeder_stock(cid)
         if stock <= 0:
@@ -302,6 +305,54 @@ def _initialize_feeder_state() -> None:
         LOG.info("Initial feeder stock: %s", {cid: state.feeder_counts.get(cid, 0) for cid in _FEEDER_SEQUENCE})
 
 
+def reinitialize_feeders_for_mode(mode_id: Optional[str] = None) -> None:
+    """Reinitialize the feeder sequence based on the active sort mode.
+
+    For price mode with column-based binary sort, row-1 cells of each
+    configured column become the feeder sequence (A1, B1, ... L1).
+    For all other modes, the default feeder sequence (from config tags /
+    regex) is restored.
+    """
+    global _FEEDER_SEQUENCE, _feeder_index, _active_feeder
+
+    mode_id = mode_id or state.active_sort_mode or CFG.default_sort_mode
+    mode = CFG.sort_modes.get(mode_id) if mode_id else None
+
+    if mode and mode.type == "price" and mode.price_columns:
+        # Build feeder sequence from price mode columns (row 1 cells)
+        feeder_row = mode.price_feeder_row
+        feeders = [f"{col}{feeder_row}" for col in mode.price_columns
+                   if f"{col}{feeder_row}" in CFG.cells]
+        LOG.info("Price mode '%s': feeder sequence set to row-%d cells: %s",
+                 mode_id, feeder_row, feeders)
+    else:
+        # Restore default feeder sequence
+        feeders = list(CFG.feeder_sequence) if CFG.feeder_sequence else []
+        if not feeders and CFG.feeder_re:
+            feeders = [cid for cid in CFG.cells.keys() if CFG.feeder_re.search(cid)]
+        if not feeders:
+            feeders = [cid for cid in CFG.cells.keys() if str(cid).upper().startswith('A')]
+        LOG.info("Restored default feeder sequence: %s", feeders)
+
+    _FEEDER_SEQUENCE = sorted(dict.fromkeys(feeders), key=_cell_sort_key)
+    _feeder_index = 0
+    _active_feeder = None
+    state.active_feeder = None
+
+    for cid in _FEEDER_SEQUENCE:
+        stock = _initial_feeder_stock(cid)
+        if stock <= 0:
+            cell_cfg = CFG.cells.get(cid)
+            stock = getattr(cell_cfg, 'capacity', 0) or 0 if cell_cfg else 0
+        state.counts_by_cell[cid] = stock
+        state.feeder_counts[cid] = stock
+
+    _processed_qr_codes.clear()
+
+    if _FEEDER_SEQUENCE:
+        LOG.info("Feeder sequence reinitialised for mode '%s': %s", mode_id, _FEEDER_SEQUENCE)
+
+
 def set_feeder_inventory(updates: Dict[str, int]) -> None:
     """Allow external callers/tests to override remaining cards per feeder."""
     for cid, count in updates.items():
@@ -312,6 +363,7 @@ def set_feeder_inventory(updates: Dict[str, int]) -> None:
     global _active_feeder
     if _active_feeder and state.feeder_remaining(_active_feeder) == 0:
         _active_feeder = None
+        state.active_feeder = None
 
 
 async def _refresh_feeder_detections(cells: Optional[List[str]] = None) -> Dict[str, Any]:
@@ -420,10 +472,13 @@ def _ensure_active_feeder() -> Optional[str]:
     detected = _FEEDER_DETECTION.get(_active_feeder) if _active_feeder else None
     if detected is False:
         _active_feeder = None
+        state.active_feeder = None
         remaining = None
     if _active_feeder and (remaining is None or remaining > 0):
+        state.active_feeder = _active_feeder
         return _active_feeder
     _active_feeder = _advance_to_next_feeder()
+    state.active_feeder = _active_feeder
     return _active_feeder
 
 
@@ -438,6 +493,7 @@ def _mark_feeder_decrement(cell_id: str) -> None:
         global _active_feeder
         if _active_feeder == cell_id:
             _active_feeder = None
+            state.active_feeder = None
 
 
 _initialize_feeder_state()
@@ -491,21 +547,24 @@ async def _handle_card_identified_async(meta: dict):
             flavor_name=meta.get("flavor_name"),
         )
 
-        cell_id, reason = assign_card(card, CFG, state)
-
         if not motion_svc.is_demo_mode():
             await _refresh_feeder_detections()
 
-        # determine source cell
+        # determine source cell BEFORE assignment so state.active_feeder is set
+        # for price-mode column routing
         source_cell = meta.get("from_cell") or meta.get("source_cell") or meta.get("feeder")
         if not source_cell:
             if motion_svc.is_demo_mode():
-                feeders = [cid for cid in CFG.cells.keys() if str(cid).upper().startswith("A")]
-                if feeders:
-                    source_cell = feeders[0]
+                # In demo mode, pick the first feeder in the current sequence
+                if _FEEDER_SEQUENCE:
+                    source_cell = _active_feeder or _FEEDER_SEQUENCE[0]
                 else:
-                    nonempty = [cid for cid, cnt in state.counts_by_cell.items() if cnt > 0]
-                    source_cell = nonempty[0] if nonempty else (list(CFG.cells.keys())[0] if CFG.cells else None)
+                    feeders = [cid for cid in CFG.cells.keys() if str(cid).upper().startswith("A")]
+                    if feeders:
+                        source_cell = feeders[0]
+                    else:
+                        nonempty = [cid for cid, cnt in state.counts_by_cell.items() if cnt > 0]
+                        source_cell = nonempty[0] if nonempty else (list(CFG.cells.keys())[0] if CFG.cells else None)
             else:
                 source_cell = _ensure_active_feeder()
 
@@ -515,9 +574,13 @@ async def _handle_card_identified_async(meta: dict):
             LOG.info("No feeder cells available with remaining stock; halting pick sequence")
             return
 
-        if not motion_svc.is_demo_mode() and source_cell in _FEEDER_SEQUENCE:
+        # Set active feeder on state so assign_card can route by column
+        if source_cell in _FEEDER_SEQUENCE:
             global _active_feeder
             _active_feeder = source_cell
+            state.active_feeder = source_cell
+
+        cell_id, reason = assign_card(card, CFG, state)
 
         # transfer using motion controller (async)
         controller = motion_svc.get_controller()

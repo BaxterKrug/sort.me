@@ -1509,3 +1509,39 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-03-27T15:54:30Z,52688a03-26a4-40ff-8a99-a268113a9802,Carnage Altar,B3,alpha_exact:C:Carnage Altar,0.713
 2026-03-27T15:54:45Z,52688a03-26a4-40ff-8a99-a268113a9802,Carnage Altar,B3,alpha_exact:C:Carnage Altar,1.000
 2026-03-27T15:55:34Z,52688a03-26a4-40ff-8a99-a268113a9802,Carnage Altar,B3,alpha_exact:C:Carnage Altar,1.000
+2026-03-27T17:55:52Z,52688a03-26a4-40ff-8a99-a268113a9802,Cheap Card,A2,price_binary:$0.10:<$0.15:Cheap Card,1.000
+2026-03-27T17:55:52Z,52688a03-26a4-40ff-8a99-a268113a9802,Expensive Card,A3,price_binary:$0.50:>=$0.15:Expensive Card,1.000
+2026-03-27T17:55:52Z,52688a03-26a4-40ff-8a99-a268113a9802,Bulk Card,B2,price_binary:$0.05:<$0.15:Bulk Card,1.000
+2026-03-27T17:55:52Z,52688a03-26a4-40ff-8a99-a268113a9802,Dollar Card,B3,price_binary:$1.00:>=$0.15:Dollar Card,1.000
+2026-03-27T17:55:52Z,52688a03-26a4-40ff-8a99-a268113a9802,Penny Card,L2,price_binary:$0.01:<$0.15:Penny Card,1.000
+2026-03-27T17:55:52Z,52688a03-26a4-40ff-8a99-a268113a9802,Lost Card,ERR1,price_binary:no_feeder:Lost Card,1.000
+2026-03-27T18:01:10Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:01:15Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:01:20Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:01:25Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:01:30Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:01:35Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:01:40Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:02:08Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:02:13Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:02:18Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:02:23Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:02:28Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:02:33Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:02:38Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T18:14:26Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Test Card,A2,price:$0.10<$0.15:Test Card,1.000
+2026-03-27T18:14:26Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Expensive Card,A3,price:$0.20>=$0.15:Expensive Card,1.000
+2026-03-27T18:14:26Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Cheap Card,B2,price:$0.05<$0.15:Cheap Card,1.000
+2026-03-27T18:14:26Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Pricey Card,B3,price:$1.50>=$0.15:Pricey Card,1.000
+2026-03-27T18:14:26Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Unknown Price Card,C2,price:no_price:Unknown Price Card,1.000
+2026-03-27T18:18:16Z,ABC123,Ancestral Recall,B1,sort_op:binder1:Ancestral Recall,1.000
+2026-03-27T18:18:16Z,zzz999,Alpha Strike,A1,alpha_exact:A:Alpha Strike,1.000
+2026-03-27T18:18:16Z,zzz998,Beta Strike,A1,alpha_exact:A:Alpha Strike,1.000
+2026-03-27T18:18:16Z,abc123,Ancestral Recall,ERR1,overflow:binder1:Ancestral Recall,1.000
+2026-03-27T18:18:16Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Test Card,B1,release_year:2021:Test Card,1.000
+2026-03-27T18:18:16Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Future Card,B2,release_year:2020s:Future Card,1.000
+2026-03-27T18:18:16Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Mystery,B3,release_year:*:Mystery,1.000
+2026-03-27T18:18:16Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Horizon Card,B1,set_focus:MH1:Horizon Card,1.000
+2026-03-27T18:18:16Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Modern Horizon,B1,set_focus:MODERN HORIZONS:Modern Horizon,1.000
+2026-03-27T18:18:16Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Unknown Set,C1,set_focus:*:Unknown Set,1.000
+2026-03-27T18:19:42Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675

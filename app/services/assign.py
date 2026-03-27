@@ -50,6 +50,7 @@ class SystemState:
     feeder_counts: Dict[str, int] = field(default_factory=dict)
     active_sort_operation: Optional[str] = None
     active_sort_mode: Optional[str] = None
+    active_feeder: Optional[str] = None  # current feeder cell (set by run_loop)
 
     def feeder_remaining(self, cell_id: str) -> Optional[int]:
         if cell_id not in self.feeder_counts:
@@ -89,7 +90,13 @@ class SortMode:
     label: str
     mapping: Dict[str, str]
     default_cell: Optional[str] = None
-    price_thresholds: Optional[List[Dict[str, Any]]] = None  # For price mode
+    price_thresholds: Optional[List[Dict[str, Any]]] = None  # For legacy price mode
+    # Binary price sort config (column-based)
+    price_threshold_usd: Optional[float] = None      # binary threshold (e.g. 0.15)
+    price_columns: Optional[List[str]] = None         # columns to process ["A","B",..."L"]
+    price_feeder_row: int = 1                          # row used as feeder
+    price_below_row: int = 2                           # row for below-threshold cards
+    price_above_row: int = 3                           # row for at-or-above-threshold cards
 
 
 _DETAIL_PROVIDER: Optional[Callable[[Optional[str]], Dict[str, Any]]] = None
@@ -355,29 +362,46 @@ def _build_sort_modes(
         elif mode_type == "set" and not raw_map:
             raw_map = mode_cfg.get("set_to_cell")
         elif mode_type == "price":
-            # Price mode uses thresholds instead of mapping
+            # Price mode uses column-based binary sort or legacy thresholds
             raw_map = None
 
         price_thresholds = None
+        price_threshold_usd = None
+        price_columns = None
+        price_feeder_row = 1
+        price_below_row = 2
+        price_above_row = 3
         if mode_type == "price":
-            price_thresholds = mode_cfg.get("thresholds")
-            if not isinstance(price_thresholds, list) or not price_thresholds:
-                LOG.warning("Sort mode '%s' of type 'price' missing thresholds; skipping", mode_id)
-                continue
-            # Validate threshold entries
-            for i, threshold in enumerate(price_thresholds):
-                if not isinstance(threshold, dict):
-                    LOG.warning("Sort mode '%s' threshold %d is not a dict; skipping mode", mode_id, i)
-                    break
-                cell_id = threshold.get("cell")
-                if not cell_id:
-                    LOG.warning("Sort mode '%s' threshold %d missing 'cell'; skipping mode", mode_id, i)
-                    break
-                # Ensure cell exists
-                _ensure_cell(cell_id, cell_map, feeder_re, f"sorting.modes.{mode_id}", f"threshold[{i}].cell")
+            # Check for new binary column-based price sort
+            price_threshold_usd_raw = mode_cfg.get("price_threshold_usd")
+            price_columns_raw = mode_cfg.get("columns")
+            if price_threshold_usd_raw is not None and price_columns_raw:
+                # Binary column-based price sort
+                price_threshold_usd = float(price_threshold_usd_raw)
+                price_columns = [str(c).upper() for c in price_columns_raw]
+                price_feeder_row = int(mode_cfg.get("feeder_row", 1))
+                price_below_row = int(mode_cfg.get("below_row", 2))
+                price_above_row = int(mode_cfg.get("above_row", 3))
+                mapping = {}  # Binary mode doesn't use traditional mapping
+                LOG.info("Price mode '%s': binary sort at $%.2f across columns %s",
+                         mode_id, price_threshold_usd, price_columns)
             else:
-                # All thresholds validated successfully
-                mapping = {}  # Price mode doesn't use traditional mapping
+                # Legacy threshold-list price sort
+                price_thresholds = mode_cfg.get("thresholds")
+                if not isinstance(price_thresholds, list) or not price_thresholds:
+                    LOG.warning("Sort mode '%s' of type 'price' missing thresholds and columns; skipping", mode_id)
+                    continue
+                for i, threshold in enumerate(price_thresholds):
+                    if not isinstance(threshold, dict):
+                        LOG.warning("Sort mode '%s' threshold %d is not a dict; skipping mode", mode_id, i)
+                        break
+                    cell_id = threshold.get("cell")
+                    if not cell_id:
+                        LOG.warning("Sort mode '%s' threshold %d missing 'cell'; skipping mode", mode_id, i)
+                        break
+                    _ensure_cell(cell_id, cell_map, feeder_re, f"sorting.modes.{mode_id}", f"threshold[{i}].cell")
+                else:
+                    mapping = {}  # Price mode doesn't use traditional mapping
         elif not isinstance(raw_map, dict) or not raw_map:
             LOG.warning("Sort mode '%s' missing mapping; skipping", mode_id)
             continue
@@ -402,6 +426,11 @@ def _build_sort_modes(
             mapping=mapping,
             default_cell=default_cell,
             price_thresholds=price_thresholds,
+            price_threshold_usd=price_threshold_usd,
+            price_columns=price_columns,
+            price_feeder_row=price_feeder_row,
+            price_below_row=price_below_row,
+            price_above_row=price_above_row,
         )
 
     return sort_modes
@@ -693,88 +722,116 @@ def _assign_price_mode(
     cfg: Config,
     state: SystemState,
 ) -> Optional[Tuple[str, str]]:
-    """Assign card based on price thresholds.
-    
-    Thresholds define price ranges and their target cells.
-    Cards with no price or N/A prices go to the lowest threshold cell (default_cell or first threshold).
+    """Assign card based on binary price threshold within the active feeder's column.
+
+    When ``mode.price_columns`` is set (binary column-based price sort):
+      - The active feeder is a row-1 cell (e.g. A1).
+      - Cards below ``mode.price_threshold_usd`` go to the same column, row 2 (e.g. A2).
+      - Cards at or above the threshold go to row 3 (e.g. A3).
+
+    Falls back to legacy threshold-list behaviour when ``price_columns`` is not configured.
     """
-    # Get price from card
+    # --- resolve price ---
     price_str = (card.price_usd or "").strip().lower()
-    LOG.debug("Price mode: Initial price_str for %s: %r", card.name, price_str)
-    
     if not price_str or price_str in ("", "null", "none", "n/a", "na"):
-        # No price available, try to populate
-        LOG.debug("Price mode: No initial price, calling _populate_card_details for %s (scryfall_id=%s)", card.name, card.scryfall_id)
         _populate_card_details(card)
         price_str = (card.price_usd or "").strip().lower()
-        LOG.debug("Price mode: After populate, price_str for %s: %r", card.name, price_str)
-    
-    # Parse price
+
     price_value: Optional[float] = None
     if price_str and price_str not in ("", "null", "none", "n/a", "na"):
         try:
             price_value = float(price_str)
-            LOG.debug("Price mode: Parsed price for %s: $%.2f", card.name, price_value)
-        except (ValueError, TypeError) as e:
-            LOG.debug("Price mode: Failed to parse price %r for %s: %s", price_str, card.name, e)
-    
-    # If no valid price, use default cell or first threshold
+        except (ValueError, TypeError):
+            pass
+
+    # ── Binary column-based price sort ──────────────────────────────────
+    if mode.price_columns and mode.price_threshold_usd is not None:
+        # Determine the active column from the active feeder
+        feeder_cell = state.active_feeder
+        if not feeder_cell:
+            LOG.warning("Price mode (binary): no active feeder set; using fallback")
+            if mode.default_cell:
+                return _apply_target_cell(mode.default_cell, mode, "no_feeder", reason_name, cfg, state)
+            return None
+
+        # Extract column letter(s) from the feeder cell id (e.g. "A1" → "A")
+        col = "".join(ch for ch in feeder_cell if ch.isalpha()).upper()
+        if not col or col not in mode.price_columns:
+            LOG.warning("Price mode (binary): feeder %s column '%s' not in configured columns %s",
+                        feeder_cell, col, mode.price_columns)
+            if mode.default_cell:
+                return _apply_target_cell(mode.default_cell, mode, "bad_column", reason_name, cfg, state)
+            return None
+
+        threshold = mode.price_threshold_usd
+        below_cell_id = f"{col}{mode.price_below_row}"
+        above_cell_id = f"{col}{mode.price_above_row}"
+
+        # Cards with no valid price are treated as below threshold
+        if price_value is None:
+            target_cell = below_cell_id
+            price_label = "no_price"
+            LOG.info("Price mode (binary): %s has no price → %s (below threshold)", card.name, target_cell)
+        elif price_value < threshold:
+            target_cell = below_cell_id
+            price_label = f"${price_value:.2f}<${threshold:.2f}"
+            LOG.info("Price mode (binary): %s ($%.2f) < $%.2f → %s",
+                     card.name, price_value, threshold, target_cell)
+        else:
+            target_cell = above_cell_id
+            price_label = f"${price_value:.2f}>=${threshold:.2f}"
+            LOG.info("Price mode (binary): %s ($%.2f) >= $%.2f → %s",
+                     card.name, price_value, threshold, target_cell)
+
+        # Validate target cell exists
+        if target_cell not in cfg.cells:
+            LOG.warning("Price mode (binary): target cell %s not in config; using fallback", target_cell)
+            if mode.default_cell:
+                return _apply_target_cell(mode.default_cell, mode, price_label, reason_name, cfg, state)
+            return None
+
+        return _apply_target_cell(target_cell, mode, price_label, reason_name, cfg, state)
+
+    # ── Legacy threshold-list price sort ────────────────────────────────
     if price_value is None:
-        LOG.info("Price mode: No valid price for %s, using default/first threshold cell", card.name)
         if mode.default_cell:
             return _apply_target_cell(mode.default_cell, mode, "no_price", reason_name, cfg, state)
-        # Fall back to first threshold's cell
         if mode.price_thresholds and len(mode.price_thresholds) > 0:
             first_cell = mode.price_thresholds[0].get("cell")
             if first_cell:
                 return _apply_target_cell(first_cell, mode, "no_price", reason_name, cfg, state)
         return None
-    
-    # Find matching threshold
+
     if not mode.price_thresholds:
         LOG.warning("Price mode: No thresholds configured!")
         return None
-    
-    LOG.debug("Price mode: Checking %d thresholds for %s ($%.2f)", len(mode.price_thresholds), card.name, price_value)
-    
+
     for i, threshold in enumerate(mode.price_thresholds):
         min_price = threshold.get("min")
         max_price = threshold.get("max")
         cell_id = threshold.get("cell")
-        
-        LOG.debug("Price mode: Threshold %d: min=%s, max=%s, cell=%s", i, min_price, max_price, cell_id)
-        
         if not cell_id:
             continue
-        
-        # Check if price falls within this threshold
         matches = True
         if min_price is not None:
             try:
                 if price_value < float(min_price):
                     matches = False
-                    LOG.debug("Price mode: Price $%.2f < min $%.2f, no match", price_value, float(min_price))
             except (ValueError, TypeError):
                 matches = False
-        
         if max_price is not None and matches:
             try:
                 if price_value > float(max_price):
                     matches = False
-                    LOG.debug("Price mode: Price $%.2f > max $%.2f, no match", price_value, float(max_price))
             except (ValueError, TypeError):
                 matches = False
-        
         if matches:
             price_label = f"${price_value:.2f}"
-            LOG.info("Price mode: %s ($%.2f) matches threshold %d -> cell %s", card.name, price_value, i, cell_id)
             return _apply_target_cell(cell_id, mode, price_label, reason_name, cfg, state)
-    
-    # No threshold matched, use default
-    LOG.warning("Price mode: No threshold matched for %s ($%.2f), using default", card.name, price_value)
+
     if mode.default_cell:
         return _apply_target_cell(mode.default_cell, mode, f"${price_value:.2f}", reason_name, cfg, state)
-    
+
     return None
 
 
