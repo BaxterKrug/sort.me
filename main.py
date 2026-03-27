@@ -210,9 +210,10 @@ async def _await_motion_completion(
 
     try:
         if hasattr(ctrl.driver, "send_gcode"):
-            await ctrl.driver.send_gcode("M400")  # type: ignore[attr-defined]
+            LOG.debug("Sending M400 to sync with motion controller (timeout=%.1fs)", timeout)
+            await ctrl.driver.send_gcode("M400", wait_ok=True, timeout=min(timeout, 10.0))  # type: ignore[attr-defined]
     except Exception as exc:  # pragma: no cover - hardware specific
-        LOG.debug("M400 wait failed: %s", exc)
+        LOG.warning("M400 sync failed (controller may be busy): %s", exc)
 
     while loop.time() <= deadline:
         try:
@@ -221,9 +222,13 @@ async def _await_motion_completion(
             
             # CRITICAL SAFETY CHECK: Detect runaway motion
             # If any axis exceeds reasonable limits, stop immediately
-            MAX_X = 500.0  # Maximum X position in mm
-            MAX_Y = 150.0  # Maximum Y position in mm  
-            MAX_Z = 200.0  # Maximum Z position in mm
+            # Limits based on grid.positions in config.yaml:
+            # - X: Row K cells go up to X=1070mm
+            # - Y: Row 3 cells go up to Y=292mm  
+            # - Z: Generally under 200mm
+            MAX_X = 1200.0  # Maximum X position in mm
+            MAX_Y = 350.0   # Maximum Y position in mm (row 3 is at Y=292)
+            MAX_Z = 250.0   # Maximum Z position in mm
             
             if current[0] < -10.0 or current[0] > MAX_X:
                 LOG.error(f"SAFETY: X position out of bounds: {current[0]:.1f}mm (limit: 0-{MAX_X})")
@@ -1941,9 +1946,17 @@ async def camera_snapshot(
         )
 
         try:
-            measured_start = await _await_motion_completion(ctrl, None, tolerance=0.3, timeout=6.0)
+            # Increased timeout to 20s to accommodate ongoing card transfer operations
+            # which can take 10-20s to complete (includes M400 syncs and multi-step motion)
+            LOG.info("Waiting for motion controller to complete any in-progress operations (timeout=20s)...")
+            measured_start = await _await_motion_completion(ctrl, None, tolerance=0.3, timeout=20.0)
+            LOG.info("Motion controller ready at position: X=%.1f, Y=%.1f, Z=%.1f", 
+                    measured_start[0], measured_start[1], measured_start[2])
         except RuntimeError as exc:
-            raise HTTPException(status_code=503, detail=str(exc))
+            raise HTTPException(
+                status_code=503, 
+                detail=f"Motion system busy or timeout: {exc}. Please wait for current operation to complete and try again."
+            )
 
         ctrl.current = measured_start
         
@@ -1972,22 +1985,6 @@ async def camera_snapshot(
                 raise HTTPException(
                     status_code=503,
                     detail=f"Failed to raise Z to safe height: {z_raise_exc}"
-                )
-        
-        # SAFETY CHECK: Ensure Y position is reasonable
-        # If Y > 100, something is wrong - probably position tracking issue
-        if measured_start[1] > 100.0:
-            LOG.error(f"Unsafe Y position detected: {measured_start[1]:.1f}mm - resetting to 0")
-            # Try to recover by moving back to Y=0
-            try:
-                await ctrl.driver.move_absolute(measured_start[0], 0.0, measured_start[2], ctrl.default_speed)
-                await _await_motion_completion(ctrl, (measured_start[0], 0.0, measured_start[2]), tolerance=0.5, timeout=6.0)
-                measured_start = (measured_start[0], 0.0, measured_start[2])
-                ctrl.current = measured_start
-            except Exception as recovery_exc:
-                raise HTTPException(
-                    status_code=503,
-                    detail=f"Unsafe Y position ({measured_start[1]:.1f}mm) and recovery failed: {recovery_exc}"
                 )
 
         try:
@@ -2057,6 +2054,7 @@ async def camera_snapshot(
                                 qr_detected_info["executed"] = True
                                 qr_detected_info["message"] = cmd_result.get("message", "Feeder advanced")
                                 qr_detected_info["next_feeder"] = cmd_result.get("next_feeder")
+                                qr_detected_info["sort_complete"] = cmd_result.get("sort_complete", False)
                             except Exception as qr_exec_exc:
                                 LOG.warning("Snapshot: Failed to execute QR command: %s", qr_exec_exc)
                                 qr_detected_info["message"] = f"Command failed: {qr_exec_exc}"
@@ -3375,6 +3373,17 @@ async def auto_sort_start() -> Dict[str, Any]:
             "message": f"Camera check failed: {str(exc)}",
             "running": False
         }
+    
+    # Reset QR code processed state so all feeders can be scanned fresh
+    from app.services import run_loop
+    run_loop.reset_qr_command_state()
+    LOG.info("Auto-sort: Reset QR command state for fresh detection")
+    
+    # Also reset the QR scanner history for clean detection
+    scanner = qr_scanner.get_scanner()
+    if scanner:
+        scanner.reset_history()
+        LOG.info("Auto-sort: Reset QR scanner history")
     
     AUTO_SORT_RUNNING = True
     AUTO_SORT_TASK = asyncio.create_task(_auto_sort_loop())

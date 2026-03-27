@@ -1397,3 +1397,95 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-03-15T04:28:17Z,7496ad0f-fc6d-4154-ac42-c2471e72ed88,Olórin's Searing Light,K3,divert:low_confidence,0.641
 2026-03-15T04:37:26Z,dcf6a0e7-1fd4-425f-b634-c93236daea35,Lightshield Parry,K3,divert:low_confidence,0.675
 2026-03-15T04:44:45Z,90ba37ee-159f-421f-8d37-a7b5f1b562f0,Brackish Trudge,K3,divert:low_confidence,0.675
+2026-03-15T05:25:13Z,6a9b4ba6-12cb-488c-b9d5-245e094f72c3,Inys Haen,K3,divert:low_confidence,0.675
+2026-03-15T05:30:25Z,37599371-29e6-4fae-a236-6a566bfeeff7,Explosive Shot,K3,divert:low_confidence,0.675
+2026-03-15T05:30:33Z,0d18fa57-fab9-48f6-b80a-d03fb89d2683,"Loot, the Key to Everything",K3,divert:low_confidence,0.534
+2026-03-15T05:31:23Z,10b264aa-303b-4982-a653-9573d39c28de,Prototype Portal,K3,divert:low_confidence,0.675
+2026-03-15T05:37:04Z,1fe95bfb-8ca7-434f-a2e7-a6b2e699584e,Trapped in the Screen,K3,divert:low_confidence,0.675
+2026-03-15T05:37:11Z,5314bae2-4930-4f8a-8a52-853bc3feb88f,Aerial Engineer,K3,divert:low_confidence,0.675
+2026-03-15T05:37:28Z,16858395-c742-4657-88c2-5af20c92718d,Pardic Firecat,K3,divert:low_confidence,0.675
+2026-03-15T05:38:06Z,92f4ad73-42bf-45c0-8bb6-0b44043c81ef,Blitzball,K3,divert:low_confidence,0.675
+2026-03-15T05:40:24Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,K3,divert:low_confidence,0.675
+2026-03-15T05:40:32Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,H3,alpha_exact:U:Unsummon,1.000
+2026-03-15T05:41:30Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,H3,alpha_exact:U:Unsummon,1.000
+2026-03-15T05:55:57Z,264fdc81-e81f-48b1-91df-f777db30ebf9,See Double,K3,divert:low_confidence,0.641
+2026-03-15T05:57:19Z,02e48948-f4bb-443f-aa35-d59328283cfc,Shaman en-Kor,K3,divert:low_confidence,0.641
+2026-03-15T05:57:30Z,16fe39b7-0dbe-4826-aa0a-59e93c6aaa01,Starnheim Memento,K3,divert:low_confidence,0.675
+2026-03-15T05:57:38Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,H3,alpha_exact:U:Unsummon,1.000
+2026-03-15T05:58:13Z,264fdc81-e81f-48b1-91df-f777db30ebf9,See Double,K3,divert:low_confidence,0.675
+2026-03-15T05:58:18Z,121c12c4-83ea-463e-8fdf-30718968a2bd,Claim the Precious,K3,divert:low_confidence,0.641
+2026-03-15T05:58:27Z,3a6eb108-d865-4f9f-8fd5-d10495c036a3,Well Done,K3,divert:low_confidence,0.579
+2026-03-15T05:58:32Z,71d13f19-482b-4a2e-9692-b7d7caf2f9f5,Witty Roastmaster,K3,divert:low_confidence,0.675
+2026-03-15T05:59:41Z,71d13f19-482b-4a2e-9692-b7d7caf2f9f5,Witty Roastmaster,K3,divert:low_confidence,0.675
+2026-03-15T06:03:53Z,110dd279-0aa1-43a7-a2de-42abde34220f,Dawnhart Rejuvenator,K3,divert:low_confidence,0.506
+2026-03-15T06:04:15Z,3c567bd1-84bf-4d52-a420-4768aded583c,Pain Kami,K3,divert:low_confidence,0.579
+2026-03-15T06:04:31Z,21af9e72-fbaf-460a-a2eb-a09b925ebd9a,Needle Specter,K3,divert:low_confidence,0.675
+2026-03-15T06:06:37Z,1a0867be-a861-4fb4-b8ff-cb2966193755,"Aphelia, Viper Whisperer",K3,divert:low_confidence,0.550
+2026-03-15T06:16:19Z,49301c19-55a0-4146-9474-0b86cd320e31,Elkin Bottle,K3,divert:low_confidence,0.675
+2026-03-15T06:16:28Z,5140c7d3-56bb-46e6-a5e9-c12462bdc13d,Reflection Net,K3,divert:low_confidence,0.675
+2026-03-15T06:16:34Z,061df8e4-6947-4bbb-9fe7-52ca4fd95d65,Chaotic Strike,K3,divert:low_confidence,0.675
+2026-03-15T06:16:40Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,K3,divert:low_confidence,0.656
+2026-03-15T06:17:00Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,H3,alpha_exact:U:Unsummon,1.000
+2026-03-15T06:18:02Z,77af9d28-1639-47bd-b925-7f3d2eefd352,Skizzik,K3,divert:low_confidence,0.675
+2026-03-15T06:18:14Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,H3,alpha_exact:U:Unsummon,1.000
+2026-03-15T06:19:13Z,57be0f52-1a11-479e-8242-29539fce76e6,Now You See Me . . .,K3,divert:low_confidence,0.641
+2026-03-15T06:19:23Z,15597c74-0d47-44e3-87bb-f9174ca265c2,Monk,K3,divert:low_confidence,0.579
+2026-03-15T06:19:28Z,0dbf3260-b956-40da-abc7-764781c9f26f,Acclaimed Contender,K3,divert:low_confidence,0.675
+2026-03-15T06:20:09Z,0aeba983-c525-42d0-997d-1b678ea30d82,Heralds of Tzeentch,K3,divert:low_confidence,0.675
+2026-03-15T06:20:17Z,0195245a-a48f-4972-a7ce-1e7eb82d4d77,Nullpriest of Oblivion,K3,divert:low_confidence,0.675
+2026-03-15T06:32:58Z,9a359837-2e41-4ddc-9299-89a783d62014,Trenching Steed,K3,divert:low_confidence,0.675
+2026-03-15T06:33:14Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,H3,alpha_exact:U:Unsummon,1.000
+2026-03-15T06:33:33Z,f9c868f5-0f90-4f7e-bafb-c45d2372fe06,Seeds of Innocence,K3,divert:low_confidence,0.482
+2026-03-15T06:33:42Z,0ccdc9d7-71b5-4304-8d19-a63952e17a6b,Canopy Crawler,K3,divert:low_confidence,0.675
+2026-03-15T06:34:00Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,H3,alpha_exact:U:Unsummon,0.713
+2026-03-15T06:35:05Z,790a90cc-d36f-43b5-8423-89e30bdf7b9f,Dashing Bloodsucker,K3,divert:low_confidence,0.675
+2026-03-15T06:35:11Z,547581d0-025a-435a-8016-ee7c6b890e53,March of the Canonized,K3,divert:low_confidence,0.675
+2026-03-15T06:35:15Z,b13a064d-bff4-4a48-a158-1b61951b0ac3,Melee,K3,divert:low_confidence,0.562
+2026-03-15T06:35:48Z,34261992-db62-49e3-95bc-1b2960868de4,Signal the Clans,K3,divert:low_confidence,0.540
+2026-03-15T06:35:57Z,35517572-b5d4-4dbf-b090-4e4c4b040a0d,"Intet, the Dreamer",K3,divert:low_confidence,0.675
+2026-03-15T06:37:08Z,65b2c341-a85a-4219-b3c6-fca3b2c38d42,"Mm'menon, the Right Hand // Mm'menon, the Right Hand",K3,divert:low_confidence,0.641
+2026-03-15T06:37:18Z,098150bc-a865-48d0-95c2-39c2bee9bbb4,Jamie McCrimmon,K3,divert:low_confidence,0.579
+2026-03-15T06:37:27Z,7df777c3-281b-4a2d-b852-4e2663672c06,Soot Imp,K3,divert:low_confidence,0.579
+2026-03-15T06:37:32Z,96b1d02e-5dd1-4621-b8f9-353b95152185,"Tan Jolom, the Worldwalker",K3,divert:low_confidence,0.641
+2026-03-15T06:37:36Z,a9930d11-4772-4fc2-abbd-9af0a9b23a3e,Minion,K3,divert:low_confidence,0.540
+2026-03-15T06:37:41Z,3fcb85b6-ab5a-40db-aaae-555315f32877,Boiling Blood,K3,divert:low_confidence,0.675
+2026-03-15T06:39:03Z,05c89d61-3c2e-4d70-86d6-f70eba3d327f,Erase,K3,divert:low_confidence,0.562
+2026-03-15T06:39:10Z,297d353e-5092-4d47-a9ac-c7f644799c5e,Gouged Zealot,K3,divert:low_confidence,0.675
+2026-03-15T06:41:24Z,724fd1ea-05ad-497c-9989-825ada48e684,Precognitive Perception,K3,divert:low_confidence,0.675
+2026-03-15T06:41:53Z,15597c74-0d47-44e3-87bb-f9174ca265c2,Monk,K3,divert:low_confidence,0.579
+2026-03-15T06:56:48Z,076deb63-f7e2-498f-a66a-8a190370a3b3,Pointed Discussion,K3,divert:low_confidence,0.579
+2026-03-15T06:57:07Z,076deb63-f7e2-498f-a66a-8a190370a3b3,Pointed Discussion,K3,divert:low_confidence,0.579
+2026-03-15T06:57:26Z,1e6237d7-454b-4b1b-b732-1adda35d746d,S.N.E.A.K. Dispatcher,K3,divert:low_confidence,0.641
+2026-03-15T06:58:12Z,374cddb8-b360-4c7b-8911-a6a1b401ffdd,Goliath Sphinx,K3,divert:low_confidence,0.675
+2026-03-15T06:58:53Z,a0830c00-02fa-4fc8-907c-19d4b7f9cd6e,Bog Tatters,K3,divert:low_confidence,0.675
+2026-03-15T06:59:05Z,014d03f7-4aac-4f46-800e-307ffcfee8c6,Eye of Yawgmoth,K3,divert:low_confidence,0.675
+2026-03-15T06:59:35Z,ae8024ce-12c9-4139-934d-fb230103daa1,A-Dragon's Rage Channeler,K3,divert:low_confidence,0.641
+2026-03-15T07:00:34Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,K3,divert:low_confidence,0.656
+2026-03-15T07:00:43Z,21f31e96-bb66-4b28-b14a-426d1d5839a6,Desiccated Naga,K3,divert:low_confidence,0.675
+2026-03-15T07:00:58Z,5a0d8834-109e-4235-a145-75edc43da0ec,Wishmonger,K3,divert:low_confidence,0.675
+2026-03-15T07:01:15Z,0a681487-951d-4ff1-ab08-bc173ea022e8,Unsummon,K3,divert:low_confidence,0.656
+2026-03-15T07:02:32Z,07b28aff-eb3d-4e8c-8837-e32b482d10a0,Ape,K3,divert:low_confidence,0.675
+2026-03-15T07:02:41Z,221b02f6-12d1-4228-b56c-4fe66b1e66de,Slum Reaper,B1,alpha_exact:S:Slum Reaper,1.000
+2026-03-15T07:02:48Z,221b02f6-12d1-4228-b56c-4fe66b1e66de,Slum Reaper,K3,divert:low_confidence,0.675
+2026-03-15T07:02:56Z,221b02f6-12d1-4228-b56c-4fe66b1e66de,Slum Reaper,K3,divert:low_confidence,0.682
+2026-03-15T07:03:03Z,254bc167-ae0d-4ab5-b139-e70d7c19b826,Pox,K3,divert:low_confidence,0.540
+2026-03-15T07:03:10Z,221b02f6-12d1-4228-b56c-4fe66b1e66de,Slum Reaper,K3,divert:low_confidence,0.675
+2026-03-15T07:03:25Z,221b02f6-12d1-4228-b56c-4fe66b1e66de,Slum Reaper,K3,divert:low_confidence,0.682
+2026-03-15T07:03:42Z,361f3cbb-5a9e-4b77-9180-742f25d954cc,"Sephiroth, Planet's Heir",K3,divert:low_confidence,0.641
+2026-03-15T07:04:08Z,18c94ada-d864-4e94-9d95-e796ab0d0cff,Tazeem,K3,divert:low_confidence,0.675
+2026-03-15T07:04:26Z,51da4a4b-ea12-4169-a7cf-eb4427f13e84,High-Society Hunter,K3,divert:low_confidence,0.675
+2026-03-15T07:04:35Z,283d04a5-3639-42de-b940-ffa7e609e527,Leonardo da Vinci,K3,divert:low_confidence,0.675
+2026-03-15T07:04:43Z,361f3cbb-5a9e-4b77-9180-742f25d954cc,"Sephiroth, Planet's Heir",K3,divert:low_confidence,0.641
+2026-03-15T07:04:51Z,221b02f6-12d1-4228-b56c-4fe66b1e66de,Slum Reaper,K3,divert:low_confidence,0.675
+2026-03-15T07:05:06Z,07b28aff-eb3d-4e8c-8837-e32b482d10a0,Ape,K3,divert:low_confidence,0.675
+2026-03-15T07:05:13Z,221b02f6-12d1-4228-b56c-4fe66b1e66de,Slum Reaper,B1,alpha_exact:S:Slum Reaper,1.000
+2026-03-15T07:05:30Z,07b28aff-eb3d-4e8c-8837-e32b482d10a0,Ape,K3,divert:low_confidence,0.675
+2026-03-15T07:05:37Z,221b02f6-12d1-4228-b56c-4fe66b1e66de,Slum Reaper,B1,alpha_exact:S:Slum Reaper,0.713
+2026-03-15T07:07:04Z,2082e04f-f972-424e-a724-7a5975215538,Ring of Kalonia,K3,divert:low_confidence,0.540
+2026-03-15T07:07:09Z,3fc98aff-edc0-4f78-ae4f-e08735c9e512,Warhorn Blast,K3,divert:low_confidence,0.675
+2026-03-15T07:07:16Z,e6763ffd-9d89-4f26-871a-be24fbdef38d,Sapphire Leech,K3,divert:low_confidence,0.675
+2026-03-15T07:07:23Z,54cc4e2b-1497-4788-afb4-9e42b7683b5a,Piercing Light,K3,divert:low_confidence,0.675
+2026-03-15T07:07:29Z,138f0e49-71d5-4582-92be-797e753f0f42,Gods Willing,K3,divert:low_confidence,0.675
+2026-03-15T07:07:38Z,b39db7a3-028e-4c01-8ff9-64d2a1397379,Lexivore,K3,divert:low_confidence,0.675
+2026-03-15T07:07:57Z,12306750-86d6-4f70-820a-365894884e56,Daru Encampment,K3,divert:low_confidence,0.675
+2026-03-15T07:08:09Z,2dd197f8-ced0-461a-9672-2720a7b70803,Merseine,K3,divert:low_confidence,0.506

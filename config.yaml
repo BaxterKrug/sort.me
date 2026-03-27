@@ -258,7 +258,7 @@ sorting:
         kaldheim: E3
         "*": K2
 camera:
-  device: 4  # Use USB webcam at /dev/video4
+  device: 4  # Use USB webcam at /dev/video4 (HD Camera)
   resolution:
   - 1280
   - 720

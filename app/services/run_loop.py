@@ -184,8 +184,9 @@ async def execute_qr_command(qr_data: str, detected_cell: str) -> Dict[str, Any]
                 result["move_error"] = str(move_exc)
         else:
             _active_feeder = None
-            LOG.warning("No more feeders available after %s", cell)
-            result["message"] = f"No more feeders available after {cell}"
+            LOG.info("Sort complete - all feeders processed after %s", cell)
+            result["message"] = f"Sort complete - all feeders processed"
+            result["sort_complete"] = True
         
         result["executed"] = True
         _processed_qr_codes[cell] = qr_data

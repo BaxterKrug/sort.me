@@ -267,6 +267,11 @@ class CameraManager:
             self._capture = None
             return None
         
+        # Set MJPG format first (before resolution) - prevents striping issues with USB cameras
+        fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        cap.set(cv2.CAP_PROP_FOURCC, fourcc)
+        LOG.debug("Set camera FOURCC to MJPG")
+        
         # Configure camera properties
         width, height = self._cfg.get("resolution", (1280, 720))
         if width:

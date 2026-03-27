@@ -306,6 +306,9 @@ async function beginAutoSort() {
     let consecutiveErrors = 0;
     const maxConsecutiveErrors = 5; // Stop after 5 consecutive errors
     
+    // Track current feeder position to maintain state during error recovery
+    let currentFeederCell = 'A1';
+    
     // Configuration constants
     const WAIT_STABILIZATION = 2000;
     const WAIT_RETRY = 300;  // Reduced to 300ms for faster retries (was 500ms)
@@ -398,14 +401,33 @@ async function beginAutoSort() {
                         const cellLetter = qr.cell ? qr.cell.charAt(0) : '?';
                         console.log('QR code detected in auto-sort loop:', qr);
                         if (qr.command === 'endstep') {
-                            updateSortStatus(`QR: Column ${cellLetter} complete — waiting for feeder to advance…`);
-                            if (qr.cell) {
-                                setTimeout(() => {
-                                    alert(`Column ${cellLetter} is DONE!\n\nAdvanced to next column.`);
-                                }, 100);
+                            // Check if all feeders are complete
+                            if (qr.sort_complete) {
+                                updateSortStatus(`✓ Sort complete - all feeders processed!`);
+                                console.log('All feeders processed - stopping auto-sort');
+                                stopAutoSort();
+                                qrHandled = true;
+                                break;
                             }
+                            
+                            updateSortStatus(`QR: Column ${cellLetter} complete — advancing to next column…`);
                             // Wait for feeder mechanism to physically advance before next card
                             await new Promise(resolve => setTimeout(resolve, WAIT_STABILIZATION));
+                            
+                            // Update tracked feeder position after advancement
+                            try {
+                                const statusResp = await fetch('/feeders/status');
+                                if (statusResp.ok) {
+                                    const statusData = await statusResp.json();
+                                    if (statusData.active_feeder) {
+                                        currentFeederCell = statusData.active_feeder;
+                                        console.log(`Updated current feeder cell to: ${currentFeederCell}`);
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn('Failed to update feeder position after QR:', e);
+                            }
+                            
                             qrHandled = true;
                             break;
                         } else if (qr.command === 'pause') {
@@ -528,11 +550,11 @@ async function beginAutoSort() {
                     consecutiveErrors++;
                     
                     // CRITICAL: After motion error, system may be in unknown state
-                    // Must return to A1 (feeder position with Z=0) before continuing
-                    updateSortStatus('Recovering from motion error - returning to safe position...');
+                    // Must return to current feeder position (with Z=0) before continuing
+                    updateSortStatus('Recovering from motion error - returning to feeder position...');
                     try {
-                        // Attempt to return to A1 to reset to known safe state (Z=0)
-                        const recoveryResponse = await fetch('/motion/goto/A1', { method: 'POST' });
+                        // Attempt to return to current feeder position to reset to known safe state (Z=0)
+                        const recoveryResponse = await fetch(`/motion/goto/${currentFeederCell}`, { method: 'POST' });
                         if (!recoveryResponse.ok) {
                             // Recovery failed - must stop auto-sort for safety
                             console.error('CRITICAL: Failed to recover to safe position after motion error');
@@ -552,71 +574,25 @@ async function beginAutoSort() {
                     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
                 }
             } else {
-                // No assignment after retries - this is an error
+                // No assignment after retries - this should be rare as even low confidence cards get assigned to K3
+                // This typically indicates a system error (backend down, invalid response, etc.)
                 sortStats.errors++;
                 consecutiveErrors++;
-                updateSortStatus(`Failed to identify after ${MAX_ATTEMPTS} attempts`);
+                console.error('CRITICAL: No assignment received after all retries - backend may be malfunctioning');
+                updateSortStatus(`Critical error: No assignment received - skipping card`);
                 
-                // Move unidentified card to error pile (ERR1)
-                try {
-                    // Return to A1 first to ensure known position
-                    const homeResponse = await fetch('/motion/goto/A1', { method: 'POST' });
-                    if (!homeResponse.ok) {
-                        throw new Error(`Failed to return to A1: ${homeResponse.status}`);
-                    }
-                    await homeResponse.json();
-                    await new Promise(resolve => setTimeout(resolve, WAIT_RETRY));
-                    
-                    // Now move to error pile
-                    const errorResponse = await fetch('/motion/goto/ERR1', { method: 'POST' });
-                    if (!errorResponse.ok) {
-                        // FIX #1: Check if ERR1 doesn't exist, use overflow cell K3 as fallback
-                        if (errorResponse.status === 404 || errorResponse.status === 400) {
-                            console.warn('ERR1 not available, using overflow cell K3');
-                            const fallbackResponse = await fetch('/motion/goto/K3', { method: 'POST' });
-                            if (!fallbackResponse.ok) {
-                                throw new Error(`Failed to move to fallback cell K3: ${fallbackResponse.status}`);
-                            }
-                            await fallbackResponse.json();
-                        } else {
-                            throw new Error(`Failed to move to ERR1: ${errorResponse.status}`);
-                        }
-                    } else {
-                        await errorResponse.json();
-                    }
-                    await new Promise(resolve => setTimeout(resolve, WAIT_RETRY));
-                    
-                    // Return to feeder position after error
-                    const returnResponse = await fetch('/motion/goto/A1', { method: 'POST' });
-                    if (!returnResponse.ok) {
-                        throw new Error(`Failed to return to A1: ${returnResponse.status}`);
-                    }
-                    await returnResponse.json();
-                    await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
-                } catch (error) {
-                    console.error('Error handling failed identification:', error);
-                    updateSortStatus(`Error: ${error.message}`);
-                    consecutiveErrors++;
-                    // Last ditch effort to return to A1
-                    try {
-                        const lastChanceResponse = await fetch('/motion/goto/A1', { method: 'POST' });
-                        if (lastChanceResponse.ok) {
-                            await lastChanceResponse.json();
-                            await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
-                        }
-                    } catch (finalError) {
-                        console.error('Final recovery failed:', finalError);
-                        updateSortStatus(`Critical error: System may be in unknown position`);
-                    }
-                }
+                // Don't try to pick up or move the card since we don't know where to put it
+                // Just stay at current position and continue to next card
+                // The unidentified card will remain at the feeder and can be manually handled
+                await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
             }
         } catch (error) {
             sortStats.errors++;
             consecutiveErrors++;
             updateSortStatus(`Error: ${error.message}`);
-            // Try to recover to A1 on any unexpected error
+            // Try to recover to current feeder position on any unexpected error
             try {
-                const emergencyResponse = await fetch('/motion/goto/A1', { method: 'POST' });
+                const emergencyResponse = await fetch(`/motion/goto/${currentFeederCell}`, { method: 'POST' });
                 if (emergencyResponse.ok) {
                     await emergencyResponse.json();
                     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
