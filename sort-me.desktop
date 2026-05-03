@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Sort.me
 Comment=Start the Sort.me card sorter
-Exec=/home/baxterkrug/Documents/sort.me/start.sh
-Path=/home/baxterkrug/Documents/sort.me
+Exec=/home/sortme1/Documents/sort.me/start.sh
+Path=/home/sortme1/Documents/sort.me
 Terminal=true
 Type=Application
 Icon=utilities-terminal

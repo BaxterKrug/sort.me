@@ -1545,3 +1545,123 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-03-27T18:18:16Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Modern Horizon,B1,set_focus:MODERN HORIZONS:Modern Horizon,1.000
 2026-03-27T18:18:16Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Unknown Set,C1,set_focus:*:Unknown Set,1.000
 2026-03-27T18:19:42Z,16f8f90e-3fd6-40b8-a49d-358221d1a7b7,Heedless One,K3,divert:low_confidence,0.675
+2026-03-27T19:51:40Z,c90fdccf-30a6-40ee-9b35-83a6ee5c0681,Crimson Fleet Commodore,K3,divert:low_confidence,0.675
+2026-03-27T19:53:29Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,K3,divert:low_confidence,0.656
+2026-03-27T19:53:47Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,K3,divert:low_confidence,0.677
+2026-03-27T19:54:59Z,246a2758-0096-43b9-8193-d6ae5b41b6e6,Fleeting Aven,K3,divert:low_confidence,0.675
+2026-03-27T19:55:18Z,42afffe3-ce44-4978-aeb5-d86742b433c4,Steel Hellkite,K3,divert:low_confidence,0.675
+2026-03-27T19:55:31Z,83e61813-c4c8-4e80-8808-ac5107966ee3,"Oko, the Trickster",K3,divert:low_confidence,0.675
+2026-03-27T19:55:40Z,83e61813-c4c8-4e80-8808-ac5107966ee3,"Oko, the Trickster",K3,divert:low_confidence,0.675
+2026-03-27T19:55:49Z,83e61813-c4c8-4e80-8808-ac5107966ee3,"Oko, the Trickster",K3,divert:low_confidence,0.675
+2026-03-27T19:56:01Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,B3,alpha_exact:C:Cosi's Trickster,1.000
+2026-03-27T19:56:13Z,83e61813-c4c8-4e80-8808-ac5107966ee3,"Oko, the Trickster",K3,divert:low_confidence,0.675
+2026-03-27T19:56:21Z,83e61813-c4c8-4e80-8808-ac5107966ee3,"Oko, the Trickster",K3,divert:low_confidence,0.675
+2026-03-27T19:56:27Z,83e61813-c4c8-4e80-8808-ac5107966ee3,"Oko, the Trickster",K3,divert:low_confidence,0.675
+2026-03-27T19:56:32Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,B3,alpha_exact:C:Cosi's Trickster,1.000
+2026-03-27T20:04:07Z,d05c7868-e589-478e-af0c-512d0fe4f253,Woeleecher,K3,divert:low_confidence,0.675
+2026-03-27T20:04:31Z,d05c7868-e589-478e-af0c-512d0fe4f253,Woeleecher,K3,divert:low_confidence,0.675
+2026-03-27T20:04:35Z,d05c7868-e589-478e-af0c-512d0fe4f253,Woeleecher,K3,divert:low_confidence,0.675
+2026-03-27T20:04:46Z,d05c7868-e589-478e-af0c-512d0fe4f253,Woeleecher,K3,divert:low_confidence,0.675
+2026-03-27T20:04:51Z,e096049d-9f02-4abb-bb5a-97b14fd17099,Arena Trickster,K3,divert:low_confidence,0.675
+2026-03-27T20:04:55Z,6be1956e-c43e-4a6c-950a-5be6e6ca013f,Omen,K3,divert:low_confidence,0.506
+2026-03-27T20:05:05Z,61e691ff-ab3e-42ae-b160-54b53f5f961e,Serene Sleuth,K3,divert:low_confidence,0.675
+2026-03-27T20:05:10Z,7b379eeb-4d7e-4421-8fc4-b5255eb373f5,Tunnel,K3,divert:low_confidence,0.540
+2026-03-27T20:05:35Z,25aa9106-9ea8-4497-98a8-a005f5437a30,V.A.T.S.,K3,divert:low_confidence,0.641
+2026-03-27T20:05:40Z,19fb3ce2-a660-4829-9af4-330cfd612f06,Soraya the Falconer,K3,divert:low_confidence,0.675
+2026-03-27T20:05:44Z,9b9f5065-503f-4ff9-9d90-5cd2a86d26e7,Tek,K3,divert:low_confidence,0.540
+2026-03-27T20:11:41Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,K3,divert:low_confidence,0.629
+2026-03-27T20:11:50Z,9c5794e4-fc05-4e34-9cac-4c4bc074692d,Coral Trickster,K3,divert:low_confidence,0.650
+2026-03-27T20:12:08Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,B3,alpha_exact:C:Cosi's Trickster,0.700
+2026-03-27T20:12:30Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,K3,divert:low_confidence,0.677
+2026-03-27T20:13:57Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,B3,alpha_exact:C:Cosi's Trickster,1.000
+2026-03-27T20:14:45Z,6835928a-4483-4324-8cae-a5b477649453,"Imoen, Trickster Friend",K3,divert:low_confidence,0.675
+2026-03-27T20:15:31Z,6835928a-4483-4324-8cae-a5b477649453,"Imoen, Trickster Friend",K3,divert:low_confidence,0.675
+2026-03-27T20:15:48Z,4250caec-0e37-41be-9ec4-8938deb5f0d0,Lich,K3,divert:low_confidence,0.550
+2026-03-27T20:16:19Z,fb37f08b-019e-4e6b-8b15-b2971a3b5ebb,Mystic Penitent,K3,divert:low_confidence,0.675
+2026-03-27T20:16:28Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,B3,alpha_exact:C:Cosi's Trickster,1.000
+2026-03-27T20:17:49Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,B3,alpha_exact:C:Cosi's Trickster,1.000
+2026-03-27T20:19:39Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,B3,alpha_exact:C:Cosi's Trickster,1.000
+2026-03-27T20:19:56Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,B1,price:no_price:Cosi's Trickster,1.000
+2026-03-27T20:20:55Z,35b8a9db-d126-4038-abb1-74dcc5b36136,Spell Pierce,B1,price:no_price:Spell Pierce,0.713
+2026-03-27T20:22:27Z,35b8a9db-d126-4038-abb1-74dcc5b36136,Spell Pierce,B1,price:no_price:Spell Pierce,0.713
+2026-03-27T20:23:58Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,B3,alpha_exact:C:Cosi's Trickster,1.000
+2026-03-27T20:24:16Z,f28a84bc-4e4a-4085-ae8c-fb524bc74352,Feywild Trickster // Feywild Trickster,K3,divert:low_confidence,0.675
+2026-03-27T20:24:21Z,e1eb7372-481a-44a6-937d-21430ee02ff9,Cosi's Trickster,B3,alpha_exact:C:Cosi's Trickster,0.713
+2026-03-27T20:25:06Z,9920e91d-58c1-4c1a-a177-43423db96842,Crypt Ripper,B3,alpha_exact:C:Crypt Ripper,1.000
+2026-03-27T20:25:51Z,16e31e43-84d3-429e-9e81-60b325989c93,Devout Lightcaster,C1,alpha_exact:D:Devout Lightcaster,0.713
+2026-03-27T20:26:38Z,1b0fb13b-60f0-4b96-b63c-8a9df745bfca,Demolish,C1,alpha_exact:D:Demolish,1.000
+2026-03-27T20:27:23Z,3f05e478-8712-41de-94af-ecb90432e562,Desecrated Earth,K3,divert:low_confidence,0.675
+2026-03-27T20:27:28Z,3f05e478-8712-41de-94af-ecb90432e562,Desecrated Earth,K3,divert:low_confidence,0.675
+2026-03-27T20:27:33Z,3f05e478-8712-41de-94af-ecb90432e562,Desecrated Earth,C1,alpha_exact:D:Desecrated Earth,0.713
+2026-03-27T20:28:14Z,3f05e478-8712-41de-94af-ecb90432e562,Desecrated Earth,C1,alpha_exact:D:Desecrated Earth,1.000
+2026-03-27T20:34:17Z,3f05e478-8712-41de-94af-ecb90432e562,Desecrated Earth,C1,alpha_exact:D:Desecrated Earth,1.000
+2026-03-27T20:34:30Z,3f05e478-8712-41de-94af-ecb90432e562,Desecrated Earth,C1,alpha_exact:D:Desecrated Earth,1.000
+2026-03-27T20:35:14Z,f0621b32-95c5-4f70-96cf-d46d20efc85d,Balemurk Leech,K3,divert:low_confidence,0.675
+2026-03-27T20:35:23Z,0d8fa256-3535-4c46-bc3c-dcee457519ab,Faithbound Judge // Sinner's Judgment,K3,divert:low_confidence,0.641
+2026-03-27T20:35:27Z,aae08938-e563-4322-b2eb-db81913ea730,Tithe,B2,alpha_exact:T:Tithe,1.000
+2026-03-27T20:42:19Z,099b46e0-53cb-4a1a-9a07-b34dd6d13ecf,Disfigure,C1,alpha_exact:D:Disfigure,1.000
+2026-03-27T20:42:36Z,27abf987-ab02-4bbb-bd13-d7eac43d818a,Arena,K3,divert:low_confidence,0.600
+2026-03-27T20:42:41Z,099b46e0-53cb-4a1a-9a07-b34dd6d13ecf,Disfigure,K3,divert:low_confidence,0.675
+2026-03-27T20:42:46Z,099b46e0-53cb-4a1a-9a07-b34dd6d13ecf,Disfigure,C1,alpha_exact:D:Disfigure,0.713
+2026-03-27T20:43:28Z,1ef03100-f095-43e4-a697-2f473779b5a9,Explorer's Scope,C2,alpha_exact:E:Explorer's Scope,1.000
+2026-03-27T20:44:13Z,1ef03100-f095-43e4-a697-2f473779b5a9,Explorer's Scope,C2,alpha_exact:E:Explorer's Scope,0.713
+2026-03-27T20:44:57Z,5daeaa2e-68e5-4f49-9220-58c0c9b1a3d0,Goblin Shortcutter,D1,alpha_exact:G:Goblin Shortcutter,1.000
+2026-03-27T20:45:42Z,5daeaa2e-68e5-4f49-9220-58c0c9b1a3d0,Goblin Shortcutter,D1,alpha_exact:G:Goblin Shortcutter,1.000
+2026-03-27T20:46:27Z,4388e57e-0c87-4d66-a862-58261d76c5ac,Goblin War Paint,D1,alpha_exact:G:Goblin War Paint,0.700
+2026-03-27T20:47:13Z,06dda49d-25a2-4fa3-80f2-0d784e1ad30f,Grazing Gladehart,D1,alpha_exact:G:Grazing Gladehart,1.000
+2026-03-27T20:47:57Z,06dda49d-25a2-4fa3-80f2-0d784e1ad30f,Grazing Gladehart,D1,alpha_exact:G:Grazing Gladehart,1.000
+2026-03-27T20:48:42Z,747099f7-ce5b-4366-a8a4-f3d80100f66e,Greenweaver Druid,D1,alpha_exact:G:Greenweaver Druid,1.000
+2026-03-27T20:49:27Z,1ddf4a3e-4f99-439a-980b-8c6125602a73,Grim Discovery,D1,alpha_exact:G:Grim Discovery,1.000
+2026-03-27T20:50:11Z,1ddf4a3e-4f99-439a-980b-8c6125602a73,Grim Discovery,D1,alpha_exact:G:Grim Discovery,1.000
+2026-03-27T20:50:58Z,1ddf4a3e-4f99-439a-980b-8c6125602a73,Grim Discovery,D1,alpha_exact:G:Grim Discovery,0.713
+2026-03-27T20:51:44Z,1ddf4a3e-4f99-439a-980b-8c6125602a73,Grim Discovery,D1,alpha_exact:G:Grim Discovery,1.000
+2026-03-27T20:52:28Z,f3c92575-1c97-48bf-801b-22f34040cf9a,Guul Draz Vampire,D1,alpha_exact:G:Guul Draz Vampire,1.000
+2026-03-27T20:53:14Z,f3c92575-1c97-48bf-801b-22f34040cf9a,Guul Draz Vampire,D1,alpha_exact:G:Guul Draz Vampire,1.000
+2026-03-27T20:54:01Z,3394a7a2-8f1a-4f07-843a-77db62de49bd,Hagra Crocodile,D2,alpha_exact:H:Hagra Crocodile,1.000
+2026-03-27T20:54:46Z,1d20016d-2b5a-445e-a59b-5305e76f549c,Heartstabber Mosquito,D2,alpha_exact:H:Heartstabber Mosquito,1.000
+2026-03-27T20:55:33Z,f4d69f7f-ac70-477b-9246-8d81fef7d335,Illusory Demon,D3,alpha_exact:I:Illusory Demon,0.713
+2026-03-27T20:56:21Z,31e4b7a1-b377-49d2-a92e-4bcb0db35f16,"Bello, Bard of the Brambles",K3,divert:low_confidence,0.641
+2026-03-27T20:56:25Z,b53f5a5f-d851-4ceb-96e7-9ba216062072,Joraga Bard,E1,alpha_exact:J:Joraga Bard,1.000
+2026-03-27T20:57:22Z,b13a064d-bff4-4a48-a158-1b61951b0ac3,Melee,K3,divert:low_confidence,0.562
+2026-03-27T20:57:26Z,3d86db25-3ec1-42f3-8b02-2729d50dd201,Whipkeeper,K3,divert:low_confidence,0.506
+2026-03-27T20:57:35Z,b13a064d-bff4-4a48-a158-1b61951b0ac3,Melee,K3,divert:low_confidence,0.562
+2026-03-27T20:57:40Z,b13a064d-bff4-4a48-a158-1b61951b0ac3,Melee,K3,divert:low_confidence,0.562
+2026-03-27T20:58:49Z,1bd4ea87-ca18-43e1-8036-623dd7c405e8,Jwar Isle Refuge,E1,alpha_exact:J:Jwar Isle Refuge,0.713
+2026-03-27T20:59:37Z,1bd4ea87-ca18-43e1-8036-623dd7c405e8,Jwar Isle Refuge,E1,alpha_exact:J:Jwar Isle Refuge,0.703
+2026-03-27T21:00:25Z,1bd4ea87-ca18-43e1-8036-623dd7c405e8,Jwar Isle Refuge,E1,alpha_exact:J:Jwar Isle Refuge,0.713
+2026-03-27T21:01:13Z,46f7b269-1589-4d82-9784-57a783833f42,Rats,K3,divert:low_confidence,0.675
+2026-03-27T21:01:18Z,5900da1d-5308-43cf-bbbc-b7c037f329ef,Kazandu Blademaster,E2,alpha_exact:K:Kazandu Blademaster,0.713
+2026-03-27T21:02:06Z,4fb7a3ad-dfe8-4d6a-9f2c-2c0f1975ea99,Kor Cartographer,K3,divert:low_confidence,0.675
+2026-03-27T21:02:10Z,4fb7a3ad-dfe8-4d6a-9f2c-2c0f1975ea99,Kor Cartographer,E2,alpha_exact:K:Kor Cartographer,1.000
+2026-03-27T21:03:01Z,00006596-1166-4a79-8443-ca9f82e6db4e,Kor Outfitter,E2,alpha_exact:K:Kor Outfitter,1.000
+2026-03-27T21:03:50Z,00006596-1166-4a79-8443-ca9f82e6db4e,Kor Outfitter,E2,alpha_exact:K:Kor Outfitter,0.713
+2026-03-27T21:04:38Z,00006596-1166-4a79-8443-ca9f82e6db4e,Kor Outfitter,E2,alpha_exact:K:Kor Outfitter,0.713
+2026-03-27T21:05:26Z,1d582916-8e67-43f8-a116-37d29a8a5149,Kor Ally,K3,divert:low_confidence,0.641
+2026-03-27T21:05:31Z,00006596-1166-4a79-8443-ca9f82e6db4e,Kor Outfitter,E2,alpha_exact:K:Kor Outfitter,0.713
+2026-03-27T21:06:20Z,3e356527-66a6-4d71-bc59-0c3bdde3d14c,Dr. Madison Li,K3,divert:low_confidence,0.675
+2026-03-27T21:06:24Z,107a4e2b-e463-46f3-a431-66ea954ef487,Living Tsunami,E3,alpha_exact:L:Living Tsunami,1.000
+2026-03-27T21:07:14Z,e76e9555-966c-4fc3-9ef4-a0154ccb8329,Makindi Shieldmate,K3,divert:low_confidence,0.689
+2026-03-27T21:07:19Z,e76e9555-966c-4fc3-9ef4-a0154ccb8329,Makindi Shieldmate,F1,alpha_exact:M:Makindi Shieldmate,0.713
+2026-03-27T21:08:09Z,e76e9555-966c-4fc3-9ef4-a0154ccb8329,Makindi Shieldmate,F1,alpha_exact:M:Makindi Shieldmate,1.000
+2026-03-27T21:09:03Z,0b7c6e09-3a14-4cc4-ba6b-f1f45e7d9f2a,Mark of Mutiny,F1,alpha_exact:M:Mark of Mutiny,1.000
+2026-03-27T21:10:11Z,0b7c6e09-3a14-4cc4-ba6b-f1f45e7d9f2a,Mark of Mutiny,F1,alpha_exact:M:Mark of Mutiny,0.713
+2026-03-27T21:11:05Z,0a007dd4-f20d-4ed3-ab0b-96f6ad7236d5,Marsh Casualties,F1,alpha_exact:M:Marsh Casualties,1.000
+2026-03-27T21:11:58Z,0a007dd4-f20d-4ed3-ab0b-96f6ad7236d5,Marsh Casualties,K3,divert:low_confidence,0.675
+2026-03-27T21:12:03Z,0a007dd4-f20d-4ed3-ab0b-96f6ad7236d5,Marsh Casualties,F1,alpha_exact:M:Marsh Casualties,0.713
+2026-03-27T21:12:55Z,34bf3c19-f148-4542-8505-604191fd5a02,Mind Sludge,F1,alpha_exact:M:Mind Sludge,0.713
+2026-03-27T21:13:47Z,39b8cf7f-8c40-40e9-8118-e8626c3c6433,"Ma Chao, Western Warrior",K3,divert:low_confidence,0.641
+2026-03-27T21:13:52Z,f334e864-4e62-4bc3-9470-661be3d879e2,Silt Crawler,K3,divert:low_confidence,0.641
+2026-03-27T21:14:00Z,dd26c2a6-7b08-4de6-afbf-e34d321995ab,Ow,K3,divert:low_confidence,0.675
+2026-03-27T21:14:05Z,68f8e20c-6d8e-45a1-aabd-176d8df843db,Wit's End,K3,divert:low_confidence,0.540
+2026-03-27T21:14:10Z,2b1ccdda-07a0-445b-b146-51c1e3a05421,Mary O'Kill,K3,divert:low_confidence,0.641
+2026-03-27T21:14:15Z,5d5835dd-f789-481e-b9dd-a0910af61326,Aggressive Mining,K3,divert:low_confidence,0.641
+2026-03-27T21:15:24Z,b5d43b60-5bbc-4f9d-a96b-8d886b0c6dbd,Mindless Null,K3,divert:low_confidence,0.675
+2026-03-27T21:15:29Z,01a6d9c9-f911-47e1-8a0e-5caf36c62e77,"Isshin, Two Heavens as One",K3,divert:low_confidence,0.641
+2026-03-27T21:15:33Z,d68fad1d-a517-433a-b939-d0635e8f5535,Telekinetic Bonds,K3,divert:low_confidence,0.675
+2026-03-27T21:15:38Z,12030927-7af2-448f-bc6b-c2035e0b799d,Goldenglow Moth,K3,divert:low_confidence,0.675
+2026-03-27T21:15:51Z,068bc755-9d3d-430b-abc5-c775a5415bf9,"Ishgard, the Holy See // Faith & Grief",K3,divert:low_confidence,0.641
+2026-03-27T21:16:59Z,50cd434c-a04c-4ac8-9b1a-a79903d84060,Molten Ravager,F1,alpha_exact:M:Molten Ravager,1.000
+2026-03-27T21:18:07Z,307a859e-eb80-4af6-b731-92e4767b5100,"Kilo, Apogee Mind",K3,divert:low_confidence,0.675
+2026-03-27T21:19:36Z,794d09ae-a995-482f-848e-7f99477bd6f3,Walk the Aeons,K3,divert:low_confidence,0.675
+2026-03-27T21:20:01Z,79cc73ea-3f07-4d11-9961-dc31ac598b73,Spellweaver Volute,K3,divert:low_confidence,0.675
+2026-05-03T21:10:40Z,5d964629-6d1d-4253-ac23-92f2199323b4,Life's Legacy,K3,divert:low_confidence,0.641

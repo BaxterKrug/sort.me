@@ -18,7 +18,7 @@ import serial.serialutil
 import cv2  # type: ignore[import-not-found]
 import numpy as np  # type: ignore[import-not-found]
 import yaml  # type: ignore[import-not-found]
-from fastapi import FastAPI, File, HTTPException, UploadFile, Request  # type: ignore[import-not-found]
+from fastapi import FastAPI, File, HTTPException, UploadFile, Request, Body  # type: ignore[import-not-found]
 from fastapi.responses import FileResponse, Response, HTMLResponse  # type: ignore[import-not-found]
 from fastapi.staticfiles import StaticFiles  # type: ignore[import-not-found]
 
@@ -39,6 +39,7 @@ from app.services.assign import (
     load_config,
 )
 from app.services.motion import configure_from_cfg, get_controller, is_demo_mode
+from fastapi.responses import Response
 
 LOG = logging.getLogger("sort.api")
 
@@ -46,6 +47,12 @@ app = FastAPI()
 
 static_dir = Path("app") / "static"
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+
+@app.get("/favicon.ico")
+def favicon():
+    """Return empty response for favicon requests to avoid 404 noise."""
+    return Response(content=b"", media_type="image/x-icon")
 
 
 def _load_raw_config() -> Dict[str, Any]:
@@ -142,10 +149,10 @@ SESSION = sort_session.get_manager()
 ERROR_LOG: List[Dict[str, Any]] = []
 
 # Motion constants
-SAFE_Z_HEIGHT = 130.0  # Safe Z height for XY movements (mm)
-SAFE_Z_THRESHOLD = 125.0  # Minimum Z height before raising to safe height (mm)
+SAFE_Z_HEIGHT = 120.0  # Safe Z height for XY movements (mm)
+SAFE_Z_THRESHOLD = 115.0  # Minimum Z height before raising to safe height (mm)
 # Camera focal constraint: do not raise above this Z (mm)
-CAMERA_FOCUS_Z = 130.0
+CAMERA_FOCUS_Z = 120.0
 
 # Auto-sort loop control
 AUTO_SORT_RUNNING = False
@@ -712,7 +719,7 @@ def sorting_modes() -> Dict[str, Any]:
 
 
 @app.post("/sorting/mode")
-def sorting_set_mode(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def sorting_set_mode(payload: Optional[Dict[str, Any]] = Body(None)) -> Dict[str, Any]:
     if not CFG.sort_modes:
         STATE.active_sort_mode = CFG.default_sort_mode
         return {"ok": False, "active": STATE.active_sort_mode, "message": "No sort modes configured"}
@@ -771,7 +778,7 @@ def sorting_operations() -> Dict[str, Any]:
 
 
 @app.post("/sorting/operation")
-def sorting_set_operation(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def sorting_set_operation(payload: Optional[Dict[str, Any]] = Body(None)) -> Dict[str, Any]:
     if not CFG.sort_operations:
         STATE.active_sort_operation = None
         return {"ok": False, "active": None, "message": "No sort operations configured"}
@@ -1057,7 +1064,7 @@ async def motion_home_z_and_extrude() -> Dict[str, Any]:
                                             await asyncio.sleep(0.15)
                                         LOG.info("Auto-sort: Aggressive shake sequence complete")
                                     
-                                    # 7. Raise Z by 100mm back to safe height (130mm)
+                                    # 7. Raise Z by 100mm back to safe height (120mm)
                                     # CRITICAL: Must complete before XY move to avoid collision
                                     # Z-only move: never move X/Y at the same time as Z
                                     LOG.info("Auto-sort: Raising Z back to safe height")
@@ -1503,7 +1510,7 @@ def gcode_mcodes_update(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @app.post("/run/start")
-def run_start(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def run_start(payload: Optional[Dict[str, Any]] = Body(None)) -> Dict[str, Any]:
     meta = dict(payload or {})
 
     requested_mode = (
@@ -1572,7 +1579,7 @@ def run_resume() -> Dict[str, Any]:
 
 
 @app.post("/run/end")
-def run_end(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def run_end(payload: Optional[Dict[str, Any]] = Body(None)) -> Dict[str, Any]:
     notes = (payload or {}).get("notes") if payload else None
     try:
         session = SESSION.end_session(notes=notes)

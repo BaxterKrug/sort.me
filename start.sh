@@ -8,5 +8,4 @@ if [ ! -d .venv ]; then
   exit 1
 fi
 
-source .venv/bin/activate
 exec python main.py

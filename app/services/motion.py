@@ -338,10 +338,10 @@ class GCodeDriver(MotionDriver):
                     LOG.info("Serial reconnection successful")
                     
                     # Clear position cache after reconnection to safe default
-                    # Assume Z=130 (safe height / camera focal) to prevent collisions during recovery
+                    # Assume Z=120 (safe height / camera focal) to prevent collisions during recovery
                     # X=0, Y=0 assumes we're at home position
-                    self._last_position = (0.0, 0.0, 130.0)
-                    LOG.info("Position cache reset to safe position (0, 0, 130) after reconnection")
+                    self._last_position = (0.0, 0.0, 120.0)
+                    LOG.info("Position cache reset to safe position (0, 0, 120) after reconnection")
                     
                     return lines
                 except Exception as retry_exc:

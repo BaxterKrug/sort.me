@@ -899,8 +899,8 @@ def _segment_ocr_regions(
 
     defaults = {
         "full": (0, height),
-        "name": (0, max(int(height * 0.20), 1)),
-        "oracle": (max(int(height * 0.20) - 5, 0), max(int(height * 0.78), int(height * 0.20) + 1)),
+        "name": (0, max(int(height * 0.25), 1)),
+        "oracle": (max(int(height * 0.25) - 5, 0), max(int(height * 0.78), int(height * 0.25) + 1)),
         "set_symbol": (max(int(height * 0.45), 1), max(int(height * 0.62), int(height * 0.45) + 1)),
         "collector": (max(int(height * 0.78) - 5, 0), height),
     }
