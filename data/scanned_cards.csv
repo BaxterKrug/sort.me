@@ -1665,3 +1665,46 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-03-27T21:19:36Z,794d09ae-a995-482f-848e-7f99477bd6f3,Walk the Aeons,K3,divert:low_confidence,0.675
 2026-03-27T21:20:01Z,79cc73ea-3f07-4d11-9961-dc31ac598b73,Spellweaver Volute,K3,divert:low_confidence,0.675
 2026-05-03T21:10:40Z,5d964629-6d1d-4253-ac23-92f2199323b4,Life's Legacy,K3,divert:low_confidence,0.641
+2026-05-03T21:23:01Z,cfa51783-9ef8-4e51-ba0d-ce8439d83bdf,Bind,K3,divert:low_confidence,0.675
+2026-05-03T21:23:08Z,cfa51783-9ef8-4e51-ba0d-ce8439d83bdf,Bind,K3,divert:low_confidence,0.675
+2026-05-03T21:23:20Z,cfa51783-9ef8-4e51-ba0d-ce8439d83bdf,Bind,K3,divert:low_confidence,0.675
+2026-05-03T21:24:41Z,cfa51783-9ef8-4e51-ba0d-ce8439d83bdf,Bind,K3,divert:low_confidence,0.675
+2026-05-03T21:25:03Z,cfa51783-9ef8-4e51-ba0d-ce8439d83bdf,Bind,K3,divert:low_confidence,0.675
+2026-05-03T21:25:23Z,90b3b56c-5236-4319-b17e-5f71143a7906,Goblin Banneret,K3,divert:low_confidence,0.675
+2026-05-03T21:25:45Z,bc5fd304-d8e4-4ba4-ab0e-2ebeebea8fdd,A-Skyclave Shadowcat,K3,divert:low_confidence,0.675
+2026-05-03T21:26:41Z,14f165ad-cfe6-4a5d-8073-a70969494855,Smite,K3,divert:low_confidence,0.600
+2026-05-03T21:26:51Z,14f165ad-cfe6-4a5d-8073-a70969494855,Smite,K3,divert:low_confidence,0.600
+2026-05-03T21:27:09Z,5b5fa4bb-e061-456f-808e-8d98b2c8abf5,Savannah Sage,K3,divert:low_confidence,0.675
+2026-05-03T21:32:57Z,8875c883-8d56-406b-bd89-42199a6e79f5,Silvergill Douser,K3,divert:low_confidence,0.600
+2026-05-03T21:34:36Z,793bb4e0-8fdd-440e-9e6e-92a899794cae,Guul Draz Overseer,K3,divert:low_confidence,0.675
+2026-05-03T21:34:56Z,dd26c2a6-7b08-4de6-afbf-e34d321995ab,Ow,K3,divert:low_confidence,0.675
+2026-05-03T21:35:34Z,d5dcd89f-a626-4dcb-ae73-7b8605747099,Fight the _____ Fight,K3,divert:low_confidence,0.506
+2026-05-03T21:35:44Z,cc538730-c46c-4e5f-bc1f-0efb7765086d,Oracle en-Vec,K3,divert:low_confidence,0.675
+2026-05-03T21:35:53Z,4fa13084-3e68-49f4-8cc9-6d02286fd150,Scorn Effigy,B1,alpha_exact:S:Scorn Effigy,1.000
+2026-05-03T21:36:17Z,4fa13084-3e68-49f4-8cc9-6d02286fd150,Scorn Effigy,B1,alpha_exact:S:Scorn Effigy,1.000
+2026-05-03T21:37:49Z,4fa13084-3e68-49f4-8cc9-6d02286fd150,Scorn Effigy,B1,alpha_exact:S:Scorn Effigy,1.000
+2026-05-03T21:38:02Z,082e6ee3-cc1f-46c7-9d82-56751478b3cf,Charm Peddler,K3,divert:low_confidence,0.641
+2026-05-03T21:38:11Z,8875c883-8d56-406b-bd89-42199a6e79f5,Silvergill Douser,K3,divert:low_confidence,0.600
+2026-05-03T21:39:13Z,8875c883-8d56-406b-bd89-42199a6e79f5,Silvergill Douser,K3,divert:low_confidence,0.600
+2026-05-03T21:39:20Z,45ea8ca1-612d-4984-8572-06710d38bfa6,Silvergill Adept,K3,divert:low_confidence,0.608
+2026-05-03T21:39:26Z,8875c883-8d56-406b-bd89-42199a6e79f5,Silvergill Douser,K3,divert:low_confidence,0.600
+2026-05-03T21:39:36Z,8875c883-8d56-406b-bd89-42199a6e79f5,Silvergill Douser,K3,divert:low_confidence,0.600
+2026-05-03T21:39:55Z,8875c883-8d56-406b-bd89-42199a6e79f5,Silvergill Douser,K3,divert:low_confidence,0.600
+2026-05-03T21:40:49Z,082e6ee3-cc1f-46c7-9d82-56751478b3cf,Charm Peddler,K3,divert:low_confidence,0.675
+2026-05-03T21:40:55Z,082e6ee3-cc1f-46c7-9d82-56751478b3cf,Charm Peddler,K3,divert:low_confidence,0.641
+2026-05-03T21:41:05Z,e61a849b-601b-4d5a-9a4e-84e7eb685b09,A-Security Rhox,K3,divert:low_confidence,0.641
+2026-05-03T21:41:16Z,082e6ee3-cc1f-46c7-9d82-56751478b3cf,Charm Peddler,K3,divert:low_confidence,0.675
+2026-05-03T21:41:46Z,8875c883-8d56-406b-bd89-42199a6e79f5,Silvergill Douser,K3,divert:low_confidence,0.600
+2026-05-03T21:47:09Z,feba2bb6-6005-4ade-a4c5-97bbd54b43a3,Silvergill Peddler,B1,alpha_exact:S:Silvergill Peddler,0.713
+2026-05-03T21:48:17Z,feba2bb6-6005-4ade-a4c5-97bbd54b43a3,Silvergill Peddler,B1,alpha_exact:S:Silvergill Peddler,1.000
+2026-05-03T21:48:57Z,382b83c0-bbbc-4db8-bc04-cfea79aed1b3,Blossombind,H2,alpha_exact:B:Blossombind,0.717
+2026-05-03T21:49:53Z,b8b7c23a-0034-453c-ab44-f6ec0f31d1eb,Glamermite,D1,alpha_exact:G:Glamermite,1.000
+2026-05-04T06:18:46Z,c1788d4c-31b8-4f73-8275-5470316e7ad4,Rat,K3,divert:low_confidence,0.675
+2026-05-04T06:18:55Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,K3,divert:low_confidence,0.688
+2026-05-04T06:19:07Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,B1,alpha_exact:S:Stratosoarer,1.000
+2026-05-04T06:19:26Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,K3,divert:low_confidence,0.688
+2026-05-04T06:19:33Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,B1,alpha_exact:S:Stratosoarer,1.000
+2026-05-04T06:20:54Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,B1,alpha_exact:S:Stratosoarer,1.000
+2026-05-04T15:08:11Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,B1,alpha_exact:S:Stratosoarer,1.000
+2026-05-04T15:12:26Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,B1,alpha_exact:S:Stratosoarer,0.713
+2026-05-04T15:13:06Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,B1,alpha_exact:S:Stratosoarer,1.000

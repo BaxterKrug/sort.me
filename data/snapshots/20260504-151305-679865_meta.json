@@ -1,0 +1,78 @@
+{
+  "timestamp": "20260504-151305-679865",
+  "border": {
+    "found": false,
+    "area": 160178.0,
+    "margin_px": 10
+  },
+  "rotation": {
+    "method": "fixed_90_ccw",
+    "degrees": 90
+  },
+  "zone_ocr": {
+    "name": "Stratosoarer _           .",
+    "collector": "Sn fill",
+    "oracle": "",
+    "type_line": ""
+  },
+  "identification": {
+    "best": {
+      "id": "4f607889-6f3f-4511-8920-88a39f3b28ca",
+      "name": "Stratosoarer",
+      "set": "ecl",
+      "collector_number": "72",
+      "printed_name": null,
+      "flavor_name": null,
+      "set_name": "Lorwyn Eclipsed",
+      "released_at": "2026-01-23",
+      "released_year": "2026",
+      "prices": {
+        "usd": "0.04",
+        "usd_foil": "0.09",
+        "usd_etched": null,
+        "eur": "0.02",
+        "eur_foil": "0.04",
+        "tix": "0.03"
+      },
+      "oracle_text": "Flying\nWhen this creature enters, target creature gains flying until end of turn.\nBasic landcycling {1}{U} ({1}{U}, Discard this card: Search your library for a basic land card, reveal it, put it into your hand, then shuffle.)",
+      "type_line": "Creature \u2014 Elemental"
+    },
+    "score": 100.0,
+    "candidates": [
+      {
+        "card": {
+          "id": "4f607889-6f3f-4511-8920-88a39f3b28ca",
+          "name": "Stratosoarer",
+          "set": "ecl",
+          "collector_number": "72",
+          "printed_name": null,
+          "flavor_name": null,
+          "set_name": "Lorwyn Eclipsed",
+          "released_at": "2026-01-23",
+          "released_year": "2026",
+          "prices": {
+            "usd": "0.04",
+            "usd_foil": "0.09",
+            "usd_etched": null,
+            "eur": "0.02",
+            "eur_foil": "0.04",
+            "tix": "0.03"
+          },
+          "oracle_text": "Flying\nWhen this creature enters, target creature gains flying until end of turn.\nBasic landcycling {1}{U} ({1}{U}, Discard this card: Search your library for a basic land card, reveal it, put it into your hand, then shuffle.)",
+          "type_line": "Creature \u2014 Elemental"
+        },
+        "name_score": 100.0,
+        "oracle_score": 1.0,
+        "collector_score": 1.0,
+        "total_score": 100.0
+      }
+    ],
+    "debug": {
+      "ocr_name": "Stratosoarer",
+      "ocr_oracle": "",
+      "ocr_collector": "Sn fill",
+      "num_cards_in_db": 37400,
+      "ocr_query": "Stratosoarer\nsnfill"
+    }
+  }
+}
