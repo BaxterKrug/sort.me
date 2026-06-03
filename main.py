@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 
 from urllib import error as urlerror, request as urlrequest
 import serial.serialutil
+import ijson
 
 import cv2  # type: ignore[import-not-found]
 import numpy as np  # type: ignore[import-not-found]
@@ -158,6 +159,19 @@ CAMERA_FOCUS_Z = 120.0
 AUTO_SORT_RUNNING = False
 AUTO_SORT_TASK: Optional[asyncio.Task] = None
 AUTO_SORT_STATS = {"cards_processed": 0, "errors": 0, "skipped": 0, "started_at": None}
+AUTO_SORT_RUNTIME: Dict[str, Any] = {
+    "phase": "idle",
+    "message": "Idle",
+    "current_card": None,
+    "current_feeder": None,
+    "attempt": 0,
+    "updated_at": None,
+}
+
+
+def _set_auto_sort_runtime(**kwargs: Any) -> None:
+    AUTO_SORT_RUNTIME.update(kwargs)
+    AUTO_SORT_RUNTIME["updated_at"] = datetime.utcnow().isoformat(timespec="seconds")
 
 # Snapshot protection to prevent concurrent requests
 SNAPSHOT_IN_PROGRESS = False
@@ -165,6 +179,155 @@ SNAPSHOT_IN_PROGRESS = False
 CARD_METADATA_CACHE: Dict[str, Dict[str, Any]] = {}
 CARD_DETAILS_CACHE: Dict[str, Dict[str, Any]] = {}
 SET_CACHE: Dict[str, Dict[str, Any]] = {}
+
+ID_SOURCE_DIR = Path("data") / "embeddings"
+ID_SOURCE_FILE = ID_SOURCE_DIR / "cards_metadata.json"
+
+
+def _id_source_status_payload() -> Dict[str, Any]:
+    exists = ID_SOURCE_FILE.exists()
+    size_bytes = None
+    modified_at = None
+    if exists:
+        try:
+            stat = ID_SOURCE_FILE.stat()
+            size_bytes = int(stat.st_size)
+            modified_at = datetime.utcfromtimestamp(stat.st_mtime).isoformat(timespec="seconds") + "Z"
+        except Exception:
+            size_bytes = None
+            modified_at = None
+    return {
+        "path": str(ID_SOURCE_FILE),
+        "exists": exists,
+        "size_bytes": size_bytes,
+        "modified_at": modified_at,
+    }
+
+
+def _normalize_scryfall_cards_payload(payload: Any) -> Tuple[List[Dict[str, Any]], str]:
+    """Normalize Scryfall bulk payload to list-of-cards format expected by ID pipeline."""
+    cards_raw: List[Any]
+    source_type = "unknown"
+    if isinstance(payload, list):
+        cards_raw = payload
+        source_type = "list"
+    elif isinstance(payload, dict) and isinstance(payload.get("data"), list):
+        cards_raw = payload.get("data") or []
+        source_type = "dict:data"
+    else:
+        raise ValueError("JSON must be a card list or an object with a 'data' list")
+
+    keep_keys = {
+        "id",
+        "oracle_id",
+        "name",
+        "printed_name",
+        "flavor_name",
+        "set",
+        "set_name",
+        "collector_number",
+        "oracle_text",
+        "type_line",
+        "lang",
+        "released_at",
+        "rarity",
+        "layout",
+        "prices",
+    }
+
+    normalized: List[Dict[str, Any]] = []
+    for item in cards_raw:
+        if not isinstance(item, dict):
+            continue
+        row: Dict[str, Any] = {k: item.get(k) for k in keep_keys if k in item}
+        row["scryfall_id"] = item.get("id") or item.get("scryfall_id")
+        if not row.get("name"):
+            continue
+        normalized.append(row)
+
+    return normalized, source_type
+
+
+def _normalize_scryfall_cards_streaming(
+    input_path: Path,
+    output_path: Path,
+) -> Tuple[int, int, str]:
+    """
+    Stream-parse large Scryfall JSON files (up to 1GB+) without loading into memory.
+    
+    Returns: (total_card_count, normalized_card_count, source_type_label)
+    """
+    keep_keys = {
+        "id",
+        "oracle_id",
+        "name",
+        "printed_name",
+        "flavor_name",
+        "set",
+        "set_name",
+        "collector_number",
+        "oracle_text",
+        "type_line",
+        "lang",
+        "released_at",
+        "rarity",
+        "layout",
+        "prices",
+    }
+
+    total_count = 0
+    normalized_count = 0
+    source_type = "unknown"
+    
+    normalized_items: List[Dict[str, Any]] = []
+    
+    # First, try to detect format by peeking at file
+    with input_path.open("rb") as fh:
+        peek_bytes = fh.read(100).strip()
+    
+    # Check if it starts with { (dict) or [ (list)
+    is_dict = peek_bytes.startswith(b"{")
+    
+    with input_path.open("rb") as fh:
+        if is_dict:
+            # Try dict:data format
+            try:
+                data_items = ijson.items(fh, "data.item")
+                source_type = "dict:data"
+                
+                for card in data_items:
+                    if isinstance(card, dict):
+                        total_count += 1
+                        row: Dict[str, Any] = {k: card.get(k) for k in keep_keys if k in card}
+                        row["scryfall_id"] = card.get("id") or card.get("scryfall_id")
+                        if row.get("name"):
+                            normalized_count += 1
+                            normalized_items.append(row)
+            except (ijson.JSONError, ijson.IncompleteJSONError, ijson.ObjectBuilder):
+                # If that fails, try raw items
+                fh.seek(0)
+                source_type = "unknown"
+        
+        # If dict format didn't work or wasn't dict, try list format
+        if source_type == "unknown":
+            fh.seek(0)
+            source_type = "list"
+            items_parser = ijson.items(fh, "item")
+            
+            for card in items_parser:
+                if isinstance(card, dict):
+                    total_count += 1
+                    row: Dict[str, Any] = {k: card.get(k) for k in keep_keys if k in card}
+                    row["scryfall_id"] = card.get("id") or card.get("scryfall_id")
+                    if row.get("name"):
+                        normalized_count += 1
+                        normalized_items.append(row)
+    
+    # Write all normalized cards to output file
+    with output_path.open("w", encoding="utf8") as out_fh:
+        json.dump(normalized_items, out_fh, separators=(",", ":"), ensure_ascii=False)
+    
+    return total_count, normalized_count, source_type
 
 
 @app.on_event("startup")
@@ -592,11 +755,12 @@ async def _motion_status_payload() -> Dict[str, Any]:
     driver_name = type(driver).__name__
     port = getattr(driver, "port", "virtual")
     pos = ctrl.current
-    try:
-        pos = await driver.query_position()  # type: ignore[attr-defined]
-        ctrl.current = pos
-    except Exception:
-        pass
+    if not ctrl.lock.locked():
+        try:
+            pos = await driver.query_position()  # type: ignore[attr-defined]
+            ctrl.current = pos
+        except Exception:
+            pass
     
     # In demo mode (fake hardware), the virtual driver is always "connected"
     # In real mode, check if the serial connection exists
@@ -607,6 +771,7 @@ async def _motion_status_payload() -> Dict[str, Any]:
         "driver": driver_name,
         "pos": (float(pos[0]), float(pos[1]), float(pos[2])),
         "homed": bool(ctrl.homed),
+        "busy": bool(ctrl.lock.locked()),
         "cells_configured": len(ctrl.cells),
         "port": port,
         "demo": is_demo,
@@ -662,6 +827,136 @@ async def get_status() -> Dict[str, Any]:
             "status": "Ready" if camera_mgr else "Not Available",
             "device": getattr(camera_mgr, "device_id", None) if camera_mgr else None,
         }
+    }
+
+
+@app.get("/id/source/status")
+def id_source_status() -> Dict[str, Any]:
+    payload = _id_source_status_payload()
+    return {
+        "ok": True,
+        "source": payload,
+    }
+
+
+@app.post("/id/source/import")
+async def id_source_import(file: UploadFile = File(...)) -> Dict[str, Any]:
+    filename = (file.filename or "").strip()
+    if not filename:
+        raise HTTPException(status_code=400, detail="Missing file name")
+
+    lower_name = filename.lower()
+    if not (lower_name.endswith(".json") or lower_name.endswith(".txt")):
+        raise HTTPException(status_code=400, detail="Please upload a .json file from Scryfall")
+
+    ID_SOURCE_DIR.mkdir(parents=True, exist_ok=True)
+    tmp_path = ID_SOURCE_FILE.with_suffix(".upload.tmp")
+    bytes_written = 0
+    first_non_whitespace: Optional[str] = None
+
+    try:
+        with tmp_path.open("wb") as out_fh:
+            while True:
+                chunk = await file.read(1024 * 1024)
+                if not chunk:
+                    break
+                if first_non_whitespace is None:
+                    for byte_val in chunk:
+                        ch = chr(byte_val)
+                        if ch.isspace():
+                            continue
+                        first_non_whitespace = ch
+                        break
+                out_fh.write(chunk)
+                bytes_written += len(chunk)
+    except Exception as exc:
+        if tmp_path.exists():
+            tmp_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=500, detail=f"Failed to save upload: {exc}")
+
+    if bytes_written <= 0:
+        tmp_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+    if first_non_whitespace not in {"[", "{"}:
+        tmp_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="Uploaded file is not valid JSON content")
+
+    parsed_type = "unknown"
+    validated = False
+    normalized = False
+    normalized_count: Optional[int] = None
+    card_count: Optional[int] = None
+    normalized_path = ID_SOURCE_FILE.with_suffix(".normalized.tmp")
+    
+    try:
+        if bytes_written <= 50 * 1024 * 1024:
+            # Small file: load entirely into memory for in-memory normalization
+            with tmp_path.open("r", encoding="utf8") as fh:
+                payload = json.load(fh)
+            validated = True
+            normalized_cards, parsed_type = _normalize_scryfall_cards_payload(payload)
+            card_count = len(normalized_cards)
+            normalized_count = card_count
+            with normalized_path.open("w", encoding="utf8") as out_fh:
+                json.dump(normalized_cards, out_fh, separators=(",", ":"), ensure_ascii=False)
+            normalized = True
+        else:
+            # Large file: use streaming parser (handles up to 1GB+ without memory explosion)
+            try:
+                card_count, normalized_count, parsed_type = _normalize_scryfall_cards_streaming(
+                    tmp_path, normalized_path
+                )
+                validated = True
+                normalized = True
+            except Exception as stream_exc:
+                LOG.error(f"Streaming parse failed: {stream_exc}", exc_info=True)
+                raise
+    except Exception as exc:
+        tmp_path.unlink(missing_ok=True)
+        normalized_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail=f"Could not parse/adapt JSON: {exc}")
+
+    if ID_SOURCE_FILE.exists():
+        timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        backup_path = ID_SOURCE_DIR / f"cards_metadata.backup-{timestamp}.json"
+        try:
+            shutil.copy2(ID_SOURCE_FILE, backup_path)
+        except Exception:
+            LOG.warning("Failed to create backup before ID source import", exc_info=True)
+
+    try:
+        install_path = normalized_path if normalized and normalized_path.exists() else tmp_path
+        shutil.move(str(install_path), str(ID_SOURCE_FILE))
+        if tmp_path.exists():
+            tmp_path.unlink(missing_ok=True)
+        if normalized_path.exists():
+            normalized_path.unlink(missing_ok=True)
+    except Exception as exc:
+        tmp_path.unlink(missing_ok=True)
+        normalized_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=500, detail=f"Failed to install imported file: {exc}")
+
+    try:
+        if hasattr(card_id, "_EMBED_CACHES") and isinstance(card_id._EMBED_CACHES, dict):
+            card_id._EMBED_CACHES.clear()
+    except Exception:
+        LOG.debug("Failed to clear embedding caches after ID source import", exc_info=True)
+
+    source = _id_source_status_payload()
+    return {
+        "ok": True,
+        "message": "Card source imported successfully",
+        "source": source,
+        "import": {
+            "filename": filename,
+            "bytes": bytes_written,
+            "validated": validated,
+            "parsed_type": parsed_type,
+            "card_count": card_count,
+            "normalized": normalized,
+            "normalized_count": normalized_count,
+        },
     }
 
 
@@ -2165,6 +2460,7 @@ async def camera_snapshot(
         LOG.warning("Could not clear snapshots directory: %s", snapshot_dir, exc_info=True)
 
     # Process single frame (no compositing)
+    min_identify_score = float(getattr(CFG, "low_confidence_threshold", 0.7) * 100.0)
     artifacts = ocr_pipeline.prepare_single_snapshot_artifacts(
         frame,
         timestamp_slug=timestamp_slug,
@@ -2172,6 +2468,7 @@ async def camera_snapshot(
         jpeg_quality=quality,
         persist=True,
         include_bytes=True,
+        min_identify_score=min_identify_score,
     )
 
     labels = [
@@ -2240,8 +2537,12 @@ async def camera_snapshot(
     # Persist a small file with the best identification match's scryfall id
     try:
         # Use lightweight identification instead of embeddings
-        identification_info = artifacts.get("meta", {}).get("identification") if isinstance(artifacts.get("meta", {}), dict) else None
-        zone_ocr_info = artifacts.get("meta", {}).get("zone_ocr") if isinstance(artifacts.get("meta", {}), dict) else None
+        meta_payload = artifacts.get("meta", {}) if isinstance(artifacts.get("meta", {}), dict) else {}
+        identification_info = meta_payload.get("identification")
+        identification_rejected = meta_payload.get("identification_rejected")
+        identification_status = meta_payload.get("identification_status")
+        identification_reason = meta_payload.get("identification_reason")
+        zone_ocr_info = meta_payload.get("zone_ocr")
         scry_id = None
         assigned_cell = None
         assignment_reason = None
@@ -2257,6 +2558,16 @@ async def camera_snapshot(
                     "no_valid_ocr": "Identification rejected: no readable text",
                 }.get(selected_orientation, "Identification failed")
                 LOG.warning(identification_warning)
+
+        if identification_status == "rejected":
+            rejection_score = 0.0
+            if isinstance(identification_rejected, dict):
+                rejection_score = float(identification_rejected.get("score", 0.0))
+            if not identification_warning:
+                identification_warning = (
+                    f"Identification rejected ({identification_reason or 'low_confidence'}, score={rejection_score:.1f})"
+                )
+            LOG.warning(identification_warning)
         
         if isinstance(identification_info, dict):
             best = identification_info.get("best")
@@ -3153,6 +3464,7 @@ async def _auto_sort_loop():
     global AUTO_SORT_RUNNING, AUTO_SORT_STATS
     
     LOG.info("Auto-sort loop started")
+    _set_auto_sort_runtime(phase="starting", message="Auto-sort loop started", current_card=None, current_feeder=None)
     AUTO_SORT_STATS["started_at"] = datetime.utcnow().isoformat(timespec="seconds")
     AUTO_SORT_STATS["cards_processed"] = 0
     AUTO_SORT_STATS["errors"] = 0
@@ -3163,6 +3475,7 @@ async def _auto_sort_loop():
     
     while AUTO_SORT_RUNNING:
         try:
+            _set_auto_sort_runtime(phase="qr_scan", message="Checking QR commands")
             # Step 0: Check for QR code commands (e.g., "A1 endstep" to advance feeder)
             # This allows QR codes on empty feeders to trigger feeder advancement
             # IMPORTANT: If QR is detected but not yet stable, keep scanning until stable or gone
@@ -3236,14 +3549,7 @@ async def _auto_sort_loop():
             except Exception as qr_exc:
                 LOG.warning("Auto-sort: QR scan error (non-fatal): %s", qr_exc)
             
-            # SAFETY CHECK: Ensure Z is at home (0) before attempting to scan a new card
-            # This prevents trying to scan while holding a card from a previous failed attempt
-            current_pos = MOTION.current
-            if current_pos and current_pos[2] > 5.0:  # Z should be near 0 for card pickup
-                LOG.warning("Auto-sort: Z-axis not at home position (Z=%.1f). Skipping cycle - manual intervention needed.", current_pos[2])
-                AUTO_SORT_STATS["errors"] += 1
-                await asyncio.sleep(3.0)  # Reduced from 5.0s to 3.0s
-                continue
+            _set_auto_sort_runtime(phase="capture", message="Capturing snapshot for identification")
             
             # Step 1: Capture snapshot with OCR and card identification
             LOG.info("Auto-sort: Capturing snapshot...")
@@ -3258,6 +3564,7 @@ async def _auto_sort_loop():
             # Extract card information from snapshot
             frames = snapshot_data.get("frames", [])
             processing = snapshot_data.get("processing", {})
+            _set_auto_sort_runtime(phase="identify", message="Processing snapshot results")
             
             # DEBUG: Log the entire snapshot structure to understand what we're getting
             LOG.info("Auto-sort DEBUG: snapshot_data keys: %s", list(snapshot_data.keys()))
@@ -3324,6 +3631,7 @@ async def _auto_sort_loop():
             
             # Step 2: Assign cell for the card
             # SAFETY: Assignment happens BEFORE grabbing the card
+            _set_auto_sort_runtime(phase="assign", message="Assigning destination cell", current_card=card_name or scryfall_id)
             card = Card(
                 game="mtg",
                 name=card_name or scryfall_id or "Unknown",
@@ -3358,6 +3666,7 @@ async def _auto_sort_loop():
             # Step 3: Execute motion sequence (home Z, extrude, move to cell, drop, return)
             # SAFETY: Card is grabbed HERE, only after valid assignment confirmed above
             LOG.debug("Auto-sort: Executing motion sequence...")
+            _set_auto_sort_runtime(phase="motion", message=f"Moving {card_name or 'card'} to {cell}", current_card=card_name or scryfall_id, current_feeder=STATE.active_feeder)
             motion_result = await motion_home_z_and_extrude()
             
             if not motion_result.get("ok"):
@@ -3380,6 +3689,7 @@ async def _auto_sort_loop():
             
         except Exception as exc:
             LOG.error("Auto-sort loop error: %s", exc, exc_info=True)
+            _set_auto_sort_runtime(phase="error", message=str(exc))
             AUTO_SORT_STATS["errors"] += 1
             await asyncio.sleep(2.0)  # Reduced from 3.0s to 2.0s for faster error recovery
     
@@ -3387,16 +3697,45 @@ async def _auto_sort_loop():
              AUTO_SORT_STATS["cards_processed"],
              AUTO_SORT_STATS["skipped"],
              AUTO_SORT_STATS["errors"])
+    _set_auto_sort_runtime(phase="idle", message="Auto-sort stopped", current_card=None, current_feeder=None, attempt=0)
 
 
 @app.post("/auto_sort/start")
-async def auto_sort_start() -> Dict[str, Any]:
+async def auto_sort_start(payload: Optional[Dict[str, Any]] = Body(None)) -> Dict[str, Any]:
     """Start the automatic sorting loop."""
     global AUTO_SORT_RUNNING, AUTO_SORT_TASK
-    
+
     if AUTO_SORT_RUNNING:
         return {"ok": False, "message": "Auto-sort is already running", "running": True}
-    
+
+    payload = payload or {}
+
+    requested_mode = _normalize_mode_id(payload.get("sort_mode") or payload.get("mode"))
+    if requested_mode:
+        if requested_mode not in CFG.sort_modes:
+            return {
+                "ok": False,
+                "message": f"Unknown sort mode '{requested_mode}'",
+                "running": False,
+            }
+        STATE.active_sort_mode = requested_mode
+
+    requested_operation = _normalize_operation_id(payload.get("sort_operation") or payload.get("operation"))
+    if requested_operation is not None:
+        if requested_operation and requested_operation not in CFG.sort_operations:
+            return {
+                "ok": False,
+                "message": f"Unknown sort operation '{requested_operation}'",
+                "running": False,
+            }
+        STATE.active_sort_operation = requested_operation or None
+
+    try:
+        SESSION.ensure_session()
+        SESSION.update_state("Running")
+    except Exception as exc:
+        LOG.warning("Auto-sort: Unable to update run session state: %s", exc)
+
     # Check if camera is available before starting
     try:
         cam = camera_svc.get_manager()
@@ -3405,35 +3744,44 @@ async def auto_sort_start() -> Dict[str, Any]:
             return {
                 "ok": False,
                 "message": f"Camera is not online: {info.get('error', 'unknown error')}",
-                "running": False
+                "running": False,
             }
     except Exception as exc:
         LOG.error("Camera check failed before starting auto-sort: %s", exc)
         return {
             "ok": False,
             "message": f"Camera check failed: {str(exc)}",
-            "running": False
+            "running": False,
         }
-    
+
     # Reset QR code processed state so all feeders can be scanned fresh
     from app.services import run_loop
     run_loop.reset_qr_command_state()
     LOG.info("Auto-sort: Reset QR command state for fresh detection")
-    
+
     # Also reset the QR scanner history for clean detection
     scanner = qr_scanner.get_scanner()
     if scanner:
         scanner.reset_history()
         LOG.info("Auto-sort: Reset QR scanner history")
-    
+
     AUTO_SORT_RUNNING = True
+    _set_auto_sort_runtime(
+        phase="starting",
+        message="Auto-sort requested from UI",
+        current_card=None,
+        current_feeder=None,
+    )
     AUTO_SORT_TASK = asyncio.create_task(_auto_sort_loop())
-    
+
     return {
         "ok": True,
         "message": "Auto-sort loop started",
         "running": True,
         "stats": AUTO_SORT_STATS,
+        "runtime": AUTO_SORT_RUNTIME,
+        "sort_mode": STATE.active_sort_mode,
+        "sort_operation": STATE.active_sort_operation,
     }
 
 
@@ -3446,6 +3794,7 @@ async def auto_sort_stop() -> Dict[str, Any]:
         return {"ok": False, "message": "Auto-sort is not running", "running": False}
     
     AUTO_SORT_RUNNING = False
+    _set_auto_sort_runtime(phase="stopping", message="Stopping auto-sort")
     
     # Wait for the task to complete (with timeout)
     if AUTO_SORT_TASK:
@@ -3462,6 +3811,7 @@ async def auto_sort_stop() -> Dict[str, Any]:
         "message": "Auto-sort loop stopped",
         "running": False,
         "stats": AUTO_SORT_STATS,
+        "runtime": AUTO_SORT_RUNTIME,
     }
 
 
@@ -3471,6 +3821,10 @@ async def auto_sort_status() -> Dict[str, Any]:
     return {
         "running": AUTO_SORT_RUNNING,
         "stats": AUTO_SORT_STATS,
+        "runtime": AUTO_SORT_RUNTIME,
+        "sort_mode": STATE.active_sort_mode,
+        "sort_operation": STATE.active_sort_operation,
+        "session": SESSION.status(),
     }
 
 

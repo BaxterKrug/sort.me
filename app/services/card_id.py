@@ -711,6 +711,16 @@ def identify_card_from_ocr(ocr_map: Dict[str,str],
     # If embeddings_dir provided, allow running without a local card DB (embedding lookup uses its own metadata)
     if not cards_list and not db_path and not embeddings_dir:
         raise ValueError("Provide db_path, cards_list or embeddings_dir")
+
+    resolved_embeddings_dir = embeddings_dir
+    if not resolved_embeddings_dir and db_path:
+        try:
+            db_candidate = Path(db_path).expanduser()
+            if db_candidate.name == "cards_metadata.json" and db_candidate.parent.exists():
+                resolved_embeddings_dir = str(db_candidate.parent)
+        except Exception:
+            resolved_embeddings_dir = embeddings_dir
+
     cards = cards_list if cards_list is not None else (load_local_db(db_path) if db_path else [])
     # normalize OCRed regions
     o_name = (ocr_map.get("name") or ocr_map.get("title") or "").strip()
@@ -728,39 +738,54 @@ def identify_card_from_ocr(ocr_map: Dict[str,str],
             'ocr_name': o_name,
             'ocr_oracle': o_oracle,
             'ocr_collector': o_collector,
-            'num_cards_in_db': len(cards)
+            'num_cards_in_db': len(cards),
+            'embeddings_dir': resolved_embeddings_dir,
         }
     }
 
     # --- optional embedding-based matching (if precomputed embeddings exist) ---
     query_text = _compose_embedding_query(ocr_map)
     results['debug']['ocr_query'] = query_text
-    if embeddings_dir:
-        embed_info = embedding_matches_from_ocr(ocr_map, embeddings_dir, max_results=max(8, top_n))
+    if resolved_embeddings_dir:
+        embed_info = embedding_matches_from_ocr(ocr_map, resolved_embeddings_dir, max_results=max(8, top_n))
         results['debug']['embedding'] = embed_info
         matches = embed_info.get('matches') or []
         if matches:
-            cand_list = []
-            for match in matches:
-                card = match.get('card') or {}
-                score_val = float(match.get('score') or 0.0)
-                candidate = {
-                    'card': card,
-                    'name_score': score_val,
-                    'oracle_score': 0.0,
-                    'collector_score': 0.0,
-                    'total_score': score_val
+            # VALIDATION: Check if top embedding match name is reasonably close to OCR name
+            # If not, Fall back to fuzzy matching instead of trusting wrong embedding
+            top_card = matches[0].get('card') or {}
+            db_name = top_card.get('name') or top_card.get('title') or ''
+            
+            # If OCR has exact normalized name match with embedding result, use it
+            if norm_o_name and _normalize(db_name) == norm_o_name:
+                cand_list = []
+                for match in matches:
+                    card = match.get('card') or {}
+                    score_val = float(match.get('score') or 0.0)
+                    candidate = {
+                        'card': card,
+                        'name_score': score_val,
+                        'oracle_score': 0.0,
+                        'collector_score': 0.0,
+                        'total_score': score_val
+                    }
+                    if 'distance' in match:
+                        candidate['distance'] = float(match.get('distance') or 0.0)
+                    candidate['source'] = 'embedding'
+                    cand_list.append(candidate)
+                if cand_list:
+                    results['candidates'] = cand_list
+                    results['best'] = cand_list[0]['card']
+                    results['score'] = cand_list[0]['total_score']
+                    results['debug']['embed_match'] = True
+                    return results
+            else:
+                # Top embedding doesn't match OCR name - skip embeddings and use fuzzy
+                results['debug']['embed_skipped_name_mismatch'] = {
+                    'ocr_name': norm_o_name,
+                    'embedding_card_name': db_name,
+                    'reason': 'embedding_result_does_not_match_ocr_name'
                 }
-                if 'distance' in match:
-                    candidate['distance'] = float(match.get('distance') or 0.0)
-                candidate['source'] = 'embedding'
-                cand_list.append(candidate)
-            if cand_list:
-                results['candidates'] = cand_list
-                results['best'] = cand_list[0]['card']
-                results['score'] = cand_list[0]['total_score']
-                results['debug']['embed_match'] = True
-                return results
 
     # 1) try exact normalized name match
     if norm_o_name:
@@ -774,31 +799,17 @@ def identify_card_from_ocr(ocr_map: Dict[str,str],
                 }]
                 return results
 
-    # 2) if collector present, try collector+set exact match (collector often unique)
-    if o_collector:
-        oc_norm = o_collector.strip()
-        for c in cards:
-            cc = str(c.get("collector_number") or c.get("collector") or "").strip()
-            setc = str(c.get("set") or c.get("set_code") or "").strip()
-            if cc and cc == oc_norm:
-                # prefer if set matches or name similar
-                name_score = 100.0 if norm_o_name and _normalize(c.get("name","")) == norm_o_name else 85.0
-                total = name_score * name_weight + 100.0 * collector_weight
-                results['best'] = c
-                results['score'] = total
-                results['candidates'] = [{
-                    'card': c, 'name_score': name_score, 'oracle_score': 0.0, 'collector_score': 100.0, 'total_score': total
-                }]
-                return results
+    # 2) collector+set exact match - DISABLED: OCR collector is too unreliable; causes misidentification
+    # (e.g., "7g" matching wrong card by collector number instead of name)
 
     # 3) fuzzy name candidates
     name_cands = _name_candidates_from_db(o_name, cards, top_n=top_n)
     scored = []
     for cand, name_score in name_cands:
         oracle_score = _oracle_overlap_score(o_oracle, cand.get("oracle_text") or cand.get("oracle") or "")
-        collector_score = 100.0 if o_collector and str(cand.get("collector_number") or cand.get("collector") or "").strip() == o_collector.strip() else 0.0
-        # combine into 0..100
-        total = (name_score * name_weight) + (oracle_score * 100.0 * oracle_weight) + (collector_score * collector_weight)
+        collector_score = 0.0  # collector matching disabled - OCR collector is too unreliable
+        # combine into 0..100 (collector_weight intentionally unused)
+        total = (name_score * name_weight) + (oracle_score * 100.0 * oracle_weight)
         scored.append({
             'card': cand,
             'name_score': float(name_score),

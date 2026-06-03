@@ -46,11 +46,13 @@ class QRScanner:
             LOG.error("Failed to initialize QR detector: %s", e)
             self.enabled = False
 
-    async def scan(self, frame: Optional[np.ndarray] = None) -> Dict[str, Any]:
+    async def scan(self, frame: Optional[np.ndarray] = None, target_cells: Optional[Sequence[str]] = None) -> Dict[str, Any]:
         """Scan the full frame for a QR code.
         
         Args:
             frame: Optional camera frame. If None, grabs a fresh frame from camera.
+            target_cells: Optional list of target feeder cells. Accepted for
+                compatibility with callers that want to scope a scan.
             
         Returns:
             Dictionary with detection results:
@@ -74,9 +76,21 @@ class QRScanner:
         # Detect QR code in the full frame
         detected, data, corners = self._detect_qr(frame)
         
-        # Update detection history
-        self._history.append(data if detected else None)
+        # Parse cell and command from QR data
+        cell, command = self._parse_qr_data(data) if data else (None, None)
         
+        target_set = {str(target).strip().upper() for target in target_cells or [] if str(target).strip()}
+        if target_set and cell and cell.upper() not in target_set:
+            LOG.debug("QR detect: decoded cell %s not in target cells %s", cell, sorted(target_set))
+            detected = False
+            data = None
+            corners = None
+            cell = None
+            command = None
+
+        # Update detection history after any target-cell filtering
+        self._history.append(data if detected else None)
+
         # Check for stable detection (same data N times in a row)
         stable = False
         if detected and data:
@@ -85,10 +99,7 @@ class QRScanner:
                 len(self._history) == self.history_length and
                 all(h == data for h in self._history)
             )
-        
-        # Parse cell and command from QR data
-        cell, command = self._parse_qr_data(data) if data else (None, None)
-        
+
         # Track if this is a NEW stable detection (wasn't stable before)
         is_new_stable = stable and (self._last_stable_data != data)
         if stable:
@@ -96,7 +107,7 @@ class QRScanner:
         elif not detected:
             # Reset stable tracking when QR code disappears
             self._last_stable_data = None
-        
+
         result = {
             "detected": detected,
             "data": data,
@@ -142,28 +153,41 @@ class QRScanner:
                 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             else:
                 gray = image
-            
-            # Detect and decode QR code
-            data, corners, _ = self._qr_detector.detectAndDecode(gray)
-            
-            if data:
-                LOG.info("QR detect: found '%s' on first try", data.strip())
-                return True, data.strip(), corners
-            
-            # Try with some preprocessing if initial detection fails
-            # Apply adaptive thresholding for better contrast
+
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)
             thresh = cv2.adaptiveThreshold(
                 gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
             )
-            data, corners, _ = self._qr_detector.detectAndDecode(thresh)
-            
-            if data:
-                LOG.info("QR detect: found '%s' with adaptive threshold", data.strip())
-                return True, data.strip(), corners
-            
+
+            variants: List[Tuple[str, np.ndarray, float]] = []
+            if len(image.shape) == 3:
+                variants.extend([
+                    ("original", image, 1.0),
+                    ("original_upscaled_2x", cv2.resize(image, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC), 2.0),
+                ])
+            variants.extend([
+                ("gray", gray, 1.0),
+                ("gray_upscaled_2x", cv2.resize(gray, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC), 2.0),
+                ("gray_upscaled_3x", cv2.resize(gray, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC), 3.0),
+                ("clahe", clahe, 1.0),
+                ("clahe_upscaled_2x", cv2.resize(clahe, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC), 2.0),
+                ("adaptive_threshold", thresh, 1.0),
+                ("adaptive_threshold_upscaled_2x", cv2.resize(thresh, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC), 2.0),
+            ])
+
+            for variant_name, candidate, scale in variants:
+                data, corners, _ = self._qr_detector.detectAndDecode(candidate)
+                if not data:
+                    continue
+                clean = data.strip()
+                if corners is not None and scale != 1.0:
+                    corners = np.array(corners, dtype=np.float32) / float(scale)
+                LOG.info("QR detect: found '%s' with %s", clean, variant_name)
+                return True, clean, corners
+
             LOG.debug("QR detect: no QR code found in frame")
             return False, None, None
-            
+
         except Exception as e:
             LOG.debug("QR detection error: %s", e)
             return False, None, None
@@ -318,11 +342,12 @@ def get_scanner() -> Optional[QRScanner]:
     return _scanner
 
 
-async def scan_qr(frame: Optional[np.ndarray] = None) -> Dict[str, Any]:
+async def scan_qr(frame: Optional[np.ndarray] = None, target_cells: Optional[Sequence[str]] = None) -> Dict[str, Any]:
     """Convenience function to scan for QR code.
     
     Args:
         frame: Optional camera frame.
+        target_cells: Optional feeder cells to scope the scan to.
         
     Returns:
         Detection result dictionary.
@@ -330,4 +355,4 @@ async def scan_qr(frame: Optional[np.ndarray] = None) -> Dict[str, Any]:
     scanner = get_scanner()
     if scanner is None:
         return {"detected": False, "data": None, "stable": False, "error": "Scanner not configured"}
-    return await scanner.scan(frame)
+    return await scanner.scan(frame=frame, target_cells=target_cells)

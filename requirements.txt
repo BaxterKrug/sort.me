@@ -12,6 +12,7 @@ openpyxl
 scikit-learn==1.8.0
 scipy==1.17.0
 tqdm
+ijson
 easyocr
 torch
 torchvision

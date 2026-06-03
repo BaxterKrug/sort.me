@@ -168,6 +168,7 @@ class GCodeDriver(MotionDriver):
         self.mcodes = mcodes or {}
         self.feedrates = feedrates or {}
         self._serial = None
+        self._io_lock = asyncio.Lock()
         # Don't capture an event loop at construction time; async methods will
         # obtain the running loop dynamically. Capturing a loop here can fail
         # when called from non-async threads.
@@ -288,68 +289,69 @@ class GCodeDriver(MotionDriver):
             raise RuntimeError(f"Serial write failed: {e}") from e
 
     async def send_gcode(self, cmd: str, wait_ok: bool = True, timeout: float = 2.0) -> List[str]:
-        self._ensure_serial()
-        loop = asyncio.get_running_loop()
-        try:
-            LOG.info("GCodeDriver -> %s", cmd.strip())
-            # run blocking write/read in threadpool
-            await loop.run_in_executor(None, self._write_blocking, cmd)
-            if not wait_ok:
-                return []
-            lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-            if lines:
-                LOG.info("GCodeDriver <- %s", " | ".join(lines))
-            else:
-                LOG.info("GCodeDriver <- (no response)")
-            return lines
-        except Exception as exc:
-            # Check if it's a serial exception that might be recoverable by reconnecting
-            import serial  # type: ignore[import-not-found]
-            # Catch SerialException, TypeError (serial fd is None), OSError (bad file descriptor), and IOError
-            is_serial_error = (
-                isinstance(exc, serial.SerialException) or 
-                isinstance(exc, TypeError) or 
-                isinstance(exc, OSError) or 
-                isinstance(exc, IOError) or
-                isinstance(exc, RuntimeError)
-            )
-            if is_serial_error:
-                LOG.warning("Serial connection error detected (%s): %s. Attempting to reconnect...", type(exc).__name__, exc)
-                # Close the bad connection and reset
-                try:
-                    if self._serial:
-                        self._serial.close()
-                except Exception:
-                    pass  # Ignore errors during close
-                self._serial = None
-                
-                # Retry once with a fresh connection
-                try:
-                    self._ensure_serial()
-                    LOG.info("GCodeDriver (retry) -> %s", cmd.strip())
-                    await loop.run_in_executor(None, self._write_blocking, cmd)
-                    if not wait_ok:
-                        return []
-                    lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
-                    if lines:
-                        LOG.info("GCodeDriver (retry) <- %s", " | ".join(lines))
-                    else:
-                        LOG.info("GCodeDriver (retry) <- (no response)")
-                    LOG.info("Serial reconnection successful")
-                    
-                    # Clear position cache after reconnection to safe default
-                    # Assume Z=120 (safe height / camera focal) to prevent collisions during recovery
-                    # X=0, Y=0 assumes we're at home position
-                    self._last_position = (0.0, 0.0, 120.0)
-                    LOG.info("Position cache reset to safe position (0, 0, 120) after reconnection")
-                    
-                    return lines
-                except Exception as retry_exc:
-                    LOG.exception("GCodeDriver retry also failed for cmd=%s: %s", cmd.strip(), retry_exc)
-                    raise
-            
-            LOG.exception("GCodeDriver send_gcode failed for cmd=%s: %s", cmd.strip(), exc)
-            raise
+        async with self._io_lock:
+            self._ensure_serial()
+            loop = asyncio.get_running_loop()
+            try:
+                LOG.info("GCodeDriver -> %s", cmd.strip())
+                # run blocking write/read in threadpool
+                await loop.run_in_executor(None, self._write_blocking, cmd)
+                if not wait_ok:
+                    return []
+                lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
+                if lines:
+                    LOG.info("GCodeDriver <- %s", " | ".join(lines))
+                else:
+                    LOG.info("GCodeDriver <- (no response)")
+                return lines
+            except Exception as exc:
+                # Check if it's a serial exception that might be recoverable by reconnecting
+                import serial  # type: ignore[import-not-found]
+                # Catch SerialException, TypeError (serial fd is None), OSError (bad file descriptor), and IOError
+                is_serial_error = (
+                    isinstance(exc, serial.SerialException) or
+                    isinstance(exc, TypeError) or
+                    isinstance(exc, OSError) or
+                    isinstance(exc, IOError) or
+                    isinstance(exc, RuntimeError)
+                )
+                if is_serial_error:
+                    LOG.warning("Serial connection error detected (%s): %s. Attempting to reconnect...", type(exc).__name__, exc)
+                    # Close the bad connection and reset
+                    try:
+                        if self._serial:
+                            self._serial.close()
+                    except Exception:
+                        pass  # Ignore errors during close
+                    self._serial = None
+
+                    # Retry once with a fresh connection
+                    try:
+                        self._ensure_serial()
+                        LOG.info("GCodeDriver (retry) -> %s", cmd.strip())
+                        await loop.run_in_executor(None, self._write_blocking, cmd)
+                        if not wait_ok:
+                            return []
+                        lines = await loop.run_in_executor(None, self._read_lines_blocking, timeout)
+                        if lines:
+                            LOG.info("GCodeDriver (retry) <- %s", " | ".join(lines))
+                        else:
+                            LOG.info("GCodeDriver (retry) <- (no response)")
+                        LOG.info("Serial reconnection successful")
+
+                        # Clear position cache after reconnection to safe default
+                        # Assume Z=120 (safe height / camera focal) to prevent collisions during recovery
+                        # X=0, Y=0 assumes we're at home position
+                        self._last_position = (0.0, 0.0, 120.0)
+                        LOG.info("Position cache reset to safe position (0, 0, 120) after reconnection")
+
+                        return lines
+                    except Exception as retry_exc:
+                        LOG.exception("GCodeDriver retry also failed for cmd=%s: %s", cmd.strip(), retry_exc)
+                        raise
+
+                LOG.exception("GCodeDriver send_gcode failed for cmd=%s: %s", cmd.strip(), exc)
+                raise
 
     async def extrude(self, amount_mm: float, feed: float = 50.0) -> None:
         """Send a relative extruder move: G91, G1 E{amount} F{feed}, G90.

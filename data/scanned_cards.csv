@@ -1761,3 +1761,233 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-05-04T15:52:56Z,dfc44b22-c46c-4b7e-91ff-3eff416bb357,D'Avenant Archer,K3,divert:low_confidence,0.641
 2026-05-04T15:53:01Z,6d0dea1b-43dc-4e76-aabd-f12e121a78af,Unmake,K3,divert:low_confidence,0.675
 2026-05-04T15:53:08Z,c7cdb977-7d5b-4050-bb01-181f6b363de7,Clear,K3,divert:low_confidence,0.562
+2026-06-03T04:08:04Z,81251057-f270-4f05-9dc5-205c70e1f295,Summit Sentinel,K3,divert:low_confidence,0.556
+2026-06-03T04:08:16Z,c8bdf3f2-42f1-4d79-9d13-2ed02430cb45,Bumi,K3,divert:low_confidence,0.506
+2026-06-03T04:08:21Z,81251057-f270-4f05-9dc5-205c70e1f295,Summit Sentinel,K3,divert:low_confidence,0.519
+2026-06-03T04:08:31Z,5c1f3f52-cb9b-4b2a-bb02-6175897ae76e,Our Market Research Shows That Players Like Really Long Card Names So We Made this Card to Have the Absolute Longest Card Name Ever Elemental,K3,divert:low_confidence,0.641
+2026-06-03T04:08:42Z,923eb713-c955-4e12-8a8f-df3b4b361487,"Chiss-Goria, Forge Tyrant",K3,divert:low_confidence,0.591
+2026-06-03T04:08:55Z,78802af4-46b5-4bac-8cdf-5b77d0b19895,Capashen Knight,K3,divert:low_confidence,0.675
+2026-06-03T04:11:42Z,03516d49-0613-46f7-8d88-3bf26d2c8659,Map,K3,divert:low_confidence,0.540
+2026-06-03T04:12:02Z,cf0a1951-4482-4ba0-b29e-2091adde0628,Verduran Emissary,K3,divert:low_confidence,0.579
+2026-06-03T04:12:19Z,77912a6f-774e-4bd5-8632-8fb90c9af82d,T.A.P.P.E.R.,K3,divert:low_confidence,0.641
+2026-06-03T04:12:34Z,42f8591e-df30-49ec-962c-a75d32e6d9f5,Lonely Sandbar,K3,divert:low_confidence,0.540
+2026-06-03T04:13:04Z,a9f9c279-e382-4feb-9575-196e7cf5d7dc,B.F.M. (Big Furry Monster),K3,divert:low_confidence,0.641
+2026-06-03T04:13:33Z,77912a6f-774e-4bd5-8632-8fb90c9af82d,T.A.P.P.E.R.,K3,divert:low_confidence,0.641
+2026-06-03T04:13:56Z,62b6ecb2-ac7e-4528-b53c-2cb4f1e38349,"Be'lakor, the Dark Master",K3,divert:low_confidence,0.641
+2026-06-03T04:15:35Z,4e336e87-e5af-46a0-8caf-5d9ad8d671fd,Aether Gale,K3,divert:low_confidence,0.675
+2026-06-03T04:15:50Z,81251057-f270-4f05-9dc5-205c70e1f295,Summit Sentinel,K3,divert:low_confidence,0.589
+2026-06-03T04:16:14Z,d5beecd5-4267-454d-87db-24d476e1f352,Baral's Expertise,K3,divert:low_confidence,0.675
+2026-06-03T04:52:02Z,a5a40c16-7a5c-4ad1-be53-6b1b1be2affe,Liminal Hold,E3,alpha_exact:L:Liminal Hold,0.724
+2026-06-03T05:15:00Z,a5a40c16-7a5c-4ad1-be53-6b1b1be2affe,Liminal Hold,E3,alpha_exact:L:Liminal Hold,0.807
+2026-06-03T05:15:34Z,a5a40c16-7a5c-4ad1-be53-6b1b1be2affe,Liminal Hold,E3,alpha_exact:L:Liminal Hold,0.767
+2026-06-03T05:16:00Z,a5a40c16-7a5c-4ad1-be53-6b1b1be2affe,Liminal Hold,E3,alpha_exact:L:Liminal Hold,0.758
+2026-06-03T05:16:24Z,a5a40c16-7a5c-4ad1-be53-6b1b1be2affe,Liminal Hold,E3,alpha_exact:L:Liminal Hold,0.791
+2026-06-03T05:16:49Z,07b06421-778a-4d23-862b-30fc5fa25928,Herald's Horn,D2,alpha_exact:H:Herald's Horn,0.704
+2026-06-03T05:17:11Z,07b06421-778a-4d23-862b-30fc5fa25928,Herald's Horn,D2,alpha_exact:H:Herald's Horn,0.767
+2026-06-03T05:17:40Z,07b06421-778a-4d23-862b-30fc5fa25928,Herald's Horn,D2,alpha_exact:H:Herald's Horn,0.709
+2026-06-03T05:23:16Z,81dfbfe1-143a-4637-b683-a34cfc51993d,Gathering Stone,D1,alpha_exact:G:Gathering Stone,0.834
+2026-06-03T05:23:33Z,81dfbfe1-143a-4637-b683-a34cfc51993d,Gathering Stone,D1,alpha_exact:G:Gathering Stone,0.714
+2026-06-03T05:23:53Z,81dfbfe1-143a-4637-b683-a34cfc51993d,Gathering Stone,D1,alpha_exact:G:Gathering Stone,1.000
+2026-06-03T05:30:18Z,81dfbfe1-143a-4637-b683-a34cfc51993d,Gathering Stone,D1,alpha_exact:G:Gathering Stone,1.000
+2026-06-03T05:35:55Z,81dfbfe1-143a-4637-b683-a34cfc51993d,Gathering Stone,D1,alpha_exact:G:Gathering Stone,1.000
+2026-06-03T05:43:55Z,81dfbfe1-143a-4637-b683-a34cfc51993d,Gathering Stone,D1,alpha_exact:G:Gathering Stone,0.896
+2026-06-03T05:48:11Z,81dfbfe1-143a-4637-b683-a34cfc51993d,Gathering Stone,D1,alpha_exact:G:Gathering Stone,0.726
+2026-06-03T05:48:37Z,81dfbfe1-143a-4637-b683-a34cfc51993d,Gathering Stone,D1,alpha_exact:G:Gathering Stone,0.882
+2026-06-03T05:49:06Z,81dfbfe1-143a-4637-b683-a34cfc51993d,Gathering Stone,D1,alpha_exact:G:Gathering Stone,1.000
+2026-06-03T05:49:06Z,81dfbfe1-143a-4637-b683-a34cfc51993d,Gathering Stone,D1,alpha_exact:G:Gathering Stone,1.000
+2026-06-03T05:49:06,Gathering Stone,81dfbfe1-143a-4637-b683-a34cfc51993d,D1,alpha_exact:G:Gathering Stone
+2026-06-03T05:50:07Z,a5a40c16-7a5c-4ad1-be53-6b1b1be2affe,Liminal Hold,E3,alpha_exact:L:Liminal Hold,0.912
+2026-06-03T05:50:07Z,a5a40c16-7a5c-4ad1-be53-6b1b1be2affe,Liminal Hold,E3,alpha_exact:L:Liminal Hold,0.912
+2026-06-03T05:50:07,Liminal Hold,a5a40c16-7a5c-4ad1-be53-6b1b1be2affe,E3,alpha_exact:L:Liminal Hold
+2026-06-03T05:51:00Z,15ff6797-f59c-4333-98ea-5711150fd5b8,Encumbered Reejerey,C2,alpha_exact:E:Encumbered Reejerey,0.860
+2026-06-03T05:51:00Z,15ff6797-f59c-4333-98ea-5711150fd5b8,Encumbered Reejerey,C2,alpha_exact:E:Encumbered Reejerey,0.860
+2026-06-03T05:51:00,Encumbered Reejerey,15ff6797-f59c-4333-98ea-5711150fd5b8,C2,alpha_exact:E:Encumbered Reejerey
+2026-06-03T05:51:58Z,68ce9752-21f9-48e9-bf48-7f76f1cecbc5,Appeal to Eirdu,H1,alpha_exact:A:Appeal to Eirdu,0.806
+2026-06-03T05:51:58Z,68ce9752-21f9-48e9-bf48-7f76f1cecbc5,Appeal to Eirdu,H1,alpha_exact:A:Appeal to Eirdu,0.806
+2026-06-03T05:51:58,Appeal to Eirdu,68ce9752-21f9-48e9-bf48-7f76f1cecbc5,H1,alpha_exact:A:Appeal to Eirdu
+2026-06-03T05:52:57Z,3278b8d0-3d2b-4d3d-bbf1-fd9b714b53ed,Burdened Stoneback,H2,alpha_exact:B:Burdened Stoneback,0.705
+2026-06-03T05:52:57Z,3278b8d0-3d2b-4d3d-bbf1-fd9b714b53ed,Burdened Stoneback,H2,alpha_exact:B:Burdened Stoneback,0.705
+2026-06-03T05:52:57,Burdened Stoneback,3278b8d0-3d2b-4d3d-bbf1-fd9b714b53ed,H2,alpha_exact:B:Burdened Stoneback
+2026-06-03T05:53:57Z,dbce93c0-5efc-4b60-9cef-9d9b374d397b,Reluctant Dounguard,G3,alpha_exact:R:Reluctant Dounguard,0.886
+2026-06-03T05:53:57Z,dbce93c0-5efc-4b60-9cef-9d9b374d397b,Reluctant Dounguard,G3,alpha_exact:R:Reluctant Dounguard,0.886
+2026-06-03T05:53:57,Reluctant Dounguard,dbce93c0-5efc-4b60-9cef-9d9b374d397b,G3,alpha_exact:R:Reluctant Dounguard
+2026-06-03T06:00:17Z,dbce93c0-5efc-4b60-9cef-9d9b374d397b,Reluctant Dounguard,G3,alpha_exact:R:Reluctant Dounguard,0.787
+2026-06-03T06:01:43Z,dbce93c0-5efc-4b60-9cef-9d9b374d397b,Reluctant Dounguard,G3,alpha_exact:R:Reluctant Dounguard,0.898
+2026-06-03T06:02:19Z,dbce93c0-5efc-4b60-9cef-9d9b374d397b,Reluctant Dounguard,G3,alpha_exact:R:Reluctant Dounguard,0.866
+2026-06-03T06:02:32Z,dbce93c0-5efc-4b60-9cef-9d9b374d397b,Reluctant Dounguard,G3,alpha_exact:R:Reluctant Dounguard,0.851
+2026-06-03T06:03:12Z,dbce93c0-5efc-4b60-9cef-9d9b374d397b,Reluctant Dounguard,G3,alpha_exact:R:Reluctant Dounguard,0.898
+2026-06-03T06:03:46Z,dbce93c0-5efc-4b60-9cef-9d9b374d397b,Reluctant Dounguard,G3,alpha_exact:R:Reluctant Dounguard,0.898
+2026-06-03T06:03:46Z,dbce93c0-5efc-4b60-9cef-9d9b374d397b,Reluctant Dounguard,G3,alpha_exact:R:Reluctant Dounguard,0.898
+2026-06-03T06:03:46,Reluctant Dounguard,dbce93c0-5efc-4b60-9cef-9d9b374d397b,G3,alpha_exact:R:Reluctant Dounguard
+2026-06-03T06:04:46Z,4e2e70a6-2987-4e82-9dc6-72120e6dd02f,Nameless Inversion,F2,alpha_exact:N:Nameless Inversion,0.850
+2026-06-03T06:04:46Z,4e2e70a6-2987-4e82-9dc6-72120e6dd02f,Nameless Inversion,F2,alpha_exact:N:Nameless Inversion,0.850
+2026-06-03T06:04:46,Nameless Inversion,4e2e70a6-2987-4e82-9dc6-72120e6dd02f,F2,alpha_exact:N:Nameless Inversion
+2026-06-03T06:06:01Z,8e3c04ad-a8b5-453a-aff4-dce743b1c693,Unleash the Flux,H3,alpha_exact:U:Unleash the Flux,0.725
+2026-06-03T06:06:01Z,8e3c04ad-a8b5-453a-aff4-dce743b1c693,Unleash the Flux,H3,alpha_exact:U:Unleash the Flux,0.725
+2026-06-03T06:06:01,Unleash the Flux,8e3c04ad-a8b5-453a-aff4-dce743b1c693,H3,alpha_exact:U:Unleash the Flux
+2026-06-03T06:07:22Z,48a7ac34-ec4a-4571-abb1-bff1fb67c78f,Dagger Caster,C1,alpha_exact:D:Dagger Caster,0.708
+2026-06-03T06:07:22Z,48a7ac34-ec4a-4571-abb1-bff1fb67c78f,Dagger Caster,C1,alpha_exact:D:Dagger Caster,0.708
+2026-06-03T06:07:22,Dagger Caster,48a7ac34-ec4a-4571-abb1-bff1fb67c78f,C1,alpha_exact:D:Dagger Caster
+2026-06-03T06:08:09Z,47414323-ca30-45b7-a0b2-6668312bee04,Dose of Dawnglow,C1,alpha_exact:D:Dose of Dawnglow,0.708
+2026-06-03T06:08:09Z,47414323-ca30-45b7-a0b2-6668312bee04,Dose of Dawnglow,C1,alpha_exact:D:Dose of Dawnglow,0.708
+2026-06-03T06:08:09,Dose of Dawnglow,47414323-ca30-45b7-a0b2-6668312bee04,C1,alpha_exact:D:Dose of Dawnglow
+2026-06-03T06:08:56Z,294266b6-0343-4fa5-90b8-0adf7df490e4,Dawn-Blessed Pennant,C1,alpha_exact:D:Dawn-Blessed Pennant,0.843
+2026-06-03T06:08:56Z,294266b6-0343-4fa5-90b8-0adf7df490e4,Dawn-Blessed Pennant,C1,alpha_exact:D:Dawn-Blessed Pennant,0.843
+2026-06-03T06:08:56,Dawn-Blessed Pennant,294266b6-0343-4fa5-90b8-0adf7df490e4,C1,alpha_exact:D:Dawn-Blessed Pennant
+2026-06-03T06:09:43Z,e64bfe16-7362-4982-9136-1f4e0d335441,Auntie's Sentence,H1,alpha_exact:A:Auntie's Sentence,0.819
+2026-06-03T06:09:43Z,e64bfe16-7362-4982-9136-1f4e0d335441,Auntie's Sentence,H1,alpha_exact:A:Auntie's Sentence,0.819
+2026-06-03T06:09:43,Auntie's Sentence,e64bfe16-7362-4982-9136-1f4e0d335441,H1,alpha_exact:A:Auntie's Sentence
+2026-06-03T06:10:43Z,107cd283-de27-494f-90b8-0dec55745255,Evolving Wilds,C2,alpha_exact:E:Evolving Wilds,0.765
+2026-06-03T06:10:43Z,107cd283-de27-494f-90b8-0dec55745255,Evolving Wilds,C2,alpha_exact:E:Evolving Wilds,0.765
+2026-06-03T06:10:43,Evolving Wilds,107cd283-de27-494f-90b8-0dec55745255,C2,alpha_exact:E:Evolving Wilds
+2026-06-03T06:11:40Z,aea9b5c0-3b32-44be-9773-566b9daafa6b,Scarblade's Malice,B1,alpha_exact:S:Scarblade's Malice,0.738
+2026-06-03T06:11:40Z,aea9b5c0-3b32-44be-9773-566b9daafa6b,Scarblade's Malice,B1,alpha_exact:S:Scarblade's Malice,0.738
+2026-06-03T06:11:40,Scarblade's Malice,aea9b5c0-3b32-44be-9773-566b9daafa6b,B1,alpha_exact:S:Scarblade's Malice
+2026-06-03T06:12:44Z,a942f56d-69ee-4151-baae-9a718ff6e7b6,Boggart Cursecrafter,H2,alpha_exact:B:Boggart Cursecrafter,0.828
+2026-06-03T06:12:44Z,a942f56d-69ee-4151-baae-9a718ff6e7b6,Boggart Cursecrafter,H2,alpha_exact:B:Boggart Cursecrafter,0.828
+2026-06-03T06:12:44,Boggart Cursecrafter,a942f56d-69ee-4151-baae-9a718ff6e7b6,H2,alpha_exact:B:Boggart Cursecrafter
+2026-06-03T06:13:44Z,76e80656-6bcb-4d99-8bd2-ca5f75f40daf,Dawn's Light Archer,C1,alpha_exact:D:Dawn's Light Archer,0.912
+2026-06-03T06:13:44Z,76e80656-6bcb-4d99-8bd2-ca5f75f40daf,Dawn's Light Archer,C1,alpha_exact:D:Dawn's Light Archer,0.912
+2026-06-03T06:13:44,Dawn's Light Archer,76e80656-6bcb-4d99-8bd2-ca5f75f40daf,C1,alpha_exact:D:Dawn's Light Archer
+2026-06-03T06:14:41Z,42208996-7b99-474e-aba7-75190d7ee8e2,Pummeler for Hire,G1,alpha_exact:P:Pummeler for Hire,0.750
+2026-06-03T06:14:41Z,42208996-7b99-474e-aba7-75190d7ee8e2,Pummeler for Hire,G1,alpha_exact:P:Pummeler for Hire,0.750
+2026-06-03T06:14:41,Pummeler for Hire,42208996-7b99-474e-aba7-75190d7ee8e2,G1,alpha_exact:P:Pummeler for Hire
+2026-06-03T06:15:58Z,739e5ab5-d562-407a-906e-c5c5173ad325,Gilt-Leaf's Embrace,D1,alpha_exact:G:Gilt-Leaf's Embrace,0.870
+2026-06-03T06:15:58Z,739e5ab5-d562-407a-906e-c5c5173ad325,Gilt-Leaf's Embrace,D1,alpha_exact:G:Gilt-Leaf's Embrace,0.870
+2026-06-03T06:15:58,Gilt-Leaf's Embrace,739e5ab5-d562-407a-906e-c5c5173ad325,D1,alpha_exact:G:Gilt-Leaf's Embrace
+2026-06-03T06:17:18Z,bb7490f2-1425-495f-b7d4-2f1e0df7490e,Prismatic Undercurrents,G1,alpha_exact:P:Prismatic Undercurrents,0.810
+2026-06-03T06:17:18Z,bb7490f2-1425-495f-b7d4-2f1e0df7490e,Prismatic Undercurrents,G1,alpha_exact:P:Prismatic Undercurrents,0.810
+2026-06-03T06:17:18,Prismatic Undercurrents,bb7490f2-1425-495f-b7d4-2f1e0df7490e,G1,alpha_exact:P:Prismatic Undercurrents
+2026-06-03T06:21:00Z,5a5e0599-62b0-4063-9872-33d5add06754,Plaza of Heroes,G1,alpha_exact:P:Plaza of Heroes,0.747
+2026-06-03T06:21:18Z,295d828b-b2e7-41c7-afbc-5fb5f4eb242c,Pitiless Fists,G1,alpha_exact:P:Pitiless Fists,0.812
+2026-06-03T06:21:47Z,295d828b-b2e7-41c7-afbc-5fb5f4eb242c,Pitiless Fists,G1,alpha_exact:P:Pitiless Fists,0.868
+2026-06-03T06:22:09Z,295d828b-b2e7-41c7-afbc-5fb5f4eb242c,Pitiless Fists,G1,alpha_exact:P:Pitiless Fists,0.713
+2026-06-03T06:22:43Z,295d828b-b2e7-41c7-afbc-5fb5f4eb242c,Pitiless Fists,G1,alpha_exact:P:Pitiless Fists,0.713
+2026-06-03T06:23:02Z,295d828b-b2e7-41c7-afbc-5fb5f4eb242c,Pitiless Fists,G1,alpha_exact:P:Pitiless Fists,0.855
+2026-06-03T06:23:02Z,295d828b-b2e7-41c7-afbc-5fb5f4eb242c,Pitiless Fists,G1,alpha_exact:P:Pitiless Fists,0.855
+2026-06-03T06:23:02,Pitiless Fists,295d828b-b2e7-41c7-afbc-5fb5f4eb242c,G1,alpha_exact:P:Pitiless Fists
+2026-06-03T06:24:20Z,c5112bbf-752c-41e7-9c61-4c81e6a77463,Midnight Tilling,F1,alpha_exact:M:Midnight Tilling,0.892
+2026-06-03T06:24:20Z,c5112bbf-752c-41e7-9c61-4c81e6a77463,Midnight Tilling,F1,alpha_exact:M:Midnight Tilling,0.892
+2026-06-03T06:24:20,Midnight Tilling,c5112bbf-752c-41e7-9c61-4c81e6a77463,F1,alpha_exact:M:Midnight Tilling
+2026-06-03T06:25:36Z,6d62fcbb-f1a0-46ce-a4af-2a33bcc3ac8e,Crossroads Watcher,B3,alpha_exact:C:Crossroads Watcher,0.912
+2026-06-03T06:27:42Z,6d62fcbb-f1a0-46ce-a4af-2a33bcc3ac8e,Crossroads Watcher,B3,alpha_exact:C:Crossroads Watcher,0.713
+2026-06-03T06:28:12Z,6d62fcbb-f1a0-46ce-a4af-2a33bcc3ac8e,Crossroads Watcher,B3,alpha_exact:C:Crossroads Watcher,0.713
+2026-06-03T06:28:50Z,6d62fcbb-f1a0-46ce-a4af-2a33bcc3ac8e,Crossroads Watcher,B3,alpha_exact:C:Crossroads Watcher,0.887
+2026-06-03T06:28:50Z,6d62fcbb-f1a0-46ce-a4af-2a33bcc3ac8e,Crossroads Watcher,B3,alpha_exact:C:Crossroads Watcher,0.887
+2026-06-03T06:28:50,Crossroads Watcher,6d62fcbb-f1a0-46ce-a4af-2a33bcc3ac8e,B3,alpha_exact:C:Crossroads Watcher
+2026-06-03T06:29:39Z,65c057a7-70af-4464-bd8d-1e7e158d1ae7,Prismabasher,G1,alpha_exact:P:Prismabasher,0.832
+2026-06-03T06:29:39Z,65c057a7-70af-4464-bd8d-1e7e158d1ae7,Prismabasher,G1,alpha_exact:P:Prismabasher,0.832
+2026-06-03T06:29:39,Prismabasher,65c057a7-70af-4464-bd8d-1e7e158d1ae7,G1,alpha_exact:P:Prismabasher
+2026-06-03T06:30:37Z,0bef3905-24f8-419b-aeca-396adfc6d0dc,Unforgiving Aim,H3,alpha_exact:U:Unforgiving Aim,0.710
+2026-06-03T06:30:37Z,0bef3905-24f8-419b-aeca-396adfc6d0dc,Unforgiving Aim,H3,alpha_exact:U:Unforgiving Aim,0.710
+2026-06-03T06:30:37,Unforgiving Aim,0bef3905-24f8-419b-aeca-396adfc6d0dc,H3,alpha_exact:U:Unforgiving Aim
+2026-06-03T06:31:40Z,38b17a3c-4457-47e3-986e-ff0b94c41b1a,Bristlebane Outrider,H2,alpha_exact:B:Bristlebane Outrider,0.842
+2026-06-03T06:31:40Z,38b17a3c-4457-47e3-986e-ff0b94c41b1a,Bristlebane Outrider,H2,alpha_exact:B:Bristlebane Outrider,0.842
+2026-06-03T06:31:40,Bristlebane Outrider,38b17a3c-4457-47e3-986e-ff0b94c41b1a,H2,alpha_exact:B:Bristlebane Outrider
+2026-06-03T06:32:39Z,d4a7c9bc-81c8-4c31-96a9-eb6ba7715e7f,Mistmeadow Council,F1,alpha_exact:M:Mistmeadow Council,0.834
+2026-06-03T06:32:39Z,d4a7c9bc-81c8-4c31-96a9-eb6ba7715e7f,Mistmeadow Council,F1,alpha_exact:M:Mistmeadow Council,0.834
+2026-06-03T06:32:39,Mistmeadow Council,d4a7c9bc-81c8-4c31-96a9-eb6ba7715e7f,F1,alpha_exact:M:Mistmeadow Council
+2026-06-03T06:33:43Z,098150bc-a865-48d0-95c2-39c2bee9bbb4,Jamie McCrimmon,E1,alpha_exact:J:Jamie McCrimmon,0.732
+2026-06-03T06:33:43Z,098150bc-a865-48d0-95c2-39c2bee9bbb4,Jamie McCrimmon,E1,alpha_exact:J:Jamie McCrimmon,0.732
+2026-06-03T06:33:43,Jamie McCrimmon,098150bc-a865-48d0-95c2-39c2bee9bbb4,E1,alpha_exact:J:Jamie McCrimmon
+2026-06-03T06:36:03Z,76e80656-6bcb-4d99-8bd2-ca5f75f40daf,Dawn's Light Archer,C1,alpha_exact:D:Dawn's Light Archer,0.777
+2026-06-03T06:36:52Z,76e80656-6bcb-4d99-8bd2-ca5f75f40daf,Dawn's Light Archer,C1,alpha_exact:D:Dawn's Light Archer,0.777
+2026-06-03T06:36:52Z,76e80656-6bcb-4d99-8bd2-ca5f75f40daf,Dawn's Light Archer,C1,alpha_exact:D:Dawn's Light Archer,0.777
+2026-06-03T06:36:52,Dawn's Light Archer,76e80656-6bcb-4d99-8bd2-ca5f75f40daf,C1,alpha_exact:D:Dawn's Light Archer
+2026-06-03T06:37:50Z,63c573fe-e74c-48ca-ad05-92f37dc466f1,Vinebred Brawler,I1,alpha_exact:V:Vinebred Brawler,0.873
+2026-06-03T06:37:50Z,63c573fe-e74c-48ca-ad05-92f37dc466f1,Vinebred Brawler,I1,alpha_exact:V:Vinebred Brawler,0.873
+2026-06-03T06:37:50,Vinebred Brawler,63c573fe-e74c-48ca-ad05-92f37dc466f1,I1,alpha_exact:V:Vinebred Brawler
+2026-06-03T06:38:53Z,0a66606c-2669-4f0b-ac07-89bd683c1823,Fangkeeper's Familiar,C3,alpha_exact:F:Fangkeeper's Familiar,0.766
+2026-06-03T06:38:53Z,0a66606c-2669-4f0b-ac07-89bd683c1823,Fangkeeper's Familiar,C3,alpha_exact:F:Fangkeeper's Familiar,0.766
+2026-06-03T06:38:53,Fangkeeper's Familiar,0a66606c-2669-4f0b-ac07-89bd683c1823,C3,alpha_exact:F:Fangkeeper's Familiar
+2026-06-03T06:39:45Z,8a39ed44-bc0c-40e2-ba53-cd586c2d5877,Mana Skimmer,F1,alpha_exact:M:Mana Skimmer,0.732
+2026-06-03T06:39:45Z,8a39ed44-bc0c-40e2-ba53-cd586c2d5877,Mana Skimmer,F1,alpha_exact:M:Mana Skimmer,0.732
+2026-06-03T06:39:45,Mana Skimmer,8a39ed44-bc0c-40e2-ba53-cd586c2d5877,F1,alpha_exact:M:Mana Skimmer
+2026-06-03T06:40:40Z,a9767360-d536-4902-9d2d-1f3474ce89d6,Chitinous Graspling,B3,alpha_exact:C:Chitinous Graspling,0.791
+2026-06-03T06:40:40Z,a9767360-d536-4902-9d2d-1f3474ce89d6,Chitinous Graspling,B3,alpha_exact:C:Chitinous Graspling,0.791
+2026-06-03T06:40:40,Chitinous Graspling,a9767360-d536-4902-9d2d-1f3474ce89d6,B3,alpha_exact:C:Chitinous Graspling
+2026-06-03T06:41:41Z,f69f3a27-ecda-4d27-82fe-612ed57dbb28,Feisty Spikeling,C3,alpha_exact:F:Feisty Spikeling,0.818
+2026-06-03T06:41:41Z,f69f3a27-ecda-4d27-82fe-612ed57dbb28,Feisty Spikeling,C3,alpha_exact:F:Feisty Spikeling,0.818
+2026-06-03T06:41:41,Feisty Spikeling,f69f3a27-ecda-4d27-82fe-612ed57dbb28,C3,alpha_exact:F:Feisty Spikeling
+2026-06-03T06:42:32Z,b5918fa5-1d13-447b-8838-633b6b61e791,Chaos Spewer,B3,alpha_exact:C:Chaos Spewer,0.713
+2026-06-03T06:42:32Z,b5918fa5-1d13-447b-8838-633b6b61e791,Chaos Spewer,B3,alpha_exact:C:Chaos Spewer,0.713
+2026-06-03T06:42:32,Chaos Spewer,b5918fa5-1d13-447b-8838-633b6b61e791,B3,alpha_exact:C:Chaos Spewer
+2026-06-03T06:43:22Z,502000a7-a3c1-4259-aea5-ff01724396a1,Gangly Stompling,D1,alpha_exact:G:Gangly Stompling,0.900
+2026-06-03T06:43:22Z,502000a7-a3c1-4259-aea5-ff01724396a1,Gangly Stompling,D1,alpha_exact:G:Gangly Stompling,0.900
+2026-06-03T06:43:22,Gangly Stompling,502000a7-a3c1-4259-aea5-ff01724396a1,D1,alpha_exact:G:Gangly Stompling
+2026-06-03T06:44:15Z,97c33cc2-3573-410a-908b-c0392fff524b,Reaping Willow,G3,alpha_exact:R:Reaping Willow,0.875
+2026-06-03T06:44:15Z,97c33cc2-3573-410a-908b-c0392fff524b,Reaping Willow,G3,alpha_exact:R:Reaping Willow,0.875
+2026-06-03T06:44:15,Reaping Willow,97c33cc2-3573-410a-908b-c0392fff524b,G3,alpha_exact:R:Reaping Willow
+2026-06-03T06:46:01Z,adc6a4c5-4e92-43ee-8d0c-204042965eb7,Hovel Hurler,D2,alpha_exact:H:Hovel Hurler,0.889
+2026-06-03T06:46:01Z,adc6a4c5-4e92-43ee-8d0c-204042965eb7,Hovel Hurler,D2,alpha_exact:H:Hovel Hurler,0.889
+2026-06-03T06:46:01,Hovel Hurler,adc6a4c5-4e92-43ee-8d0c-204042965eb7,D2,alpha_exact:H:Hovel Hurler
+2026-06-03T06:47:02Z,22d20c0d-176d-49c9-aa0b-2c5778548cc5,Wary Farmer,I2,alpha_exact:W:Wary Farmer,0.858
+2026-06-03T06:47:02Z,22d20c0d-176d-49c9-aa0b-2c5778548cc5,Wary Farmer,I2,alpha_exact:W:Wary Farmer,0.858
+2026-06-03T06:47:02,Wary Farmer,22d20c0d-176d-49c9-aa0b-2c5778548cc5,I2,alpha_exact:W:Wary Farmer
+2026-06-03T06:48:06Z,0691a1a9-18e7-44b7-9a34-764b1ab45a76,Flaring Cinder,C3,alpha_exact:F:Flaring Cinder,0.840
+2026-06-03T06:48:06Z,0691a1a9-18e7-44b7-9a34-764b1ab45a76,Flaring Cinder,C3,alpha_exact:F:Flaring Cinder,0.840
+2026-06-03T06:48:06,Flaring Cinder,0691a1a9-18e7-44b7-9a34-764b1ab45a76,C3,alpha_exact:F:Flaring Cinder
+2026-06-03T06:50:37Z,81251057-f270-4f05-9dc5-205c70e1f295,Summit Sentinel,B1,alpha_exact:S:Summit Sentinel,0.806
+2026-06-03T06:50:37Z,81251057-f270-4f05-9dc5-205c70e1f295,Summit Sentinel,B1,alpha_exact:S:Summit Sentinel,0.806
+2026-06-03T06:50:37,Summit Sentinel,81251057-f270-4f05-9dc5-205c70e1f295,B1,alpha_exact:S:Summit Sentinel
+2026-06-03T06:51:42Z,902f8d86-fde2-4cdf-88f0-bf63d616f3af,Unwelcome Sprite,H3,alpha_exact:U:Unwelcome Sprite,0.775
+2026-06-03T06:51:42Z,902f8d86-fde2-4cdf-88f0-bf63d616f3af,Unwelcome Sprite,H3,alpha_exact:U:Unwelcome Sprite,0.775
+2026-06-03T06:51:42,Unwelcome Sprite,902f8d86-fde2-4cdf-88f0-bf63d616f3af,H3,alpha_exact:U:Unwelcome Sprite
+2026-06-03T06:53:05Z,5201bdeb-ba47-459b-ac0d-603367914578,Blight Rot,H2,alpha_exact:B:Blight Rot,0.912
+2026-06-03T06:53:05Z,5201bdeb-ba47-459b-ac0d-603367914578,Blight Rot,H2,alpha_exact:B:Blight Rot,0.912
+2026-06-03T06:53:05,Blight Rot,5201bdeb-ba47-459b-ac0d-603367914578,H2,alpha_exact:B:Blight Rot
+2026-06-03T06:54:05Z,3bcc24cf-776a-4182-bf77-a611ad90b28f,Creakwood Safewright,B3,alpha_exact:C:Creakwood Safewright,0.844
+2026-06-03T06:54:05Z,3bcc24cf-776a-4182-bf77-a611ad90b28f,Creakwood Safewright,B3,alpha_exact:C:Creakwood Safewright,0.844
+2026-06-03T06:54:05,Creakwood Safewright,3bcc24cf-776a-4182-bf77-a611ad90b28f,B3,alpha_exact:C:Creakwood Safewright
+2026-06-03T06:55:33Z,1a696fe5-410c-4699-b1d1-1a9c771d664a,Voracious Tome-Skimmer,I1,alpha_exact:V:Voracious Tome-Skimmer,0.734
+2026-06-03T06:55:33Z,1a696fe5-410c-4699-b1d1-1a9c771d664a,Voracious Tome-Skimmer,I1,alpha_exact:V:Voracious Tome-Skimmer,0.734
+2026-06-03T06:55:33,Voracious Tome-Skimmer,1a696fe5-410c-4699-b1d1-1a9c771d664a,I1,alpha_exact:V:Voracious Tome-Skimmer
+2026-06-03T06:56:36Z,034d4543-2c53-4cda-acfd-7f26b8dd17fb,C.A.M.P.,B3,alpha_exact:C:C.A.M.P.,0.713
+2026-06-03T06:56:36Z,034d4543-2c53-4cda-acfd-7f26b8dd17fb,C.A.M.P.,B3,alpha_exact:C:C.A.M.P.,0.713
+2026-06-03T06:56:36,C.A.M.P.,034d4543-2c53-4cda-acfd-7f26b8dd17fb,B3,alpha_exact:C:C.A.M.P.
+2026-06-03T06:59:07Z,f69f3a27-ecda-4d27-82fe-612ed57dbb28,Feisty Spikeling,C3,alpha_exact:F:Feisty Spikeling,0.786
+2026-06-03T06:59:07Z,f69f3a27-ecda-4d27-82fe-612ed57dbb28,Feisty Spikeling,C3,alpha_exact:F:Feisty Spikeling,0.786
+2026-06-03T06:59:07,Feisty Spikeling,f69f3a27-ecda-4d27-82fe-612ed57dbb28,C3,alpha_exact:F:Feisty Spikeling
+2026-06-03T07:00:07Z,3d5a3e25-c17a-47b1-a36d-d24d50e5bab3,Stoic Grove-Guide,B1,alpha_exact:S:Stoic Grove-Guide,0.863
+2026-06-03T07:00:07Z,3d5a3e25-c17a-47b1-a36d-d24d50e5bab3,Stoic Grove-Guide,B1,alpha_exact:S:Stoic Grove-Guide,0.863
+2026-06-03T07:00:07,Stoic Grove-Guide,3d5a3e25-c17a-47b1-a36d-d24d50e5bab3,B1,alpha_exact:S:Stoic Grove-Guide
+2026-06-03T07:00:51Z,902f8d86-fde2-4cdf-88f0-bf63d616f3af,Unwelcome Sprite,H3,alpha_exact:U:Unwelcome Sprite,0.825
+2026-06-03T07:00:51Z,902f8d86-fde2-4cdf-88f0-bf63d616f3af,Unwelcome Sprite,H3,alpha_exact:U:Unwelcome Sprite,0.825
+2026-06-03T07:00:51,Unwelcome Sprite,902f8d86-fde2-4cdf-88f0-bf63d616f3af,H3,alpha_exact:U:Unwelcome Sprite
+2026-06-03T07:01:53Z,0e07a16f-d836-40f9-85e3-a78582a97109,Channel,B3,alpha_exact:C:Channel,0.750
+2026-06-03T07:01:53Z,0e07a16f-d836-40f9-85e3-a78582a97109,Channel,B3,alpha_exact:C:Channel,0.750
+2026-06-03T07:01:53,Channel,0e07a16f-d836-40f9-85e3-a78582a97109,B3,alpha_exact:C:Channel
+2026-06-03T07:03:25Z,1c672d38-a1a6-4912-a9a6-b11e7bf0cc67,Timid Shieldbearer,B2,alpha_exact:T:Timid Shieldbearer,0.875
+2026-06-03T07:03:25Z,1c672d38-a1a6-4912-a9a6-b11e7bf0cc67,Timid Shieldbearer,B2,alpha_exact:T:Timid Shieldbearer,0.875
+2026-06-03T07:03:25,Timid Shieldbearer,1c672d38-a1a6-4912-a9a6-b11e7bf0cc67,B2,alpha_exact:T:Timid Shieldbearer
+2026-06-03T07:04:10Z,00ddbe6c-11de-4bc6-aabe-d6d8385a838a,Goldmeadow Nomad,D1,alpha_exact:G:Goldmeadow Nomad,0.763
+2026-06-03T07:04:10Z,00ddbe6c-11de-4bc6-aabe-d6d8385a838a,Goldmeadow Nomad,D1,alpha_exact:G:Goldmeadow Nomad,0.763
+2026-06-03T07:04:10,Goldmeadow Nomad,00ddbe6c-11de-4bc6-aabe-d6d8385a838a,D1,alpha_exact:G:Goldmeadow Nomad
+2026-06-03T07:04:59Z,88a79f3e-ca74-467c-b0a8-22802ac5b465,Riverguard's Reflexes,G3,alpha_exact:R:Riverguard's Reflexes,0.800
+2026-06-03T07:04:59Z,88a79f3e-ca74-467c-b0a8-22802ac5b465,Riverguard's Reflexes,G3,alpha_exact:R:Riverguard's Reflexes,0.800
+2026-06-03T07:04:59,Riverguard's Reflexes,88a79f3e-ca74-467c-b0a8-22802ac5b465,G3,alpha_exact:R:Riverguard's Reflexes
+2026-06-03T07:06:30Z,0c44599f-f788-43fa-ace3-a521f15256ad,Leshrac's Rite,E3,alpha_exact:L:Leshrac's Rite,0.721
+2026-06-03T07:06:30Z,0c44599f-f788-43fa-ace3-a521f15256ad,Leshrac's Rite,E3,alpha_exact:L:Leshrac's Rite,0.721
+2026-06-03T07:06:30,Leshrac's Rite,0c44599f-f788-43fa-ace3-a521f15256ad,E3,alpha_exact:L:Leshrac's Rite
+2026-06-03T07:07:36Z,20aa5ffa-e393-47a1-8ebb-61d461e904ed,Crib Swap,B3,alpha_exact:C:Crib Swap,0.835
+2026-06-03T07:07:36Z,20aa5ffa-e393-47a1-8ebb-61d461e904ed,Crib Swap,B3,alpha_exact:C:Crib Swap,0.835
+2026-06-03T07:07:36,Crib Swap,20aa5ffa-e393-47a1-8ebb-61d461e904ed,B3,alpha_exact:C:Crib Swap
+2026-06-03T07:09:04Z,d32d0336-5140-41f9-bc67-f3d743b9231d,Flock Impostor,C3,alpha_exact:F:Flock Impostor,0.772
+2026-06-03T07:09:04Z,d32d0336-5140-41f9-bc67-f3d743b9231d,Flock Impostor,C3,alpha_exact:F:Flock Impostor,0.772
+2026-06-03T07:09:04,Flock Impostor,d32d0336-5140-41f9-bc67-f3d743b9231d,C3,alpha_exact:F:Flock Impostor
+2026-06-03T07:10:06Z,00ddbe6c-11de-4bc6-aabe-d6d8385a838a,Goldmeadow Nomad,D1,alpha_exact:G:Goldmeadow Nomad,0.907
+2026-06-03T07:10:06Z,00ddbe6c-11de-4bc6-aabe-d6d8385a838a,Goldmeadow Nomad,D1,alpha_exact:G:Goldmeadow Nomad,0.907
+2026-06-03T07:10:06,Goldmeadow Nomad,00ddbe6c-11de-4bc6-aabe-d6d8385a838a,D1,alpha_exact:G:Goldmeadow Nomad
+2026-06-03T07:10:55Z,00cc4de5-f9b2-4a46-a410-b39446a9eaee,Lost in Memories,E3,alpha_exact:L:Lost in Memories,0.734
+2026-06-03T07:10:55Z,00cc4de5-f9b2-4a46-a410-b39446a9eaee,Lost in Memories,E3,alpha_exact:L:Lost in Memories,0.734
+2026-06-03T07:10:55,Lost in Memories,00cc4de5-f9b2-4a46-a410-b39446a9eaee,E3,alpha_exact:L:Lost in Memories
+2026-06-03T07:12:29Z,62ac0052-dd03-4b48-a3a8-15a84fed66d5,"A-Nael, Avizoa Aeronaut",H1,"alpha_exact:A:A-Nael, Avizoa Aeronaut",0.725
+2026-06-03T07:12:29Z,62ac0052-dd03-4b48-a3a8-15a84fed66d5,"A-Nael, Avizoa Aeronaut",H1,"alpha_exact:A:A-Nael, Avizoa Aeronaut",0.725
+2026-06-03T07:12:29,"A-Nael, Avizoa Aeronaut",62ac0052-dd03-4b48-a3a8-15a84fed66d5,H1,"alpha_exact:A:A-Nael, Avizoa Aeronaut"
+2026-06-03T07:13:49Z,388180bd-cc96-4b18-9ddd-18a3f7e06282,Monk,F1,alpha_exact:M:Monk,0.721
+2026-06-03T07:13:49Z,388180bd-cc96-4b18-9ddd-18a3f7e06282,Monk,F1,alpha_exact:M:Monk,0.721
+2026-06-03T07:13:49,Monk,388180bd-cc96-4b18-9ddd-18a3f7e06282,F1,alpha_exact:M:Monk
+2026-06-03T07:47:53Z,3cbb3378-291c-4de6-be98-dd09daa3b828,Fugitive Codebreaker,C3,alpha_exact:F:Fugitive Codebreaker,0.722
+2026-06-03T07:48:32Z,0861bda4-d014-4908-aed5-3f3bf78704cf,Seedpod Caretaker,B1,alpha_exact:S:Seedpod Caretaker,0.719
+2026-06-03T07:49:19Z,7ac6649f-980e-4404-9c05-458c30578ecc,Steal the Show,B1,alpha_exact:S:Steal the Show,0.770
+2026-06-03T07:49:53Z,14cc0679-50eb-43e7-8816-62dcbae222da,Split Decision,B1,alpha_exact:S:Split Decision,0.713

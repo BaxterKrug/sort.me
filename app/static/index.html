@@ -28,6 +28,14 @@
                     <option value="price">Price</option>
                 </select>
             </div>
+            <div class="form-group" style="margin-top: 1rem;">
+                <label for="scryfallFileInput">Card Source (Scryfall JSON)</label>
+                <input id="scryfallFileInput" type="file" class="form-control" accept=".json,.txt,application/json">
+            </div>
+            <button id="importScryfallBtn" class="btn-secondary" onclick="importScryfallSource()" style="width: 100%; margin-bottom: 0.75rem;">
+                Import Card Source File
+            </button>
+            <div id="idSourceStatus" class="result-area" style="min-height: 80px; margin-bottom: 1rem;"></div>
             <button id="calibrateSorterBtn" class="btn-primary" onclick="calibrateSorter()">
                 Calibrate Sorter
             </button>

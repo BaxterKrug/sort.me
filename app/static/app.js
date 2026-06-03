@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCellGrid();
     updateStatus();
     setInterval(updateStatus, 2000);
+    refreshAutoSortStatus();
+    setInterval(refreshAutoSortStatus, 2000);
+    refreshIdSourceStatus();
     
     // Add handler for sort type dropdown
     const sortTypeSelect = document.getElementById('sortType');
@@ -29,11 +32,96 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+function formatBytes(bytes) {
+    if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let index = 0;
+    while (value >= 1024 && index < units.length - 1) {
+        value /= 1024;
+        index += 1;
+    }
+    return `${value.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+}
+
+async function refreshIdSourceStatus() {
+    const statusDiv = document.getElementById('idSourceStatus');
+    if (!statusDiv) return;
+    try {
+        const response = await fetch('/id/source/status');
+        const data = await response.json();
+        const source = data?.source || {};
+        if (!source.exists) {
+            statusDiv.innerHTML = '<div style="color:#ffa500;">No imported card source found. Import your Scryfall default cards JSON.</div>';
+            return;
+        }
+        statusDiv.innerHTML = `
+            <div style="color:#00ff9f; font-weight:600; margin-bottom:0.35rem;">Card source ready</div>
+            <div style="font-size:0.85rem; color:#a0a8be;">Path: ${source.path || 'unknown'}</div>
+            <div style="font-size:0.85rem; color:#a0a8be;">Size: ${formatBytes(source.size_bytes || 0)}</div>
+            <div style="font-size:0.85rem; color:#a0a8be;">Updated: ${source.modified_at || 'unknown'}</div>
+        `;
+    } catch (error) {
+        statusDiv.innerHTML = `<div style="color:#e94560;">Failed to read source status: ${error.message}</div>`;
+    }
+}
+
+async function importScryfallSource() {
+    const fileInput = document.getElementById('scryfallFileInput');
+    const btn = document.getElementById('importScryfallBtn');
+    const statusDiv = document.getElementById('idSourceStatus');
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        if (statusDiv) {
+            statusDiv.innerHTML = '<div style="color:#ffa500;">Choose a Scryfall JSON file first.</div>';
+        }
+        return;
+    }
+
+    const selectedFile = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', selectedFile, selectedFile.name);
+
+    if (btn) btn.disabled = true;
+    if (statusDiv) {
+        statusDiv.innerHTML = '<div style="color:#00d9ff;">Importing card source file...</div>';
+    }
+
+    try {
+        const response = await fetch('/id/source/import', {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) {
+            throw new Error(data.detail || data.message || `Import failed (${response.status})`);
+        }
+        if (statusDiv) {
+            const info = data.import || {};
+            statusDiv.innerHTML = `
+                <div style="color:#00ff9f; font-weight:600; margin-bottom:0.35rem;">Import complete</div>
+                <div style="font-size:0.85rem; color:#a0a8be;">File: ${info.filename || selectedFile.name}</div>
+                <div style="font-size:0.85rem; color:#a0a8be;">Copied: ${formatBytes(info.bytes || selectedFile.size || 0)}</div>
+                <div style="font-size:0.85rem; color:#a0a8be;">Validated: ${info.validated ? 'yes' : 'basic'}</div>
+            `;
+        }
+        fileInput.value = '';
+        await refreshIdSourceStatus();
+    } catch (error) {
+        if (statusDiv) {
+            statusDiv.innerHTML = `<div style="color:#e94560;">Import failed: ${error.message}</div>`;
+        }
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
 let autoSortRunning = false;
 let sortStats = {
     cardsProcessed: 0,
     errors: 0,
-    startTime: null
+    startTime: null,
+    lastElapsedSeconds: 0
 };
 
 async function updateStatus() {
@@ -44,6 +132,36 @@ async function updateStatus() {
         document.getElementById('cameraStatus').textContent = `Camera: ${data.camera?.status || 'Unknown'}`;
     } catch (error) {
         console.error('Status update failed:', error);
+    }
+}
+
+async function refreshAutoSortStatus() {
+    try {
+        const response = await fetch('/auto_sort/status');
+        if (!response.ok) return;
+        const data = await response.json();
+        autoSortRunning = !!data.running;
+
+        const stats = data.stats || {};
+        sortStats.cardsProcessed = stats.cards_processed || 0;
+        sortStats.errors = stats.errors || 0;
+        sortStats.startTime = stats.started_at ? new Date(stats.started_at) : sortStats.startTime;
+
+        const runtime = data.runtime || {};
+        if (autoSortRunning) {
+            document.getElementById('beginSortBtn').style.display = 'none';
+            document.getElementById('stopSortBtn').style.display = 'block';
+            updateSortStatus(runtime.message || 'Auto-sort running');
+        } else {
+            document.getElementById('beginSortBtn').style.display = 'block';
+            document.getElementById('stopSortBtn').style.display = 'none';
+            sortStats.startTime = null;
+            if (runtime.message) {
+                updateSortStatus(runtime.message);
+            }
+        }
+    } catch (error) {
+        console.error('Auto-sort status update failed:', error);
     }
 }
 
@@ -334,320 +452,70 @@ async function takeSingleSnapshot() {
  */
 async function beginAutoSort() {
     if (autoSortRunning) return;
-    autoSortRunning = true;
-    sortStats = { cardsProcessed: 0, errors: 0, startTime: new Date() };
-    let consecutiveErrors = 0;
-    const maxConsecutiveErrors = 5; // Stop after 5 consecutive errors
-    
-    // Track current feeder position to maintain state during error recovery
-    let currentFeederCell = 'A1';
-    
-    // Configuration constants
-    const WAIT_STABILIZATION = 2000;
-    const WAIT_RETRY = 300;  // Reduced to 300ms for faster retries (was 500ms)
-    const WAIT_SNAPSHOT = 500;  // Reduced from 1500ms to 1000ms for faster snapshots
-    const WAIT_AFTER_MOTION = 1000;  // Reduced from 2000ms to 1500ms for faster cycle
-    const MAX_ATTEMPTS = 7;  // Increased from 3 to 7 attempts for better identification
-    const MIN_CONFIDENCE_SCORE = 70;
-    
-    document.getElementById('beginSortBtn').style.display = 'none';
-    document.getElementById('stopSortBtn').style.display = 'block';
-    updateSortStatus('Starting...');
-    
-    // Move to feeder position (A1) before starting
+
+    const sortModeSelect = document.getElementById('sortType');
+    const payload = {
+        sort_mode: sortModeSelect ? sortModeSelect.value : undefined,
+    };
+
     try {
-        const homeResponse = await fetch('/motion/goto/A1', { method: 'POST' });
-        if (!homeResponse.ok) {
-            throw new Error(`Failed to move to A1: ${homeResponse.status}`);
+        const response = await fetch('/auto_sort/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) {
+            throw new Error(data.message || `Auto-sort start failed: ${response.status}`);
         }
-        await homeResponse.json();
-        await new Promise(resolve => setTimeout(resolve, WAIT_STABILIZATION));
+
+        autoSortRunning = true;
+        sortStats = {
+            cardsProcessed: data.stats?.cards_processed || 0,
+            errors: data.stats?.errors || 0,
+            startTime: data.stats?.started_at ? new Date(data.stats.started_at) : new Date(),
+            lastElapsedSeconds: 0,
+        };
+        document.getElementById('beginSortBtn').style.display = 'none';
+        document.getElementById('stopSortBtn').style.display = 'block';
+        updateSortStatus(data.runtime?.message || 'Auto-sort started');
     } catch (error) {
-        console.error('Failed to move to feeder:', error);
+        console.error('Failed to start auto-sort:', error);
+        autoSortRunning = false;
         updateSortStatus(`Error: ${error.message}`);
-        stopAutoSort();
-        return;
-    }
-    
-    while (autoSortRunning) {
-        // Check for too many consecutive errors
-        if (consecutiveErrors >= maxConsecutiveErrors) {
-            updateSortStatus(`Stopped: ${maxConsecutiveErrors} consecutive errors`);
-            stopAutoSort();
-            break;
-        }
-        
-        try {
-            // Retry logic: attempt identification up to 3 times
-            // IMPORTANT: All retries happen BEFORE picking up the card
-            let identification = null;
-            let assignment = null;
-            let data = null;
-            let attempts = 0;
-            let qrHandled = false;
-            
-            while (attempts < MAX_ATTEMPTS && !identification) {
-                attempts++;
-                if (attempts > 1) {
-                    updateSortStatus(`Retry attempt ${attempts}/${MAX_ATTEMPTS}...`);
-                    // Wait between retries, but DO NOT MOVE - retries are for the same card
-                    await new Promise(resolve => setTimeout(resolve, WAIT_RETRY));
-                }
-                
-                // Always wait before taking snapshot to ensure stability
-                await new Promise(resolve => setTimeout(resolve, WAIT_SNAPSHOT));
-                
-                const response = await fetch('/camera/snapshot');
-                if (!response.ok) {
-                    throw new Error(`Snapshot failed: ${response.status} ${response.statusText}`);
-                }
-                data = await response.json();
-                
-                // Debug logging to diagnose identification issues
-                console.log('Snapshot data received:', {
-                    hasFrames: !!data?.frames,
-                    frameCount: data?.frames?.length || 0,
-                    hasOcrTextFrame: !!data.frames?.find(f => f.label === 'ocr_text'),
-                    hasProcessing: !!data?.processing,
-                    hasIdentification: !!data?.processing?.identification,
-                    identificationBest: data?.processing?.identification?.best?.name || 'none',
-                    identificationScore: data?.processing?.identification?.score || 0,
-                    hasAssignment: !!data?.assignment,
-                    assignmentCell: data?.assignment?.cell,
-                });
-                
-                // Safety check: ensure data has required structure
-                if (!data || !data.frames) {
-                    console.error('Invalid snapshot response:', data);
-                    updateSortStatus(`Invalid snapshot data (attempt ${attempts}/${MAX_ATTEMPTS})`);
-                    identification = null;
-                    continue;
-                }
-                
-                // === QR CODE CHECK (first attempt only) ===
-                // Before trying to identify a card, check if a QR code command is present.
-                // The /camera/snapshot endpoint already executes the QR command server-side
-                // (e.g., advances feeder for endstep). We just need to react in the UI loop.
-                if (attempts === 1) {
-                    const qr = data.qr_code;
-                    if (qr && qr.detected && qr.stable) {
-                        const cellLetter = qr.cell ? qr.cell.charAt(0) : '?';
-                        console.log('QR code detected in auto-sort loop:', qr);
-                        if (qr.command === 'endstep') {
-                            // Check if all feeders are complete
-                            if (qr.sort_complete) {
-                                updateSortStatus(`✓ Sort complete - all feeders processed!`);
-                                console.log('All feeders processed - stopping auto-sort');
-                                stopAutoSort();
-                                qrHandled = true;
-                                break;
-                            }
-                            
-                            updateSortStatus(`QR: Column ${cellLetter} complete — advancing to next column…`);
-                            // Wait for feeder mechanism to physically advance before next card
-                            await new Promise(resolve => setTimeout(resolve, WAIT_STABILIZATION));
-                            
-                            // Update tracked feeder position after advancement
-                            try {
-                                const statusResp = await fetch('/feeders/status');
-                                if (statusResp.ok) {
-                                    const statusData = await statusResp.json();
-                                    if (statusData.active_feeder) {
-                                        currentFeederCell = statusData.active_feeder;
-                                        console.log(`Updated current feeder cell to: ${currentFeederCell}`);
-                                    }
-                                }
-                            } catch (e) {
-                                console.warn('Failed to update feeder position after QR:', e);
-                            }
-                            
-                            qrHandled = true;
-                            break;
-                        } else if (qr.command === 'pause') {
-                            updateSortStatus('QR: Pause command received — stopping auto-sort');
-                            stopAutoSort();
-                            qrHandled = true;
-                            break;
-                        }
-                    }
-                }
-                // === END QR CHECK ===
-                
-                // Get identification from data.processing (where it's actually stored)
-                identification = data.processing?.identification;
-                assignment = data.assignment;
-                
-                // Debug logging for identification results
-                console.log('Identification check:', {
-                    hasIdentification: !!identification,
-                    hasBest: !!identification?.best,
-                    cardName: identification?.best?.name,
-                    score: identification?.score,
-                    meetsThreshold: identification?.score >= MIN_CONFIDENCE_SCORE,
-                    hasAssignment: !!assignment,
-                    assignmentCell: assignment?.cell,
-                    assignmentWarning: assignment?.warning,
-                });
-                
-                // Check if there's a warning that should trigger a retry
-                if (assignment && assignment.warning && !assignment.cell) {
-                    console.warn(`Assignment warning: ${assignment.warning} - will retry`);
-                    identification = null;
-                    assignment = null;  // Reset assignment too so we don't use stale data
-                    continue;
-                }
-                
-                // Check if we got a valid identification with sufficient confidence
-                if (identification && identification.best && identification.score >= MIN_CONFIDENCE_SCORE) {
-                    console.log(`Match found: ${identification.best.name} with ${identification.score.toFixed(1)}% confidence`);
-                    if (assignment && assignment.cell) {
-                        console.log(`Assigned to cell: ${assignment.cell}`);
-                    } else {
-                        console.warn('Identification succeeded but assignment is missing or has no cell');
-                    }
-                    break;
-                } else {
-                    // Reset identification if confidence too low or missing
-                    if (identification && identification.best && identification.score < MIN_CONFIDENCE_SCORE) {
-                        console.log(`Low confidence: ${identification.score.toFixed(1)}% < ${MIN_CONFIDENCE_SCORE}% for ${identification.best?.name || 'unknown'} - retrying`);
-                        identification = null;
-                    } else if (!identification || !identification.best) {
-                        console.log(`No identification found (attempt ${attempts}/${MAX_ATTEMPTS})`);
-                        identification = null;
-                    }
-                }
-            }
-            
-            // If a QR command was handled, skip card pickup and go to next loop iteration
-            if (qrHandled) continue;
-            
-            // FIX #3: Validate data after retry loop
-            if (!data || !data.frames) {
-                throw new Error('No valid snapshot data after all retry attempts');
-            }
-            
-            // Log final state after retry loop
-            console.log('After retry loop:', {
-                attempts,
-                maxAttempts: MAX_ATTEMPTS,
-                hasIdentification: !!identification,
-                hasBest: !!identification?.best,
-                cardName: identification?.best?.name,
-                hasAssignment: !!assignment,
-                hasCell: !!assignment?.cell,
-                cellValue: assignment?.cell,
-            });
-            
-            // Handle assignment (even without high-confidence identification)
-            // Assignment can be present for:
-            // 1. High confidence match (has identification.best)
-            // 2. Low confidence match (diverted to K3)
-            // 3. Unidentified cards (should go to ERR1/K3)
-            // 
-            // SAFETY: Card is ONLY grabbed after confirming valid assignment exists
-            // All retries above happen WITHOUT touching the card
-            if (assignment && assignment.cell) {
-                const cardName = identification?.best?.name || 'Unknown card';
-                const reason = assignment.reason || 'unspecified';
-                
-                sortStats.cardsProcessed++;
-                consecutiveErrors = 0; // Reset consecutive error counter on success
-                
-                // Execute full pickup-and-delivery sequence (Z-axis pickup, move to cell, drop, return)
-                // NOTE: Card is grabbed HERE, after valid destination confirmed above
-                try {
-                    const pickupResponse = await fetch('/motion/home_z_and_extrude', { method: 'POST' });
-                    if (!pickupResponse.ok) {
-                        throw new Error(`Failed to execute pickup sequence: ${pickupResponse.status}`);
-                    }
-                    const pickupResult = await pickupResponse.json();
-                    if (!pickupResult.ok) {
-                        throw new Error(`Pickup sequence failed: ${pickupResult.error || 'unknown error'}`);
-                    }
-                    const movedTo = pickupResult.moved_to || assignment.cell;
-                    
-                    // Provide informative status message based on reason
-                    if (reason.includes('low_confidence')) {
-                        updateSortStatus(`Low confidence: ${cardName} → ${movedTo} (divert)`);
-                    } else if (reason.includes('error') || reason.includes('unidentified')) {
-                        updateSortStatus(`Unidentified → ${movedTo} (error)`);
-                    } else {
-                        updateSortStatus(`Sorted ${cardName} to ${movedTo}`);
-                    }
-                    
-                    await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
-                } catch (error) {
-                    console.error('Motion error:', error);
-                    updateSortStatus(`Motion error: ${error.message}`);
-                    sortStats.errors++;
-                    consecutiveErrors++;
-                    
-                    // CRITICAL: After motion error, system may be in unknown state
-                    // Must return to current feeder position (with Z=0) before continuing
-                    updateSortStatus('Recovering from motion error - returning to feeder position...');
-                    try {
-                        // Attempt to return to current feeder position to reset to known safe state (Z=0)
-                        const recoveryResponse = await fetch(`/motion/goto/${currentFeederCell}`, { method: 'POST' });
-                        if (!recoveryResponse.ok) {
-                            // Recovery failed - must stop auto-sort for safety
-                            console.error('CRITICAL: Failed to recover to safe position after motion error');
-                            updateSortStatus('CRITICAL ERROR: Cannot recover to safe position. Auto-sort stopped.');
-                            stopAutoSort();
-                            break;
-                        }
-                        await recoveryResponse.json();
-                        updateSortStatus('Recovered to safe position - continuing...');
-                    } catch (recoveryError) {
-                        console.error('CRITICAL: Recovery failed:', recoveryError);
-                        updateSortStatus('CRITICAL ERROR: Recovery failed. Auto-sort stopped.');
-                        stopAutoSort();
-                        break;
-                    }
-                    
-                    await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
-                }
-            } else {
-                // No assignment after retries - this should be rare as even low confidence cards get assigned to K3
-                // This typically indicates a system error (backend down, invalid response, etc.)
-                sortStats.errors++;
-                consecutiveErrors++;
-                console.error('CRITICAL: No assignment received after all retries - backend may be malfunctioning');
-                updateSortStatus(`Critical error: No assignment received - skipping card`);
-                
-                // Don't try to pick up or move the card since we don't know where to put it
-                // Just stay at current position and continue to next card
-                // The unidentified card will remain at the feeder and can be manually handled
-                await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
-            }
-        } catch (error) {
-            sortStats.errors++;
-            consecutiveErrors++;
-            updateSortStatus(`Error: ${error.message}`);
-            // Try to recover to current feeder position on any unexpected error
-            try {
-                const emergencyResponse = await fetch(`/motion/goto/${currentFeederCell}`, { method: 'POST' });
-                if (emergencyResponse.ok) {
-                    await emergencyResponse.json();
-                    await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
-                    updateSortStatus(`Recovered to feeder after error`);
-                }
-            } catch (emergencyError) {
-                console.error('Emergency recovery failed:', emergencyError);
-            }
-            await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_MOTION));
-        }
+        document.getElementById('beginSortBtn').style.display = 'block';
+        document.getElementById('stopSortBtn').style.display = 'none';
     }
 }
 
 function stopAutoSort() {
-    autoSortRunning = false;
-    document.getElementById('beginSortBtn').style.display = 'block';
-    document.getElementById('stopSortBtn').style.display = 'none';
-    updateSortStatus('Stopped');
+    fetch('/auto_sort/stop', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            autoSortRunning = false;
+            sortStats.cardsProcessed = data.stats?.cards_processed || sortStats.cardsProcessed;
+            sortStats.errors = data.stats?.errors || sortStats.errors;
+            sortStats.lastElapsedSeconds = sortStats.startTime ? Math.max(0, Math.floor((new Date() - sortStats.startTime) / 1000)) : sortStats.lastElapsedSeconds;
+            sortStats.startTime = null;
+            updateSortStatus(data.runtime?.message || 'Stopped');
+            document.getElementById('beginSortBtn').style.display = 'block';
+            document.getElementById('stopSortBtn').style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Failed to stop auto-sort:', error);
+            autoSortRunning = false;
+            sortStats.startTime = null;
+            document.getElementById('beginSortBtn').style.display = 'block';
+            document.getElementById('stopSortBtn').style.display = 'none';
+            updateSortStatus(`Error stopping auto-sort: ${error.message}`);
+        });
 }
 
 function updateSortStatus(message) {
-    const elapsed = sortStats.startTime ? Math.floor((new Date() - sortStats.startTime) / 1000) : 0;
+    const elapsed = sortStats.startTime ? Math.floor((new Date() - sortStats.startTime) / 1000) : (sortStats.lastElapsedSeconds || 0);
+    if (autoSortRunning) {
+        sortStats.lastElapsedSeconds = elapsed;
+    }
     document.getElementById('sortStatus').innerHTML = `
         <div style="color: #00d9ff; margin-bottom: 1rem;">${message}</div>
         <div class="sort-stats">

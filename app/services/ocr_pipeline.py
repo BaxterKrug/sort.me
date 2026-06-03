@@ -1134,6 +1134,7 @@ def prepare_single_snapshot_artifacts(
     jpeg_quality: int = 90,
     persist: bool = True,
     include_bytes: bool = True,
+    min_identify_score: float = 70.0,
 ) -> Dict[str, Any]:
     """Process a single snapshot frame for OCR - simply rotates 90° CCW."""
     save_dir = Path(save_dir) if save_dir is not None else Path("data") / "snapshots"
@@ -1153,13 +1154,84 @@ def prepare_single_snapshot_artifacts(
     # Simply rotate 90° counterclockwise - no orientation detection
     card_portrait = cv2.rotate(card_aligned, cv2.ROTATE_90_COUNTERCLOCKWISE)
     
-    # Extract zones for OCR
     h, w = card_portrait.shape[:2]
-    name_zone_height = 120
-    collector_zone_height = 75
-    
-    name_zone = card_portrait[0:name_zone_height, :].copy()
-    collector_zone = card_portrait[-collector_zone_height:, :].copy()
+    name_zone_height = int(round(min(180, max(90, h * 0.14))))
+    collector_zone_height = int(round(min(120, max(55, h * 0.09))))
+
+    def _evaluate_orientation(card_img: np.ndarray) -> Dict[str, Any]:
+        local_h, local_w = card_img.shape[:2]
+        local_name_h = int(round(min(180, max(90, local_h * 0.14))))
+        local_col_h = int(round(min(120, max(55, local_h * 0.09))))
+
+        local_name_zone = card_img[0:local_name_h, :].copy()
+        local_collector_zone = card_img[-local_col_h:, :].copy()
+        local_zone = _extract_zone_text(local_name_zone, local_collector_zone)
+
+        local_hints = {
+            "name": (0, local_name_h),
+            "collector": (max(0, local_h - local_col_h), local_h),
+        }
+        local_region_map, local_region_meta = _perform_ocr(card_img, region_hints=local_hints)
+
+        zone_name = (local_zone.get("name") or "").strip()
+        region_name = (local_region_map.get("name") or "").strip()
+        zone_name_score = _score_name_text(zone_name)
+        region_name_score = _score_name_text(region_name)
+        raw_name = zone_name if zone_name_score >= region_name_score else region_name
+        chosen_name = raw_name if _score_name_text(raw_name) >= 35.0 else ""
+
+        zone_collector = (local_zone.get("collector") or "").strip()
+        region_collector = (local_region_map.get("collector") or "").strip()
+        zone_col_score = _score_collector_text(zone_collector)
+        region_col_score = _score_collector_text(region_collector)
+        raw_collector = zone_collector if zone_col_score >= region_col_score else region_collector
+        chosen_collector = raw_collector if _score_collector_text(raw_collector) >= 40.0 else ""
+
+        chosen_oracle = (local_region_map.get("oracle") or local_region_map.get("rules") or "").strip()
+        chosen_full = (local_region_map.get("full_text") or local_region_map.get("full") or "").strip()
+        chosen_set = (local_region_map.get("set_symbol") or local_region_map.get("set") or "").strip()
+        chosen_type = (local_region_map.get("type_line") or "").strip()
+
+        quality_score = _score_name_text(chosen_name) + _score_collector_text(chosen_collector)
+        if len(chosen_oracle) >= 24:
+            quality_score += 10.0
+
+        return {
+            "card": card_img,
+            "name_zone_height": local_name_h,
+            "collector_zone_height": local_col_h,
+            "zone": local_zone,
+            "region": local_region_map,
+            "region_meta": local_region_meta,
+            "name": chosen_name,
+            "collector": chosen_collector,
+            "oracle": chosen_oracle,
+            "full": chosen_full,
+            "set": chosen_set,
+            "type_line": chosen_type,
+            "quality": float(quality_score),
+        }
+
+    base_eval = _evaluate_orientation(card_portrait)
+    rotated_eval = _evaluate_orientation(cv2.rotate(card_portrait, cv2.ROTATE_180))
+
+    if rotated_eval["quality"] > base_eval["quality"] + 8.0:
+        selected_eval = rotated_eval
+        selected_orientation = "rotated_180"
+        rotation_method = "fixed_90_ccw_plus_180"
+        rotation_degrees = 270
+    else:
+        selected_eval = base_eval
+        selected_orientation = "base"
+        rotation_method = "fixed_90_ccw"
+        rotation_degrees = 90
+
+    card_portrait = selected_eval["card"]
+    name_zone_height = int(selected_eval["name_zone_height"])
+    collector_zone_height = int(selected_eval["collector_zone_height"])
+    ocr_result = selected_eval["zone"]
+    region_ocr_map = selected_eval["region"]
+    region_ocr_meta = selected_eval["region_meta"]
     
     # Save the actual card with zone overlays for debugging
     debug_dir = Path("data/snapshots")
@@ -1176,6 +1248,8 @@ def prepare_single_snapshot_artifacts(
             cv2.imwrite(str(debug_dir / "debug_card_with_zones.jpg"), card_with_zones)
             
             # Also save the raw extracted zones
+            name_zone = card_portrait[0:name_zone_height, :].copy()
+            collector_zone = card_portrait[-collector_zone_height:, :].copy()
             cv2.imwrite(str(debug_dir / "debug_name_zone_raw.jpg"), name_zone)
             cv2.imwrite(str(debug_dir / "debug_collector_zone_raw.jpg"), collector_zone)
             
@@ -1183,53 +1257,109 @@ def prepare_single_snapshot_artifacts(
         except Exception as e:
             LOG.warning(f"Failed to save debug zones: {e}")
     
-    # Run OCR
-    ocr_result = _extract_zone_text(name_zone, collector_zone)
-    
+    # Build enriched OCR text map for identification
+    ocr_name_raw = (selected_eval.get("name") or "").strip()
+    ocr_collector_raw = (selected_eval.get("collector") or "").strip()
+    ocr_oracle_raw = (region_ocr_map.get("oracle") or region_ocr_map.get("rules") or "").strip()
+    ocr_full_raw = (region_ocr_map.get("full_text") or region_ocr_map.get("full") or "").strip()
+    ocr_set_raw = (region_ocr_map.get("set_symbol") or region_ocr_map.get("set") or "").strip()
+
     # Log OCR results for debugging
-    LOG.info("OCR Result - Name: '%s', Collector: '%s'", 
-             ocr_result.get('name', ''), ocr_result.get('collector', ''))
+    LOG.info(
+        "OCR Result - Name: '%s', Collector: '%s', OracleLen: %d",
+        ocr_name_raw,
+        ocr_collector_raw,
+        len(ocr_oracle_raw),
+    )
     
     # Identify card from OCR result
     db_path = _find_card_database()
     
     identification = None
+    identification_rejected = None
+    identification_status = "unavailable"
+    identification_reason = None
     
     if db_path:
-        # Clean and identify
-        name_clean = text_clean.normalize_card_name(ocr_result.get('name', ''))
+        # Clean and identify using richer OCR fields
+        name_clean = text_clean.normalize_card_name(ocr_name_raw)
         LOG.info("OCR - Normalized name: '%s' (length: %d)", name_clean, len(name_clean))
-        if len(name_clean) >= 2:
-            identification = card_id.identify_card_from_ocr(
-                {'name': name_clean, 'collector': ocr_result.get('collector', ''), 
-                 'oracle': '', 'type_line': ''},
+        id_input = {
+            "name": name_clean,
+            "collector": ocr_collector_raw,
+            "oracle": ocr_oracle_raw,
+            "rules": ocr_oracle_raw,
+            "full": ocr_full_raw,
+            "set": ocr_set_raw,
+            "set_symbol": ocr_set_raw,
+            "type_line": (region_ocr_map.get("type_line") or "").strip(),
+        }
+
+        if len(name_clean) >= 2 or len(ocr_oracle_raw) >= 12:
+            raw_identification = card_id.identify_card_from_ocr(
+                id_input,
                 db_path=str(db_path),
                 top_n=8
             )
-            if identification:
+            raw_score = float(raw_identification.get("score", 0.0)) if isinstance(raw_identification, dict) else 0.0
+            if isinstance(raw_identification, dict) and raw_score >= float(min_identify_score):
+                identification = raw_identification
+                identification_status = "accepted"
+            else:
+                identification_rejected = raw_identification
+                identification_status = "rejected"
+                identification_reason = f"score_below_threshold:{raw_score:.1f}<{float(min_identify_score):.1f}"
+                LOG.warning(
+                    "OCR - Rejected low-confidence identification (score %.1f < %.1f)",
+                    raw_score,
+                    float(min_identify_score),
+                )
+
+            if raw_identification:
                 LOG.info("OCR - Best match: '%s' (score: %.1f)", 
-                        identification.get('best', {}).get('name', 'unknown'),
-                        identification.get('score', 0.0))
+                        raw_identification.get('best', {}).get('name', 'unknown'),
+                        raw_identification.get('score', 0.0))
         else:
             LOG.warning("OCR - Name too short after normalization, skipping identification")
+            identification_status = "rejected"
+            identification_reason = "insufficient_ocr_text"
     
     # Create visualization with zone highlights
     card_vis = _create_zone_visualization(card_portrait, name_zone_height, collector_zone_height)
     
     # Build OCR text map
-    ocr_text_map = ocr_result.copy()
-    ocr_text_map.update({"oracle": "", "type_line": ""})
+    ocr_text_map = {
+        "name": ocr_name_raw,
+        "collector": ocr_collector_raw,
+        "oracle": ocr_oracle_raw,
+        "rules": ocr_oracle_raw,
+        "full": (region_ocr_map.get("full") or "").strip(),
+        "full_text": ocr_full_raw,
+        "set": ocr_set_raw,
+        "set_symbol": ocr_set_raw,
+        "type_line": (region_ocr_map.get("type_line") or "").strip(),
+    }
     
     # Build metadata (simplified - no orientation comparison)
     meta = {
         "timestamp": timestamp_slug,
         "border": border_meta,
         "rotation": {
-            "method": "fixed_90_ccw",
-            "degrees": 90,
+            "method": rotation_method,
+            "degrees": rotation_degrees,
         },
         "zone_ocr": ocr_text_map,
+        "ocr_engine": region_ocr_meta,
+        "selected_orientation": selected_orientation,
+        "orientation_quality": {
+            "base": base_eval["quality"],
+            "rotated_180": rotated_eval["quality"],
+        },
+        "identification_status": identification_status,
+        "identification_reason": identification_reason,
+        "min_identify_score": float(min_identify_score),
         "identification": identification,
+        "identification_rejected": identification_rejected,
     }
     
     # Encode images
@@ -1320,116 +1450,50 @@ def _extract_zone_text(name_zone: np.ndarray, collector_zone: np.ndarray) -> Dic
             except Exception:
                 pass
         
-        # Try multiple OCR strategies and use consensus voting
-        results = []
-        
-        # Try different PSM modes without restrictive character whitelist
+        name_text = ""
+        name_candidates: List[str] = []
         configs = [
-            ('psm6', '--oem 1 --psm 6 -c preserve_interword_spaces=1'),  # Uniform block of text
-            ('psm7', '--oem 1 --psm 7 -c preserve_interword_spaces=1'),  # Single line
-            ('psm13', '--oem 1 --psm 13'),  # Raw line (no assumptions)
-            ('psm3', '--oem 1 --psm 3 -c preserve_interword_spaces=1'),  # Fully automatic
+            ("psm7", "--oem 1 --psm 7 -c preserve_interword_spaces=1"),
+            ("psm6", "--oem 1 --psm 6 -c preserve_interword_spaces=1"),
+            ("psm13", "--oem 1 --psm 13"),
         ]
-        
-        # Strategy 1: Try different PSM modes on normal grayscale
-        for psm_name, config in configs:
-            try:
-                text = pytesseract.image_to_string(name_prepared, config=config, lang="eng").strip()
-                if text:  # Only log and save if we got something
-                    LOG.info(f"OCR Strategy {psm_name}: '{text}' (len={len(text)})")
-                    results.append((psm_name, text))
-            except Exception as e:
-                LOG.debug(f"OCR Strategy {psm_name} failed: {e}")
-        
-        # Strategy 2: Inverted image with best PSM modes
+
+        variants: List[Tuple[str, np.ndarray]] = [("base", name_prepared)]
         try:
             name_inverted = cv2.bitwise_not(name_prepared)
+            variants.append(("inv", name_inverted))
             if debug_dir.exists():
                 cv2.imwrite(str(debug_dir / "debug_name_inverted.jpg"), name_inverted)
-            
-            for psm_name, config in configs[:2]:  # Try PSM 6 and 7 on inverted
-                try:
-                    text = pytesseract.image_to_string(name_inverted, config=config, lang="eng").strip()
-                    if text:
-                        LOG.info(f"OCR Strategy {psm_name}_inv: '{text}' (len={len(text)})")
-                        results.append((f'{psm_name}_inv', text))
-                except Exception:
-                    pass
-        except Exception as e:
-            LOG.debug(f"Inverted strategy failed: {e}")
-        
-        # Strategy 3: Binary threshold with Otsu's method
+        except Exception:
+            pass
         try:
             _, name_binary = cv2.threshold(name_prepared, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            variants.append(("otsu", name_binary))
             if debug_dir.exists():
                 cv2.imwrite(str(debug_dir / "debug_name_otsu.jpg"), name_binary)
-            
-            for psm_name, config in configs[:2]:  # Try PSM 6 and 7 on binary
+        except Exception:
+            pass
+
+        for variant_name, variant_img in variants:
+            for psm_name, config in configs:
                 try:
-                    text = pytesseract.image_to_string(name_binary, config=config, lang="eng").strip()
-                    if text:
-                        LOG.info(f"OCR Strategy {psm_name}_otsu: '{text}' (len={len(text)})")
-                        results.append((f'{psm_name}_otsu', text))
+                    text = pytesseract.image_to_string(variant_img, config=config, lang="eng").strip()
                 except Exception:
-                    pass
-        except Exception as e:
-            LOG.debug(f"Binary threshold strategy failed: {e}")
-        
-        # Consensus voting: pick the result that appears most similar across strategies
-        # relaxed for debugging
-        name_text = ""
-        if not results:
-            LOG.warning("✗ No OCR strategies returned any text")
-        elif len(results) >= 2:
-            # Check for consensus by comparing normalized first 10 characters
-            from collections import Counter
-            import re
-            normalized_results = []
-            for strategy, text in results:
-                # Clean and normalize: remove extra whitespace, lowercase
-                cleaned = re.sub(r'\s+', ' ', text.strip()).lower()
-                # Take first 10 chars as signature (or full text if shorter)
-                sig = cleaned[:10] if len(cleaned) >= 10 else cleaned
-                if len(sig) >= 3:  # Lowered from 5 to 3 for debugging
-                    normalized_results.append((sig, text, strategy, cleaned))
-            
-            # Count matching signatures
-            if normalized_results:
-                sig_counts = Counter(sig for sig, _, _, _ in normalized_results)
-                most_common_sig, count = sig_counts.most_common(1)[0]
-                
-                if count >= 2:
-                    # At least 2 strategies agree - use the longest matching result
-                    matching = [text for sig, text, _, _ in normalized_results if sig == most_common_sig]
-                    name_text = max(matching, key=len)
-                    LOG.info(f"✓ Consensus found ({count}/{len(results)} strategies agree): '{name_text}'")
-                else:
-                    # No clear consensus - use longest result if ≥5 chars
-                    longest = max((text for _, text in results), key=len, default="")
-                    
-                    if len(longest) >= 5:  # Lowered from 8
-                        name_text = longest
-                        LOG.warning(f"⚠ No consensus - using longest (≥5 chars): '{name_text}'")
-                    else:
-                        # Last resort: take anything ≥3 chars
-                        if len(longest) >= 3:
-                            name_text = longest
-                            LOG.warning(f"⚠⚠ Taking longest result (≥3 chars): '{name_text}'")
-                        else:
-                            name_text = ""
-                            LOG.warning(f"✗ All results too short (< 3 chars) - rejecting")
+                    continue
+                if not text:
+                    continue
+                LOG.info("OCR Strategy %s_%s: '%s' (len=%d)", variant_name, psm_name, text, len(text))
+                name_candidates.append(text)
+
+        if name_candidates:
+            best_name = max(name_candidates, key=_score_name_text)
+            best_name_score = _score_name_text(best_name)
+            if best_name_score >= 35.0:
+                name_text = text_clean.normalize_card_name(best_name)
             else:
-                # All results too short - reject
-                LOG.warning(f"✗ All OCR results < 3 chars - rejecting")
-                name_text = ""
+                LOG.warning("✗ Name OCR candidates too weak (best_score=%.1f)", best_name_score)
         else:
-            # Only one strategy succeeded - accept if ≥3 chars
-            if len(results[0][1]) >= 3:
-                name_text = results[0][1]
-                LOG.info(f"Single strategy result (≥3 chars): '{name_text}'")
-            else:
-                name_text = ""
-                LOG.warning(f"✗ Single strategy result too short (< 3 chars) - rejecting")
+            LOG.warning("✗ No OCR strategies returned any name text")
         
         LOG.info(f"Final name OCR result: '{name_text}' (len={len(name_text)})")
         result["name"] = name_text
@@ -1445,25 +1509,44 @@ def _extract_zone_text(name_zone: np.ndarray, collector_zone: np.ndarray) -> Dic
                 pass
         
         # Try multiple PSM modes for collector number
-        collector_results = []
+        collector_results: List[str] = []
         collector_configs = [
-            ('psm7', '--oem 1 --psm 7'),  # Single line
-            ('psm6', '--oem 1 --psm 6'),  # Uniform block
-            ('psm13', '--oem 1 --psm 13'),  # Raw line
+            ('psm7', f'--oem 1 --psm 7 -c tessedit_char_whitelist={COLLECTOR_CHAR_WHITELIST}'),
+            ('psm6', f'--oem 1 --psm 6 -c tessedit_char_whitelist={COLLECTOR_CHAR_WHITELIST}'),
+            ('psm13', f'--oem 1 --psm 13 -c tessedit_char_whitelist={COLLECTOR_CHAR_WHITELIST}'),
         ]
-        
-        for psm_name, config in collector_configs:
-            try:
-                text = pytesseract.image_to_string(collector_prepared, config=config, lang="eng").strip()
+
+        collector_variants: List[Tuple[str, np.ndarray]] = [("base", collector_prepared)]
+        try:
+            collector_inverted = cv2.bitwise_not(collector_prepared)
+            collector_variants.append(("inv", collector_inverted))
+        except Exception:
+            pass
+        try:
+            _, collector_binary = cv2.threshold(collector_prepared, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            collector_variants.append(("otsu", collector_binary))
+        except Exception:
+            pass
+
+        for variant_name, variant_img in collector_variants:
+            for psm_name, config in collector_configs:
+                try:
+                    text = pytesseract.image_to_string(variant_img, config=config, lang="eng").strip()
+                except Exception:
+                    continue
                 if text:
-                    LOG.info(f"Collector OCR {psm_name}: '{text}' (len={len(text)})")
+                    LOG.info("Collector OCR %s_%s: '%s' (len=%d)", variant_name, psm_name, text, len(text))
                     collector_results.append(text)
-            except Exception:
-                pass
         
-        # Use first non-empty result or longest
+        # Choose the most collector-like OCR candidate
         if collector_results:
-            result["collector"] = max(collector_results, key=len)
+            best_collector = max(collector_results, key=_score_collector_text)
+            best_collector_score = _score_collector_text(best_collector)
+            if best_collector_score >= 40.0:
+                result["collector"] = text_clean.normalize_collector(best_collector)
+            else:
+                result["collector"] = ""
+                LOG.warning("✗ Collector OCR candidates too weak (best_score=%.1f)", best_collector_score)
             LOG.info(f"Final collector OCR: '{result['collector']}'")
         else:
             result["collector"] = ""
@@ -1472,6 +1555,52 @@ def _extract_zone_text(name_zone: np.ndarray, collector_zone: np.ndarray) -> Dic
         LOG.warning("Zone OCR failed: %s", exc)
     
     return result
+
+
+def _score_name_text(text: str) -> float:
+    cleaned = text_clean.normalize_card_name(text)
+    if not cleaned:
+        return 0.0
+    if len(cleaned) < 3:
+        return 0.0
+
+    letters = sum(1 for ch in cleaned if ch.isalpha())
+    total = max(1, len(cleaned))
+    alpha_ratio = letters / total
+    words = [w for w in cleaned.split() if w]
+    unique_chars = len(set(cleaned.lower().replace(" ", "")))
+
+    score = 0.0
+    score += min(28.0, len(cleaned) * 2.0)
+    score += alpha_ratio * 45.0
+    score += min(16.0, len(words) * 4.0)
+    if cleaned[:1].isupper():
+        score += 6.0
+    if unique_chars <= 2 and len(cleaned) <= 5:
+        score -= 25.0
+    if cleaned.lower() in {"ee", "re", "rr", "ii", "oo"}:
+        score -= 40.0
+    return max(0.0, score)
+
+
+def _score_collector_text(text: str) -> float:
+    raw = (text or "").strip()
+    if not raw:
+        return 0.0
+    norm = text_clean.normalize_collector(raw)
+    if not norm:
+        return 0.0
+
+    score = 30.0
+    if re.fullmatch(r"\d+[a-z]?(?:/\d+[a-z]?)?", norm):
+        score += 45.0
+    if "/" in norm:
+        score += 8.0
+    if len(norm) >= 2:
+        score += min(12.0, len(norm) * 1.8)
+    if len(set(norm)) <= 2:
+        score -= 12.0
+    return max(0.0, score)
 
 def _find_card_database() -> Optional[Path]:
     """Find the card database JSON file."""

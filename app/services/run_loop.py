@@ -535,6 +535,7 @@ async def _handle_card_identified_async(meta: dict):
     Expects meta to possibly include a source cell (meta['from_cell'] or meta['source_cell']).
     If not provided, will attempt to select a reasonable feeder (cells starting with 'A').
     """
+    global _active_feeder
     try:
         card = Card(
             game=meta.get("game", "mtg"),
@@ -576,7 +577,6 @@ async def _handle_card_identified_async(meta: dict):
 
         # Set active feeder on state so assign_card can route by column
         if source_cell in _FEEDER_SEQUENCE:
-            global _active_feeder
             _active_feeder = source_cell
             state.active_feeder = source_cell
 

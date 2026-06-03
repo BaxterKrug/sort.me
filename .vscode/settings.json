@@ -1,6 +1,7 @@
 {
     "chat.tools.terminal.autoApprove": {
         "timeout": true,
-        "true": true
+        "true": true,
+        "pytest": true
     }
 }

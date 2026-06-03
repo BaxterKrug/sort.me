@@ -1,0 +1,949 @@
+{
+  "timestamp": "20260603-074947-071891",
+  "border": {
+    "found": true,
+    "area": 503905.0,
+    "margin_px": 10,
+    "box": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1079.0,
+        0.0
+      ],
+      [
+        1079.0,
+        719.0
+      ],
+      [
+        0.0,
+        719.0
+      ]
+    ],
+    "dest_width": 1079,
+    "dest_height": 719
+  },
+  "rotation": {
+    "method": "fixed_90_ccw",
+    "degrees": 90
+  },
+  "zone_ocr": {
+    "name": "Cis",
+    "collector": "0130s",
+    "oracle": "Ose one or both \u2014\nm \u00b0 Target player discards any number\npy Cards, then draws that many cards.",
+    "rules": "Ose one or both \u2014\nm \u00b0 Target player discards any number\npy Cards, then draws that many cards.",
+    "full": "4 Choose one or both \u2014\nm \u00b0 Target player discards any number\npy Cards, then draws that many cards.\n}\u00b0 Steal the Show deals damage equal\n# =o the number of instant and sorcer\ncards in your graveyard to target",
+    "full_text": "4 Choose one or both \u2014 m \u00b0 Target player discards any number py Cards, then draws that many cards. }\u00b0 Steal the Show deals damage equal # =o the number of instant and sorcer cards in your graveyard to target Ose one or both \u2014 m \u00b0 Target player discards any number py Cards, then draws that many cards.",
+    "set": "",
+    "set_symbol": "",
+    "type_line": ""
+  },
+  "ocr_engine": {
+    "engine": "tesseract",
+    "psm": 6,
+    "regions": {
+      "full": [
+        0,
+        1079
+      ],
+      "name": [
+        0,
+        151
+      ],
+      "oracle": [
+        264,
+        841
+      ],
+      "set_symbol": [
+        485,
+        668
+      ],
+      "collector": [
+        982,
+        1079
+      ]
+    },
+    "region_hints_used": true,
+    "error": null,
+    "region_hints": {
+      "name": [
+        0,
+        151
+      ],
+      "collector": [
+        982,
+        1079
+      ]
+    },
+    "duration_ms": 493,
+    "engine_attempts": [
+      {
+        "engine": "tesseract",
+        "psm": 6,
+        "duration_ms": 493
+      }
+    ]
+  },
+  "selected_orientation": "base",
+  "orientation_quality": {
+    "base": 155.0,
+    "rotated_180": 151.6
+  },
+  "identification_status": "accepted",
+  "identification_reason": null,
+  "min_identify_score": 70.0,
+  "identification": {
+    "best": {
+      "type_line": "Instant",
+      "name": "Split Decision",
+      "oracle_id": "5f725d51-e133-488c-9ca9-1c7b0523b5bd",
+      "oracle_text": "Will of the council \u2014 Choose target instant or sorcery spell. Starting with you, each player votes for denial or duplication. If denial gets more votes, counter the spell. If duplication gets more votes or the vote is tied, copy the spell. You may choose new targets for the copy.",
+      "lang": "en",
+      "set_name": "Game Night: Free-for-All",
+      "collector_number": "39",
+      "released_at": "2022-10-14",
+      "set": "gn3",
+      "rarity": "uncommon",
+      "prices": {
+        "usd": "2.47",
+        "usd_foil": null,
+        "usd_etched": null,
+        "eur": "1.00",
+        "eur_foil": null,
+        "tix": null
+      },
+      "id": "14cc0679-50eb-43e7-8816-62dcbae222da",
+      "layout": "normal",
+      "scryfall_id": "14cc0679-50eb-43e7-8816-62dcbae222da"
+    },
+    "score": 71.25,
+    "candidates": [
+      {
+        "card": {
+          "type_line": "Instant",
+          "name": "Split Decision",
+          "oracle_id": "5f725d51-e133-488c-9ca9-1c7b0523b5bd",
+          "oracle_text": "Will of the council \u2014 Choose target instant or sorcery spell. Starting with you, each player votes for denial or duplication. If denial gets more votes, counter the spell. If duplication gets more votes or the vote is tied, copy the spell. You may choose new targets for the copy.",
+          "lang": "en",
+          "set_name": "Game Night: Free-for-All",
+          "collector_number": "39",
+          "released_at": "2022-10-14",
+          "set": "gn3",
+          "rarity": "uncommon",
+          "prices": {
+            "usd": "2.47",
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": "1.00",
+            "eur_foil": null,
+            "tix": null
+          },
+          "id": "14cc0679-50eb-43e7-8816-62dcbae222da",
+          "layout": "normal",
+          "scryfall_id": "14cc0679-50eb-43e7-8816-62dcbae222da"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.1875,
+        "collector_score": 0.0,
+        "total_score": 71.25
+      },
+      {
+        "card": {
+          "type_line": "Instant",
+          "name": "Split Decision",
+          "oracle_id": "5f725d51-e133-488c-9ca9-1c7b0523b5bd",
+          "oracle_text": "Will of the council \u2014 Choose target instant or sorcery spell. Starting with you, each player votes for denial or duplication. If denial gets more votes, counter the spell. If duplication gets more votes or the vote is tied, copy the spell. You may choose new targets for the copy.",
+          "lang": "en",
+          "set_name": "Conspiracy",
+          "collector_number": "25",
+          "released_at": "2014-06-06",
+          "set": "cns",
+          "rarity": "uncommon",
+          "prices": {
+            "usd": "2.51",
+            "usd_foil": "6.52",
+            "usd_etched": null,
+            "eur": "0.83",
+            "eur_foil": "4.54",
+            "tix": null
+          },
+          "id": "83ed7ebe-48be-4e6e-a293-b81484f85142",
+          "layout": "normal",
+          "scryfall_id": "83ed7ebe-48be-4e6e-a293-b81484f85142"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.1875,
+        "collector_score": 0.0,
+        "total_score": 71.25
+      },
+      {
+        "card": {
+          "type_line": "Instant",
+          "name": "Decisive Denial",
+          "oracle_id": "2d0bd780-b754-44a3-894c-a9c8aa711f05",
+          "oracle_text": "Choose one \u2014\n\u2022 Target creature you control fights target creature you don't control. (Each deals damage equal to its power to the other.)\n\u2022 Counter target noncreature spell unless its controller pays {3}.",
+          "lang": "en",
+          "set_name": "Magic Online Promos",
+          "collector_number": "90172",
+          "released_at": "2021-05-01",
+          "set": "prm",
+          "rarity": "uncommon",
+          "prices": {
+            "usd": null,
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": null,
+            "eur_foil": null,
+            "tix": null
+          },
+          "id": "2a0afdff-fc73-4ee1-b788-388ad18f632f",
+          "layout": "normal",
+          "scryfall_id": "2a0afdff-fc73-4ee1-b788-388ad18f632f"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.125,
+        "collector_score": 0.0,
+        "total_score": 70.0
+      },
+      {
+        "card": {
+          "type_line": "Instant",
+          "name": "Decisive Denial",
+          "oracle_id": "2d0bd780-b754-44a3-894c-a9c8aa711f05",
+          "oracle_text": "Choose one \u2014\n\u2022 Target creature you control fights target creature you don't control. (Each deals damage equal to its power to the other.)\n\u2022 Counter target noncreature spell unless its controller pays {3}.",
+          "lang": "en",
+          "set_name": "Strixhaven: School of Mages",
+          "collector_number": "382",
+          "released_at": "2021-04-23",
+          "set": "stx",
+          "rarity": "uncommon",
+          "prices": {
+            "usd": "0.43",
+            "usd_foil": "1.00",
+            "usd_etched": null,
+            "eur": "0.27",
+            "eur_foil": "0.75",
+            "tix": null
+          },
+          "id": "36b05c98-7799-4104-a0d0-3632bd5b8846",
+          "layout": "normal",
+          "scryfall_id": "36b05c98-7799-4104-a0d0-3632bd5b8846"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.125,
+        "collector_score": 0.0,
+        "total_score": 70.0
+      },
+      {
+        "card": {
+          "type_line": "Instant",
+          "name": "Decisive Denial",
+          "oracle_id": "2d0bd780-b754-44a3-894c-a9c8aa711f05",
+          "oracle_text": "Choose one \u2014\n\u2022 Target creature you control fights target creature you don't control. (Each deals damage equal to its power to the other.)\n\u2022 Counter target noncreature spell unless its controller pays {3}.",
+          "lang": "en",
+          "set_name": "Breaking News",
+          "collector_number": "42",
+          "released_at": "2024-04-19",
+          "set": "otp",
+          "rarity": "uncommon",
+          "prices": {
+            "usd": "0.29",
+            "usd_foil": "0.24",
+            "usd_etched": null,
+            "eur": "0.11",
+            "eur_foil": "0.20",
+            "tix": "0.04"
+          },
+          "id": "54ee0802-62c1-46ac-907e-82ace59fbddb",
+          "layout": "normal",
+          "scryfall_id": "54ee0802-62c1-46ac-907e-82ace59fbddb"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.125,
+        "collector_score": 0.0,
+        "total_score": 70.0
+      },
+      {
+        "card": {
+          "type_line": "Instant",
+          "name": "Decisive Denial",
+          "oracle_id": "2d0bd780-b754-44a3-894c-a9c8aa711f05",
+          "oracle_text": "Choose one \u2014\n\u2022 Target creature you control fights target creature you don't control. (Each deals damage equal to its power to the other.)\n\u2022 Counter target noncreature spell unless its controller pays {3}.",
+          "lang": "en",
+          "set_name": "Secrets of Strixhaven Commander",
+          "collector_number": "304",
+          "released_at": "2026-04-24",
+          "set": "soc",
+          "rarity": "uncommon",
+          "prices": {
+            "usd": "0.23",
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": "0.24",
+            "eur_foil": null,
+            "tix": "0.02"
+          },
+          "id": "b1ad1949-1c8e-4566-9286-caf240c88fcc",
+          "layout": "normal",
+          "scryfall_id": "b1ad1949-1c8e-4566-9286-caf240c88fcc"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.125,
+        "collector_score": 0.0,
+        "total_score": 70.0
+      },
+      {
+        "card": {
+          "type_line": "Instant",
+          "name": "Decisive Denial",
+          "oracle_id": "2d0bd780-b754-44a3-894c-a9c8aa711f05",
+          "oracle_text": "Choose one \u2014\n\u2022 Target creature you control fights target creature you don't control. (Each deals damage equal to its power to the other.)\n\u2022 Counter target noncreature spell unless its controller pays {3}.",
+          "lang": "en",
+          "set_name": "Strixhaven: School of Mages",
+          "collector_number": "177",
+          "released_at": "2021-04-23",
+          "set": "stx",
+          "rarity": "uncommon",
+          "prices": {
+            "usd": "0.16",
+            "usd_foil": "0.28",
+            "usd_etched": null,
+            "eur": "0.15",
+            "eur_foil": "0.30",
+            "tix": "0.03"
+          },
+          "id": "b2e9d132-95f7-4ee7-9c91-be19e4ad7a5d",
+          "layout": "normal",
+          "scryfall_id": "b2e9d132-95f7-4ee7-9c91-be19e4ad7a5d"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.125,
+        "collector_score": 0.0,
+        "total_score": 70.0
+      },
+      {
+        "card": {
+          "type_line": "Sorcery",
+          "name": "Exorcise",
+          "oracle_id": "58916455-844c-4d97-908f-8205bdc117c0",
+          "oracle_text": "Exile target artifact, enchantment, or creature with power 4 or greater.",
+          "lang": "en",
+          "set_name": "Duskmourn: House of Horror",
+          "collector_number": "8",
+          "released_at": "2024-09-27",
+          "set": "dsk",
+          "rarity": "uncommon",
+          "prices": {
+            "usd": "0.37",
+            "usd_foil": "0.34",
+            "usd_etched": null,
+            "eur": "0.19",
+            "eur_foil": "0.30",
+            "tix": "0.03"
+          },
+          "id": "f49006f2-a097-417d-8eb0-b8016ff2e0d5",
+          "layout": "normal",
+          "scryfall_id": "f49006f2-a097-417d-8eb0-b8016ff2e0d5"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.125,
+        "collector_score": 0.0,
+        "total_score": 70.0
+      },
+      {
+        "card": {
+          "type_line": "Creature \u2014 Orc Warrior",
+          "name": "Orcish Vandal",
+          "oracle_id": "933a1811-7e1a-4173-b1c9-34b2c858ba68",
+          "oracle_text": "{T}, Sacrifice an artifact: This creature deals 2 damage to any target.",
+          "lang": "en",
+          "set_name": "Dominaria",
+          "collector_number": "137",
+          "released_at": "2018-04-27",
+          "set": "dom",
+          "rarity": "uncommon",
+          "prices": {
+            "usd": "0.13",
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": "0.08",
+            "eur_foil": "0.30",
+            "tix": "0.03"
+          },
+          "id": "6192b4ea-f781-4c56-89bc-530f5388b6b5",
+          "layout": "normal",
+          "scryfall_id": "6192b4ea-f781-4c56-89bc-530f5388b6b5"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.125,
+        "collector_score": 0.0,
+        "total_score": 70.0
+      },
+      {
+        "card": {
+          "type_line": "Creature \u2014 Orc Warrior",
+          "name": "Orcish Vandal",
+          "oracle_id": "933a1811-7e1a-4173-b1c9-34b2c858ba68",
+          "oracle_text": "{T}, Sacrifice an artifact: This creature deals 2 damage to any target.",
+          "lang": "en",
+          "set_name": "Double Masters",
+          "collector_number": "137",
+          "released_at": "2020-08-07",
+          "set": "2xm",
+          "rarity": "common",
+          "prices": {
+            "usd": "0.13",
+            "usd_foil": "0.13",
+            "usd_etched": null,
+            "eur": "0.04",
+            "eur_foil": "0.08",
+            "tix": "0.03"
+          },
+          "id": "a6ac010e-bcd9-4e40-91f5-3f6058dca104",
+          "layout": "normal",
+          "scryfall_id": "a6ac010e-bcd9-4e40-91f5-3f6058dca104"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.125,
+        "collector_score": 0.0,
+        "total_score": 70.0
+      },
+      {
+        "card": {
+          "type_line": "Artifact Creature \u2014 Lizard",
+          "name": "Scissors Lizard",
+          "oracle_id": "c0bb1f84-41b6-4465-93aa-089fc1645527",
+          "oracle_text": "Creatures named Paper Tiger can't attack or block.",
+          "lang": "en",
+          "set_name": "Unglued",
+          "collector_number": "80",
+          "released_at": "1998-08-11",
+          "set": "ugl",
+          "rarity": "common",
+          "prices": {
+            "usd": "1.28",
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": "1.29",
+            "eur_foil": null,
+            "tix": null
+          },
+          "id": "c7b3502d-5519-4254-b946-226edc3bd7e4",
+          "layout": "normal",
+          "scryfall_id": "c7b3502d-5519-4254-b946-226edc3bd7e4"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0625,
+        "collector_score": 0.0,
+        "total_score": 68.75
+      },
+      {
+        "card": {
+          "type_line": "Artifact Creature \u2014 Lizard",
+          "name": "Scissors Lizard",
+          "oracle_id": "c0bb1f84-41b6-4465-93aa-089fc1645527",
+          "oracle_text": "Creatures named Paper Tiger can't attack or block.",
+          "lang": "en",
+          "set_name": "Unsanctioned",
+          "collector_number": "83",
+          "released_at": "2020-02-29",
+          "set": "und",
+          "rarity": "common",
+          "prices": {
+            "usd": "0.45",
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": "0.45",
+            "eur_foil": null,
+            "tix": null
+          },
+          "id": "f95ec736-67af-443a-a91a-dfd1b2151030",
+          "layout": "normal",
+          "scryfall_id": "f95ec736-67af-443a-a91a-dfd1b2151030"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0625,
+        "collector_score": 0.0,
+        "total_score": 68.75
+      },
+      {
+        "card": {
+          "type_line": "Creature \u2014 Orc",
+          "name": "Orcish Veteran",
+          "oracle_id": "a3b66180-ee08-4bef-90aa-7859dc77cb10",
+          "oracle_text": "This creature can't block white creatures with power 2 or greater.\n{R}: This creature gains first strike until end of turn.",
+          "lang": "en",
+          "set_name": "Fallen Empires",
+          "collector_number": "62a",
+          "released_at": "1994-11-01",
+          "set": "fem",
+          "rarity": "common",
+          "prices": {
+            "usd": "0.14",
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": "0.13",
+            "eur_foil": null,
+            "tix": null
+          },
+          "id": "1dbca765-8756-4e28-9faf-25714c9b8838",
+          "layout": "normal",
+          "scryfall_id": "1dbca765-8756-4e28-9faf-25714c9b8838"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0625,
+        "collector_score": 0.0,
+        "total_score": 68.75
+      },
+      {
+        "card": {
+          "type_line": "Creature \u2014 Orc",
+          "name": "Orcish Veteran",
+          "oracle_id": "a3b66180-ee08-4bef-90aa-7859dc77cb10",
+          "oracle_text": "This creature can't block white creatures with power 2 or greater.\n{R}: This creature gains first strike until end of turn.",
+          "lang": "en",
+          "set_name": "Fallen Empires",
+          "collector_number": "62c",
+          "released_at": "1994-11-01",
+          "set": "fem",
+          "rarity": "common",
+          "prices": {
+            "usd": "0.15",
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": "0.12",
+            "eur_foil": null,
+            "tix": null
+          },
+          "id": "334004e6-bf8c-4a4e-a30c-1537a99819c9",
+          "layout": "normal",
+          "scryfall_id": "334004e6-bf8c-4a4e-a30c-1537a99819c9"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0625,
+        "collector_score": 0.0,
+        "total_score": 68.75
+      },
+      {
+        "card": {
+          "type_line": "Creature \u2014 Orc",
+          "name": "Orcish Veteran",
+          "oracle_id": "a3b66180-ee08-4bef-90aa-7859dc77cb10",
+          "oracle_text": "This creature can't block white creatures with power 2 or greater.\n{R}: This creature gains first strike until end of turn.",
+          "lang": "en",
+          "set_name": "Fallen Empires",
+          "collector_number": "62d",
+          "released_at": "1994-11-01",
+          "set": "fem",
+          "rarity": "common",
+          "prices": {
+            "usd": "0.15",
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": "0.11",
+            "eur_foil": null,
+            "tix": null
+          },
+          "id": "4990dd4b-2b18-4e4c-81d4-1cd8d746a7dc",
+          "layout": "normal",
+          "scryfall_id": "4990dd4b-2b18-4e4c-81d4-1cd8d746a7dc"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0625,
+        "collector_score": 0.0,
+        "total_score": 68.75
+      },
+      {
+        "card": {
+          "type_line": "Creature \u2014 Orc",
+          "name": "Orcish Veteran",
+          "oracle_id": "a3b66180-ee08-4bef-90aa-7859dc77cb10",
+          "oracle_text": "This creature can't block white creatures with power 2 or greater.\n{R}: This creature gains first strike until end of turn.",
+          "lang": "en",
+          "set_name": "Masters Edition II",
+          "collector_number": "144",
+          "released_at": "2008-09-22",
+          "set": "me2",
+          "rarity": "common",
+          "prices": {
+            "usd": null,
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": null,
+            "eur_foil": null,
+            "tix": "0.04"
+          },
+          "id": "5684b92d-a545-4457-934c-b5d957150cfd",
+          "layout": "normal",
+          "scryfall_id": "5684b92d-a545-4457-934c-b5d957150cfd"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0625,
+        "collector_score": 0.0,
+        "total_score": 68.75
+      },
+      {
+        "card": {
+          "type_line": "Creature \u2014 Orc",
+          "name": "Orcish Veteran",
+          "oracle_id": "a3b66180-ee08-4bef-90aa-7859dc77cb10",
+          "oracle_text": "This creature can't block white creatures with power 2 or greater.\n{R}: This creature gains first strike until end of turn.",
+          "lang": "en",
+          "set_name": "Fallen Empires",
+          "collector_number": "62b",
+          "released_at": "1994-11-01",
+          "set": "fem",
+          "rarity": "common",
+          "prices": {
+            "usd": "0.12",
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": "0.08",
+            "eur_foil": null,
+            "tix": null
+          },
+          "id": "bc37db83-9efc-4d58-90c9-78eef9073ec2",
+          "layout": "normal",
+          "scryfall_id": "bc37db83-9efc-4d58-90c9-78eef9073ec2"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0625,
+        "collector_score": 0.0,
+        "total_score": 68.75
+      },
+      {
+        "card": {
+          "type_line": "Artifact Creature \u2014 Phyrexian Horse",
+          "name": "Incisor Steed",
+          "oracle_id": "dc25033c-4863-4619-886f-7b9976ae1c7c",
+          "oracle_text": "Vigilance\nCorrupted Metalcraft \u2014 As long as you control three or more artifacts and an opponent has three or more poison counters, Incisor Steed gets +3/+0.",
+          "lang": "en",
+          "set_name": "Unknown Event",
+          "collector_number": "CW03",
+          "released_at": "2023-02-17",
+          "set": "unk",
+          "rarity": "common",
+          "prices": {
+            "usd": null,
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": null,
+            "eur_foil": null,
+            "tix": null
+          },
+          "id": "23c7a16c-bc18-4946-a13f-46f0915266e6",
+          "layout": "normal",
+          "scryfall_id": "23c7a16c-bc18-4946-a13f-46f0915266e6"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0625,
+        "collector_score": 0.0,
+        "total_score": 68.75
+      },
+      {
+        "card": {
+          "type_line": "Card // Card",
+          "name": "Asceticism // Asceticism",
+          "oracle_id": "7cbf6a98-9a91-4193-8b26-a0899a550773",
+          "lang": "en",
+          "set_name": "Tales of Middle-earth Art Series",
+          "collector_number": "72",
+          "released_at": "2023-06-23",
+          "set": "altr",
+          "rarity": "common",
+          "prices": {
+            "usd": null,
+            "usd_foil": null,
+            "usd_etched": null,
+            "eur": null,
+            "eur_foil": null,
+            "tix": null
+          },
+          "id": "2e249f76-5f8f-4fd1-bcfa-6c6f8612f646",
+          "layout": "art_series",
+          "scryfall_id": "2e249f76-5f8f-4fd1-bcfa-6c6f8612f646"
+        },
+        "name_score": 90.0,
+        "oracle_score": 0.0,
+        "collector_score": 0.0,
+        "total_score": 67.5
+      }
+    ],
+    "debug": {
+      "ocr_name": "Cis",
+      "ocr_oracle": "Ose one or both \u2014\nm \u00b0 Target player discards any number\npy Cards, then draws that many cards.",
+      "ocr_collector": "0130s",
+      "num_cards_in_db": 114451,
+      "embeddings_dir": "data/embeddings",
+      "ocr_query": "Cis\nOse one or both \u2014\nm \u00b0 Target player discards any number\npy Cards, then draws that many cards.\n0130s\n4 Choose one or both \u2014 m \u00b0 Target player discards any number py Cards, then draws that many cards. }\u00b0 Steal the Show deals damage equal # =o the number of instant and sorcer cards in your graveyard to target Ose one or both \u2014 m \u00b0 Target player discards any number py Cards, then draws that many cards.",
+      "embedding": {
+        "query": "Cis\nOse one or both \u2014\nm \u00b0 Target player discards any number\npy Cards, then draws that many cards.\n0130s\n4 Choose one or both \u2014 m \u00b0 Target player discards any number py Cards, then draws that many cards. }\u00b0 Steal the Show deals damage equal # =o the number of instant and sorcer cards in your graveyard to target Ose one or both \u2014 m \u00b0 Target player discards any number py Cards, then draws that many cards.",
+        "matches": [
+          {
+            "card": {
+              "type_line": "Sorcery",
+              "name": "Steal the Show",
+              "oracle_id": "de403543-e61a-44fc-85e1-1e621d90ca8b",
+              "oracle_text": "Choose one or both \u2014\n\u2022 Target player discards any number of cards, then draws that many cards.\n\u2022 Steal the Show deals damage equal to the number of instant and sorcery cards in your graveyard to target creature or planeswalker.",
+              "lang": "en",
+              "set_name": "Secrets of Strixhaven",
+              "collector_number": "130",
+              "released_at": "2026-04-24",
+              "set": "sos",
+              "rarity": "rare",
+              "prices": {
+                "usd": "0.30",
+                "usd_foil": "0.34",
+                "usd_etched": null,
+                "eur": "0.16",
+                "eur_foil": "0.24",
+                "tix": "0.01"
+              },
+              "id": "7ac6649f-980e-4404-9c05-458c30578ecc",
+              "layout": "normal",
+              "scryfall_id": "7ac6649f-980e-4404-9c05-458c30578ecc"
+            },
+            "distance": 0.3157258186011186,
+            "score": 68.42741813988815,
+            "index": 54846
+          },
+          {
+            "card": {
+              "type_line": "Sorcery",
+              "name": "Steal the Show",
+              "oracle_id": "de403543-e61a-44fc-85e1-1e621d90ca8b",
+              "oracle_text": "Choose one or both \u2014\n\u2022 Target player discards any number of cards, then draws that many cards.\n\u2022 Steal the Show deals damage equal to the number of instant and sorcery cards in your graveyard to target creature or planeswalker.",
+              "lang": "en",
+              "set_name": "Secrets of Strixhaven",
+              "collector_number": "336",
+              "released_at": "2026-04-24",
+              "set": "sos",
+              "rarity": "rare",
+              "prices": {
+                "usd": "0.39",
+                "usd_foil": "0.69",
+                "usd_etched": null,
+                "eur": "0.21",
+                "eur_foil": "0.32",
+                "tix": "0.07"
+              },
+              "id": "eeee78ed-5cb9-4768-87d3-567f1b0ba305",
+              "layout": "normal",
+              "scryfall_id": "eeee78ed-5cb9-4768-87d3-567f1b0ba305"
+            },
+            "distance": 0.3207474684325765,
+            "score": 67.92525315674234,
+            "index": 106859
+          },
+          {
+            "card": {
+              "type_line": "Sorcery",
+              "name": "Steal the Show",
+              "oracle_id": "de403543-e61a-44fc-85e1-1e621d90ca8b",
+              "oracle_text": "Choose one or both \u2014\n\u2022 Target player discards any number of cards, then draws that many cards.\n\u2022 Steal the Show deals damage equal to the number of instant and sorcery cards in your graveyard to target creature or planeswalker.",
+              "lang": "en",
+              "set_name": "Secrets of Strixhaven Promos",
+              "collector_number": "130p",
+              "released_at": "2026-04-24",
+              "set": "psos",
+              "rarity": "rare",
+              "prices": {
+                "usd": null,
+                "usd_foil": null,
+                "usd_etched": null,
+                "eur": "0.06",
+                "eur_foil": "0.02",
+                "tix": null
+              },
+              "id": "1f7b6a8d-98cc-44a7-8699-1e184a4051e9",
+              "layout": "normal",
+              "scryfall_id": "1f7b6a8d-98cc-44a7-8699-1e184a4051e9"
+            },
+            "distance": 0.3409781470336113,
+            "score": 65.90218529663888,
+            "index": 14132
+          },
+          {
+            "card": {
+              "type_line": "Sorcery",
+              "name": "Flux",
+              "oracle_id": "b8cff5f1-6871-49d2-89a7-24870308aadb",
+              "oracle_text": "Each player discards any number of cards, then draws that many cards.\nDraw a card.",
+              "lang": "en",
+              "set_name": "Portal",
+              "collector_number": "55",
+              "released_at": "1997-05-01",
+              "set": "por",
+              "rarity": "uncommon",
+              "prices": {
+                "usd": "0.55",
+                "usd_foil": null,
+                "usd_etched": null,
+                "eur": "0.44",
+                "eur_foil": null,
+                "tix": null
+              },
+              "id": "3c26bf66-8fa8-4f69-9556-c9fcc56a7f33",
+              "layout": "normal",
+              "scryfall_id": "3c26bf66-8fa8-4f69-9556-c9fcc56a7f33"
+            },
+            "distance": 0.39651192487206266,
+            "score": 60.348807512793734,
+            "index": 26909
+          },
+          {
+            "card": {
+              "type_line": "Sorcery",
+              "name": "Flux",
+              "oracle_id": "b8cff5f1-6871-49d2-89a7-24870308aadb",
+              "oracle_text": "Each player discards any number of cards, then draws that many cards.\nDraw a card.",
+              "lang": "en",
+              "set_name": "Weatherlight",
+              "collector_number": "39",
+              "released_at": "1997-06-09",
+              "set": "wth",
+              "rarity": "common",
+              "prices": {
+                "usd": "0.29",
+                "usd_foil": null,
+                "usd_etched": null,
+                "eur": "0.24",
+                "eur_foil": null,
+                "tix": "0.04"
+              },
+              "id": "368b28e4-a367-4a38-866d-c3768bd9b7ad",
+              "layout": "normal",
+              "scryfall_id": "368b28e4-a367-4a38-866d-c3768bd9b7ad"
+            },
+            "distance": 0.43503735198799687,
+            "score": 56.49626480120031,
+            "index": 24502
+          },
+          {
+            "card": {
+              "type_line": "Sorcery",
+              "name": "Flux",
+              "oracle_id": "b8cff5f1-6871-49d2-89a7-24870308aadb",
+              "oracle_text": "Each player discards any number of cards, then draws that many cards.\nDraw a card.",
+              "lang": "en",
+              "set_name": "The List",
+              "collector_number": "POR-55",
+              "released_at": "2024-08-02",
+              "set": "plst",
+              "rarity": "uncommon",
+              "prices": {
+                "usd": "0.24",
+                "usd_foil": null,
+                "usd_etched": null,
+                "eur": "0.25",
+                "eur_foil": null,
+                "tix": null
+              },
+              "id": "f3040124-8c56-468d-8734-3fb3e7519585",
+              "layout": "normal",
+              "scryfall_id": "f3040124-8c56-468d-8734-3fb3e7519585"
+            },
+            "distance": 0.4391995237940376,
+            "score": 56.08004762059624,
+            "index": 108657
+          },
+          {
+            "card": {
+              "type_line": "Instant",
+              "name": "Careful Consideration",
+              "oracle_id": "2b34b361-7b0e-4464-874c-ceb501bc5ecc",
+              "oracle_text": "Target player draws four cards, then discards three cards. If you cast this spell during your main phase, instead that player draws four cards, then discards two cards.",
+              "lang": "en",
+              "set_name": "Modern Masters",
+              "collector_number": "37",
+              "released_at": "2013-06-07",
+              "set": "mma",
+              "rarity": "uncommon",
+              "prices": {
+                "usd": "0.22",
+                "usd_foil": "0.25",
+                "usd_etched": null,
+                "eur": "0.13",
+                "eur_foil": "0.37",
+                "tix": "0.04"
+              },
+              "id": "c6d61bfb-cc58-41a8-8532-e575e789eae3",
+              "layout": "normal",
+              "scryfall_id": "c6d61bfb-cc58-41a8-8532-e575e789eae3"
+            },
+            "distance": 0.4979925960337168,
+            "score": 50.20074039662832,
+            "index": 89059
+          },
+          {
+            "card": {
+              "type_line": "Instant",
+              "name": "Careful Consideration",
+              "oracle_id": "2b34b361-7b0e-4464-874c-ceb501bc5ecc",
+              "oracle_text": "Target player draws four cards, then discards three cards. If you cast this spell during your main phase, instead that player draws four cards, then discards two cards.",
+              "lang": "en",
+              "set_name": "Time Spiral",
+              "collector_number": "52",
+              "released_at": "2006-10-06",
+              "set": "tsp",
+              "rarity": "uncommon",
+              "prices": {
+                "usd": "0.13",
+                "usd_foil": "0.85",
+                "usd_etched": null,
+                "eur": "0.16",
+                "eur_foil": "0.76",
+                "tix": "0.03"
+              },
+              "id": "bcf71574-5b1e-4483-9a8e-c3212148ce9c",
+              "layout": "normal",
+              "scryfall_id": "bcf71574-5b1e-4483-9a8e-c3212148ce9c"
+            },
+            "distance": 0.5001280057935711,
+            "score": 49.987199420642895,
+            "index": 84620
+          }
+        ],
+        "best": {
+          "card": {
+            "type_line": "Sorcery",
+            "name": "Steal the Show",
+            "oracle_id": "de403543-e61a-44fc-85e1-1e621d90ca8b",
+            "oracle_text": "Choose one or both \u2014\n\u2022 Target player discards any number of cards, then draws that many cards.\n\u2022 Steal the Show deals damage equal to the number of instant and sorcery cards in your graveyard to target creature or planeswalker.",
+            "lang": "en",
+            "set_name": "Secrets of Strixhaven",
+            "collector_number": "130",
+            "released_at": "2026-04-24",
+            "set": "sos",
+            "rarity": "rare",
+            "prices": {
+              "usd": "0.30",
+              "usd_foil": "0.34",
+              "usd_etched": null,
+              "eur": "0.16",
+              "eur_foil": "0.24",
+              "tix": "0.01"
+            },
+            "id": "7ac6649f-980e-4404-9c05-458c30578ecc",
+            "layout": "normal",
+            "scryfall_id": "7ac6649f-980e-4404-9c05-458c30578ecc"
+          },
+          "distance": 0.3157258186011186,
+          "score": 68.42741813988815,
+          "index": 54846
+        },
+        "engine": "tfidf-char-ngram",
+        "error": null,
+        "available": true
+      },
+      "embed_skipped_name_mismatch": {
+        "ocr_name": "cis",
+        "embedding_card_name": "Steal the Show",
+        "reason": "embedding_result_does_not_match_ocr_name"
+      }
+    }
+  },
+  "identification_rejected": null
+}
