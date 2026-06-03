@@ -1708,3 +1708,56 @@ timestamp,scryfall_id,name,assigned_cell,reason,confidence
 2026-05-04T15:08:11Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,B1,alpha_exact:S:Stratosoarer,1.000
 2026-05-04T15:12:26Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,B1,alpha_exact:S:Stratosoarer,0.713
 2026-05-04T15:13:06Z,4f607889-6f3f-4511-8920-88a39f3b28ca,Stratosoarer,B1,alpha_exact:S:Stratosoarer,1.000
+2026-05-04T15:29:36Z,214e78f9-5364-49ab-b17e-0c76549c583e,Shinestriker,B1,alpha_exact:S:Shinestriker,1.000
+2026-05-04T15:38:12Z,b319f0e1-6f18-4fea-9f72-a21da5513aa4,"ED-E, Lonesome Eyebot",K3,divert:low_confidence,0.641
+2026-05-04T15:38:20Z,214e78f9-5364-49ab-b17e-0c76549c583e,Shinestriker,B1,alpha_exact:S:Shinestriker,1.000
+2026-05-04T15:39:00Z,33b41832-f549-42e3-871e-e3a03372dbba,Bad Ass,K3,divert:low_confidence,0.675
+2026-05-04T15:39:05Z,77e3ea71-ea9f-4bbf-93cb-0f6339f8a3ab,Coral Atoll,K3,divert:low_confidence,0.450
+2026-05-04T15:39:09Z,bbadf982-f22e-4f4f-b5c9-ac387f25c15f,Gather Specimens,K3,divert:low_confidence,0.675
+2026-05-04T15:39:14Z,ac82422c-8ac8-4fbb-b9b9-d0aa23dded61,Bleeding Edge,K3,divert:low_confidence,0.675
+2026-05-04T15:39:18Z,f434b103-490f-424e-a0a1-efb1b931c8e6,"Mendicant Core, Guidelight",K3,divert:low_confidence,0.675
+2026-05-04T15:39:22Z,a9a425f4-2103-4f96-88a0-91fe554037d7,Rime Chill,G3,alpha_exact:R:Rime Chill,1.000
+2026-05-04T15:40:26Z,b68896f5-1e13-400a-a327-b6c6f00858b7,Citizen's Crowbar,K3,divert:low_confidence,0.675
+2026-05-04T15:40:31Z,ee30527c-0eb1-4b66-9028-1607a960019a,Incite War,K3,divert:low_confidence,0.675
+2026-05-04T15:40:39Z,ee30527c-0eb1-4b66-9028-1607a960019a,Incite War,K3,divert:low_confidence,0.675
+2026-05-04T15:40:43Z,feba2bb6-6005-4ade-a4c5-97bbd54b43a3,Silvergill Peddler,B1,alpha_exact:S:Silvergill Peddler,0.708
+2026-05-04T15:41:26Z,e8978214-c853-453d-872d-af56bdaaa3d7,Unravel,K3,divert:low_confidence,0.675
+2026-05-04T15:41:31Z,8f42d773-c742-4465-b6d5-31feaba49146,Fling,K3,divert:low_confidence,0.600
+2026-05-04T15:41:35Z,a84a12d7-ffb3-4c05-973f-e00fbc2ab6c4,Roc Egg,K3,divert:low_confidence,0.641
+2026-05-04T15:41:39Z,01522fec-9136-4fa6-91a3-370a8bb08b42,Wild Unraveling,I2,alpha_exact:W:Wild Unraveling,1.000
+2026-05-04T15:42:36Z,382b83c0-bbbc-4db8-bc04-cfea79aed1b3,Blossombind,H2,alpha_exact:B:Blossombind,1.000
+2026-05-04T15:43:30Z,ea315dab-e35d-4fdf-8574-b22e70643063,Gild,K3,divert:low_confidence,0.550
+2026-05-04T15:43:35Z,bd764dd4-2395-4138-ac29-260eac1aeaae,Glamer Gifter,D1,alpha_exact:G:Glamer Gifter,1.000
+2026-05-04T15:44:21Z,320bc30c-7a8a-411a-9f36-9c69126e131b,Gravelgill Scoundrel,K3,divert:low_confidence,0.649
+2026-05-04T15:44:25Z,320bc30c-7a8a-411a-9f36-9c69126e131b,Gravelgill Scoundrel,K3,divert:low_confidence,0.689
+2026-05-04T15:44:30Z,320bc30c-7a8a-411a-9f36-9c69126e131b,Gravelgill Scoundrel,K3,divert:low_confidence,0.689
+2026-05-04T15:44:34Z,320bc30c-7a8a-411a-9f36-9c69126e131b,Gravelgill Scoundrel,K3,divert:low_confidence,0.663
+2026-05-04T15:44:39Z,320bc30c-7a8a-411a-9f36-9c69126e131b,Gravelgill Scoundrel,D1,alpha_exact:G:Gravelgill Scoundrel,0.731
+2026-05-04T15:45:31Z,62584e4f-dac1-4d99-ac0a-6a2451603889,Soul Sear,K3,divert:low_confidence,0.675
+2026-05-04T15:45:35Z,2a92c419-8f1e-4604-824d-28b086b54216,Sir Shandlar of Eberyn,K3,divert:low_confidence,0.641
+2026-05-04T15:46:09Z,d2c70d86-1764-487d-a415-15ae79ba570c,Coati Scavenger,K3,divert:low_confidence,0.675
+2026-05-04T15:46:57Z,0a7f0d35-b91e-461a-822c-7ae2798ca51a,Noble Banneret,K3,divert:low_confidence,0.675
+2026-05-04T15:47:06Z,48cb5283-d384-490e-a0a5-2d10c1acc8cc,Nantuko Mentor,K3,divert:low_confidence,0.675
+2026-05-04T15:47:27Z,cec3a260-6c50-401d-a0ff-bf49a973e1a1,Swat,K3,divert:low_confidence,0.675
+2026-05-04T15:47:32Z,3134cf43-7723-4420-be98-c6fc7b5bb49b,Stampeding Wildebeests,K3,divert:low_confidence,0.675
+2026-05-04T15:47:36Z,97873c66-6bff-4d79-850c-1e2663098ef4,Valkyrie's Sword,K3,divert:low_confidence,0.675
+2026-05-04T15:47:41Z,8a77391b-5727-4408-bb50-970f7a13a83c,Tower of Calamities,K3,divert:low_confidence,0.675
+2026-05-04T15:47:56Z,ac82422c-8ac8-4fbb-b9b9-d0aa23dded61,Bleeding Edge,K3,divert:low_confidence,0.675
+2026-05-04T15:49:04Z,cbf593a7-d4ae-4771-926a-3c1b2c8c901a,Wanderwine Distracter,I2,alpha_exact:W:Wanderwine Distracter,1.000
+2026-05-04T15:50:03Z,473123a0-1366-406b-9b9e-154c0e9c224f,Wanderwine Farewell,K3,divert:low_confidence,0.675
+2026-05-04T15:50:08Z,473123a0-1366-406b-9b9e-154c0e9c224f,Wanderwine Farewell,K3,divert:low_confidence,0.643
+2026-05-04T15:50:12Z,f253d4d6-84bc-44a8-8cd6-98f077cadfa3,"Sygg, Wanderwine Wisdom // Sygg, Wanderwine Wisdom",K3,divert:low_confidence,0.641
+2026-05-04T15:50:17Z,473123a0-1366-406b-9b9e-154c0e9c224f,Wanderwine Farewell,K3,divert:low_confidence,0.659
+2026-05-04T15:50:21Z,473123a0-1366-406b-9b9e-154c0e9c224f,Wanderwine Farewell,K3,divert:low_confidence,0.600
+2026-05-04T15:50:26Z,473123a0-1366-406b-9b9e-154c0e9c224f,Wanderwine Farewell,K3,divert:low_confidence,0.675
+2026-05-04T15:50:30Z,b25a7de0-0d5d-4b7a-a1bf-7483fa51392a,Lander,K3,divert:low_confidence,0.563
+2026-05-04T15:51:39Z,a2908ed1-517e-4f1a-94e5-b06fb033c1a6,Lofty Dreams,K3,divert:low_confidence,0.688
+2026-05-04T15:51:44Z,a2908ed1-517e-4f1a-94e5-b06fb033c1a6,Lofty Dreams,K3,divert:low_confidence,0.688
+2026-05-04T15:51:48Z,a2908ed1-517e-4f1a-94e5-b06fb033c1a6,Lofty Dreams,E3,alpha_exact:L:Lofty Dreams,1.000
+2026-05-04T15:52:39Z,1de30c12-2011-495a-be25-f7a46b23e142,"Adeline, Resplendent Cathar",K3,divert:low_confidence,0.561
+2026-05-04T15:52:43Z,ba9fdebd-95c9-49c5-9071-74c631935718,Timeless Lotus // Timeless Lotus,K3,divert:low_confidence,0.563
+2026-05-04T15:52:48Z,c7cdb977-7d5b-4050-bb01-181f6b363de7,Clear,K3,divert:low_confidence,0.562
+2026-05-04T15:52:52Z,fbb5b3f9-0012-4deb-b795-c377cdfe546b,Keimi,K3,divert:low_confidence,0.675
+2026-05-04T15:52:56Z,dfc44b22-c46c-4b7e-91ff-3eff416bb357,D'Avenant Archer,K3,divert:low_confidence,0.641
+2026-05-04T15:53:01Z,6d0dea1b-43dc-4e76-aabd-f12e121a78af,Unmake,K3,divert:low_confidence,0.675
+2026-05-04T15:53:08Z,c7cdb977-7d5b-4050-bb01-181f6b363de7,Clear,K3,divert:low_confidence,0.562
